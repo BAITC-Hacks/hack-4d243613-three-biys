@@ -97,6 +97,15 @@ Screens. Keep it simple: one main action per screen, 44px hit targets, one short
 6. **Settings:** connection form, autostart note, About, Sign out.
 7. **Sign out:** confirm dialog. Collection stops, the token is removed from this computer, back to Sign in.
 
+Icons (B, 16:35) in `collector/renderer/assets/`: `tray.png` (lime LED, collecting), `tray-recording.png` (red LED), `tray-paused.png` (grey LED), each with a `@2x` version that Windows picks on HiDPI screens, and `icon.png` / `icon.ico` for the window and the installer. For A, in `collector/src/main.ts`:
+
+```ts
+const asset = (f: string) => path.join(__dirname, '..', 'renderer', 'assets', f);
+tray = new Tray(nativeImage.createFromPath(asset('tray.png')));   // setImage(asset('tray-recording.png')) while recording
+tray.setToolTip('Көпір Collector');
+// new BrowserWindow({ ..., icon: asset('icon.ico'), autoHideMenuBar: true })
+```
+
 The header shows the status on every screen: "Connected · host · team", "Offline, N queued" or "Paused". Tabs use the brutal style (the active tab is lime with a hard shadow).
 
 Status: the single-window version (Collect, Transcript, Connection) was committed at 15:46. B is adding Sign in, Consent, tabs and Sign out, due about 16:10. Until then please do not edit `collector/renderer/*`; report bugs to Islam.
