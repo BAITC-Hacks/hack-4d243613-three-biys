@@ -1,38 +1,204 @@
 [
   {
-    "id": "card-1",
+    "id": "card-medline",
+    "businessName": "MedLine Clinic",
+    "industry": "Healthcare",
+    "topic": "Chatbots",
+    "skillsNeeded": ["WhatsApp API", "REST API", "security", "Node.js"],
+    "draftText": "Our clinic has 12 doctors and about 200 patient visits per day. Reception fills the appointment book in Google Sheets and patients often come at the wrong time or not at all (~15% no-shows). We would like a reminder system.",
+    "fields": {
+      "title": "Appointment reminders with confirmation and slot release",
+      "context": "The clinic has 12 doctors and about 200 patient visits per day. Reception keeps the appointment book in Google Sheets. Around 15% of patients do not show up or come at the wrong time, so doctors have idle slots.",
+      "need": "Automatically remind patients a day before the visit, let them confirm or cancel, and free the slot when they cancel.",
+      "users": "Reception staff (3 people) and patients who receive the messages",
+      "data": "Appointment book in Google Sheets (columns: date, time, doctor, phone); export of the last 6 months with names removed; no-show statistics per doctor",
+      "constraints": "Patient names must not leave the clinic server — only phone numbers and times may go to the messaging provider; deadline 8 weeks; WhatsApp or SMS",
+      "expectedResult": "A service that reads the appointment sheet, sends WhatsApp/SMS reminders 24 hours before, records confirm/cancel replies and marks freed slots in the sheet.",
+      "successCriteria": "No-show rate drops from 15% to under 8% within a month of the pilot; 90% of reminders delivered; freed slots visible to reception within 5 minutes.",
+      "contact": "Clinic administrator, weekly 30-minute call on Tuesdays, questions in a shared Telegram chat within one business day"
+    },
+    "confirmed": { "title": true, "context": true, "need": true, "users": true, "data": true, "constraints": true, "expectedResult": true, "successCriteria": true, "contact": true },
+    "fieldSource": { "title": "draft", "context": "draft", "need": "draft", "users": "answer", "data": "answer", "constraints": "draft", "expectedResult": "answer", "successCriteria": "answer", "contact": "draft" },
+    "techSpec": {
+      "summary": "Reminder service for a clinic: reads appointments from Google Sheets, sends WhatsApp/SMS reminders 24 h before the visit, processes confirm/cancel replies and frees cancelled slots. Suggested stack is a recommendation.",
+      "scope": ["Sync appointments from Google Sheets every 15 minutes", "Send reminder 24 h before the visit", "Parse replies: confirm / cancel", "Mark cancelled slots as free in the sheet", "Daily delivery report for reception"],
+      "dataInputs": ["Google Sheet: date, time, doctor, phone", "Anonymized 6-month export for testing", "No-show statistics per doctor"],
+      "functionalRequirements": ["Only phone number, date and time are sent to the messaging provider", "Retry failed messages up to 3 times", "Reception can trigger a manual reminder", "Reply keywords work in Kazakh and Russian"],
+      "nonFunctional": ["Runs on the clinic's own server (Docker)", "Message log retained 90 days", "Handles 300 appointments per day"],
+      "acceptanceCriteria": ["No-show rate under 8% in the pilot month", "≥90% reminders delivered", "Freed slot appears in the sheet within 5 minutes"],
+      "suggestedStack": ["Node.js or Go", "Google Sheets API", "WhatsApp Business API or SMS gateway", "PostgreSQL", "Docker"],
+      "openQuestions": ["Which messaging provider does the clinic already have a contract with?", "Should reminders also go to the doctor?"]
+    },
+    "techSpecConfirmed": true,
+    "status": "published",
+    "origin": { "kind": "manual" },
+    "history": [
+      { "ts": "2026-09-10T09:10:00.000Z", "total": 34, "level": "draft", "note": "card created from draft" },
+      { "ts": "2026-09-10T09:40:00.000Z", "total": 71, "level": "ready", "note": "confirmed data, users, expected result" },
+      { "ts": "2026-09-10T10:05:00.000Z", "total": 100, "level": "priority", "note": "published" }
+    ],
+    "suggestions": {},
+    "createdAt": "2026-09-10T09:00:00.000Z",
+    "updatedAt": "2026-09-10T10:05:00.000Z",
+    "publishedAt": "2026-09-10T10:05:00.000Z"
+  },
+  {
+    "id": "card-dala",
+    "businessName": "Dala Market",
+    "industry": "Retail",
+    "topic": "Forecasting",
+    "skillsNeeded": ["Python", "forecasting", "data cleaning", "React"],
+    "draftText": "We have 3 grocery stores in Almaty. Every evening the store managers count leftovers by hand and send photos to WhatsApp; the buyer then decides what to order tomorrow.",
+    "fields": {
+      "title": "Evening stock count and next-day order suggestion for 3 stores",
+      "context": "Three grocery stores in Almaty. Every evening store managers count leftovers by hand and send photos to a WhatsApp group; the buyer decides tomorrow's order from the photos.",
+      "need": "Collect evening counts in a structured form and suggest an order per store so the buyer stops reading photos.",
+      "users": "3 store managers and 1 buyer",
+      "data": "Daily sales export from the 1C cashier system (CSV, 12 months, ~400 SKUs); supplier price list in Excel",
+      "constraints": "Managers use Android phones; the tool must work in a browser; first version in 6 weeks",
+      "expectedResult": "A mobile-friendly web form for the evening count and a page that shows the suggested order for each store based on sales history.",
+      "successCriteria": "Buyer spends under 20 minutes per evening on ordering (now ~60); stock-outs of top-50 SKUs reduced by 30%.",
+      "contact": null
+    },
+    "confirmed": { "title": true, "context": true, "need": true, "users": true, "data": true, "constraints": true, "expectedResult": true, "successCriteria": true },
+    "fieldSource": { "title": "draft", "context": "draft", "need": "draft", "users": "answer", "data": "draft", "constraints": "answer", "expectedResult": "answer", "successCriteria": "answer" },
+    "techSpec": {
+      "summary": "Web tool for three grocery stores: structured evening stock count and a next-day order suggestion computed from 12 months of 1C sales data. Suggested stack is a recommendation.",
+      "scope": ["Mobile-friendly count form per store", "Import daily sales CSV from 1C", "Order suggestion per SKU per store", "Buyer review page with editable quantities"],
+      "dataInputs": ["1C sales export CSV (12 months, ~400 SKUs)", "Supplier price list (Excel)", "Evening counts entered by managers"],
+      "functionalRequirements": ["Suggestion = expected sales for next day minus current stock, rounded to pack size", "Highlight SKUs with unusual demand", "Export the approved order to Excel"],
+      "nonFunctional": ["Works on Android Chrome", "Suggestion computed in under 10 seconds"],
+      "acceptanceCriteria": ["Buyer time under 20 minutes per evening", "Stock-outs of top-50 SKUs reduced by 30% over a month"],
+      "suggestedStack": ["Python + pandas for forecasting", "FastAPI", "React", "PostgreSQL"],
+      "openQuestions": ["Who is the contact person and how often can the team ask questions?", "Is there a pack-size field in the price list?"]
+    },
+    "techSpecConfirmed": true,
+    "status": "published",
+    "origin": { "kind": "manual" },
+    "history": [
+      { "ts": "2026-09-12T14:00:00.000Z", "total": 41, "level": "working", "note": "card created from draft" },
+      { "ts": "2026-09-12T14:30:00.000Z", "total": 90, "level": "priority", "note": "published" }
+    ],
+    "suggestions": {},
+    "createdAt": "2026-09-12T13:50:00.000Z",
+    "updatedAt": "2026-09-12T14:30:00.000Z",
+    "publishedAt": "2026-09-12T14:30:00.000Z"
+  },
+  {
+    "id": "card-qazcargo-seed",
     "businessName": "QazCargo",
     "industry": "Logistics",
     "topic": "Automation",
-    "skillsNeeded": ["Python", "integrations"],
-    "draftText": "Our sales team wastes time moving orders from Excel to the CRM. We want to automate it.",
+    "skillsNeeded": ["Python", "integrations", "REST API"],
+    "draftText": "Dispatchers call drivers every morning to tell them the route. We want a simple app for routes.",
     "fields": {
-      "title": "Automate order transfer from Excel to CRM",
-      "context": "Sales managers receive orders as Excel files from dealers and re-type them into the CRM by hand.",
-      "need": "Remove manual re-typing of orders into the CRM.",
-      "users": "6 sales managers",
-      "data": "Sample Excel exports (anonymized) and CRM API docs",
-      "constraints": "Deadline 6 weeks; CRM has a REST API; no access to production data",
-      "expectedResult": "A script or service that imports orders from Excel into the CRM without manual entry.",
-      "successCriteria": "Manual entry time cut by 80%; zero duplicate orders.",
-      "contact": "Head of sales, weekly 30-min call, questions via chat"
+      "title": "Morning route sheet for drivers",
+      "context": "Dispatchers call each of the 25 drivers every morning to dictate the route; calls take about an hour.",
+      "need": "Send each driver the day's route automatically instead of calling.",
+      "users": "2 dispatchers and 25 drivers",
+      "data": "Route table in Excel updated the evening before (driver, stops, addresses)",
+      "constraints": null,
+      "expectedResult": "A Telegram bot or web page where each driver sees their route for the day.",
+      "successCriteria": null,
+      "contact": "Head of dispatch, questions by phone or Telegram"
     },
-    "confirmed": {
-      "title": true, "context": true, "need": true, "users": true, "data": true,
-      "constraints": true, "expectedResult": true, "successCriteria": true, "contact": true
+    "confirmed": { "title": true, "context": true, "need": true, "users": true, "data": true, "expectedResult": true },
+    "fieldSource": { "title": "draft", "context": "answer", "need": "draft", "users": "answer", "data": "answer", "expectedResult": "answer", "contact": "answer" },
+    "techSpec": {
+      "summary": "Daily route delivery to drivers from an Excel route table, via Telegram bot or a mobile web page. Suggested stack is a recommendation.",
+      "scope": ["Import evening route Excel", "Send route to each driver at 07:00", "Driver marks stops as done"],
+      "dataInputs": ["Excel route table: driver, stops, addresses"],
+      "functionalRequirements": ["One message per driver with ordered stops", "Dispatcher can re-send after a change"],
+      "nonFunctional": ["Works on cheap Android phones"],
+      "acceptanceCriteria": ["Dispatchers stop morning calls"],
+      "suggestedStack": ["Python", "Telegram Bot API", "openpyxl"],
+      "openQuestions": ["What are the deadline and technology constraints?", "How will success be measured?"]
     },
-    "fieldSource": {
-      "title": "draft", "context": "answer", "need": "draft", "users": "answer", "data": "answer",
-      "constraints": "answer", "expectedResult": "answer", "successCriteria": "manual", "contact": "manual"
+    "techSpecConfirmed": true,
+    "status": "published",
+    "origin": { "kind": "manual" },
+    "history": [
+      { "ts": "2026-09-14T11:00:00.000Z", "total": 28, "level": "draft", "note": "card created from draft" },
+      { "ts": "2026-09-14T11:20:00.000Z", "total": 66, "level": "working", "note": "published" }
+    ],
+    "suggestions": {},
+    "createdAt": "2026-09-14T10:50:00.000Z",
+    "updatedAt": "2026-09-14T11:20:00.000Z",
+    "publishedAt": "2026-09-14T11:20:00.000Z"
+  },
+  {
+    "id": "card-bilim",
+    "businessName": "Bilim Language School",
+    "industry": "Education",
+    "topic": "Chatbots",
+    "skillsNeeded": ["Telegram Bot API", "Node.js"],
+    "draftText": "Parents keep calling to ask about schedule changes and homework. Need some kind of bot. ASAP.",
+    "fields": {
+      "title": "Parent bot for schedule and homework",
+      "context": "Parents call the school office several times a day to ask about schedule changes and homework.",
+      "need": "Give parents a bot that answers schedule and homework questions so the office gets fewer calls.",
+      "users": null,
+      "data": null,
+      "constraints": "ASAP",
+      "expectedResult": "Some kind of bot",
+      "successCriteria": null,
+      "contact": null
     },
+    "confirmed": { "title": true, "context": true, "need": true, "constraints": true, "expectedResult": true },
+    "fieldSource": { "title": "draft", "context": "draft", "need": "draft", "constraints": "draft", "expectedResult": "draft" },
     "techSpec": null,
     "techSpecConfirmed": false,
     "status": "published",
     "origin": { "kind": "manual" },
-    "history": [{ "ts": "2026-09-15T10:00:00.000Z", "total": 100, "level": "priority", "note": "published" }],
+    "history": [
+      { "ts": "2026-09-16T08:00:00.000Z", "total": 36, "level": "draft", "note": "published" }
+    ],
     "suggestions": {},
-    "createdAt": "2026-09-15T09:00:00.000Z",
-    "updatedAt": "2026-09-15T10:00:00.000Z",
-    "publishedAt": "2026-09-15T10:00:00.000Z"
+    "createdAt": "2026-09-16T07:50:00.000Z",
+    "updatedAt": "2026-09-16T08:00:00.000Z",
+    "publishedAt": "2026-09-16T08:00:00.000Z"
+  },
+  {
+    "id": "card-steppe",
+    "businessName": "Steppe Furniture",
+    "industry": "Manufacturing",
+    "topic": "Dashboards",
+    "skillsNeeded": ["React", "SQL", "charts"],
+    "draftText": "We make custom kitchens. Improve efficiency of our production planning, etc. We have some data in Excel.",
+    "fields": {
+      "title": "Production planning board for a custom kitchen workshop",
+      "context": "A workshop of 14 people makes custom kitchens; orders are planned in one shared Excel file that the foreman updates by hand, so the sales team never knows when an order will be ready.",
+      "need": "Show the sales team and the foreman one live view of which orders are in which stage and when they are due.",
+      "users": "Foreman, 2 sales managers, workshop owner",
+      "data": "Planning Excel with orders, stages (cutting, edging, assembly, delivery) and dates for 2025–2026; photos of the whiteboard used on the floor",
+      "constraints": "No budget for paid software; must run on the workshop's Windows PC; first version in 5 weeks",
+      "expectedResult": "A web dashboard with a board of orders by stage, due dates and an overdue list, fed from the Excel file.",
+      "successCriteria": "Sales can answer 'when is my order ready' without calling the foreman; late deliveries fall from 25% to 10%.",
+      "contact": "Workshop owner, weekly visit or call, Telegram for quick questions"
+    },
+    "confirmed": { "title": true, "context": true, "need": true, "users": true, "data": true, "constraints": true, "expectedResult": true, "successCriteria": true, "contact": true },
+    "fieldSource": { "title": "answer", "context": "answer", "need": "answer", "users": "answer", "data": "answer", "constraints": "answer", "expectedResult": "answer", "successCriteria": "answer", "contact": "answer" },
+    "techSpec": {
+      "summary": "Kanban-style production dashboard for a furniture workshop, reading orders and stages from the existing planning Excel file. Suggested stack is a recommendation.",
+      "scope": ["Import planning Excel", "Board: orders by stage", "Due-date and overdue list", "Foreman moves orders between stages"],
+      "dataInputs": ["Planning Excel: order, client code, stages, dates"],
+      "functionalRequirements": ["Changes on the board write back to the Excel or a small database", "Overdue orders highlighted", "Read-only view for sales"],
+      "nonFunctional": ["Runs locally on Windows", "No paid services"],
+      "acceptanceCriteria": ["Sales answers readiness questions without calling", "Late deliveries down to 10%"],
+      "suggestedStack": ["React", "SQLite", "Node.js", "openpyxl or SheetJS"],
+      "openQuestions": ["Does the foreman have a PC or tablet on the floor?"]
+    },
+    "techSpecConfirmed": true,
+    "status": "published",
+    "origin": { "kind": "manual" },
+    "history": [
+      { "ts": "2026-09-18T15:00:00.000Z", "total": 22, "level": "draft", "note": "card created from draft" },
+      { "ts": "2026-09-18T15:45:00.000Z", "total": 58, "level": "working", "note": "confirmed context, need, data" },
+      { "ts": "2026-09-18T16:10:00.000Z", "total": 88, "level": "ready", "note": "published" }
+    ],
+    "suggestions": {},
+    "createdAt": "2026-09-18T14:50:00.000Z",
+    "updatedAt": "2026-09-18T16:10:00.000Z",
+    "publishedAt": "2026-09-18T16:10:00.000Z"
   }
 ]

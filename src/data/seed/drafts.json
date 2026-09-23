@@ -4,5 +4,29 @@
     "industry": "Logistics",
     "businessName": "QazCargo",
     "text": "Our sales team wastes time moving orders from Excel to the CRM. We want to automate it."
+  },
+  {
+    "id": "draft-2",
+    "industry": "Retail",
+    "businessName": "Dala Market",
+    "text": "We have 3 grocery stores in Almaty. Every evening the store managers count leftovers by hand and send photos to WhatsApp; the buyer then decides what to order tomorrow. We want a simple tool that collects the evening counts and suggests an order for each store. Data: daily sales export from the 1C cashier system (CSV) for the last 12 months."
+  },
+  {
+    "id": "draft-3",
+    "industry": "Education",
+    "businessName": "Bilim Language School",
+    "text": "Parents keep calling to ask about schedule changes and homework. Need some kind of bot. ASAP."
+  },
+  {
+    "id": "draft-4",
+    "industry": "Healthcare",
+    "businessName": "MedLine Clinic",
+    "text": "Our clinic has 12 doctors and about 200 patient visits per day. Reception fills the appointment book in Google Sheets and patients often come at the wrong time or not at all (~15% no-shows). We would like a reminder system (SMS or WhatsApp) that confirms visits a day before and frees the slot if the patient cancels. Contact: clinic administrator, available for a weekly call. Constraint: patient names must not leave our server — only phone numbers and times may go to the messaging provider."
+  },
+  {
+    "id": "draft-5",
+    "industry": "Manufacturing",
+    "businessName": "Steppe Furniture",
+    "text": "We make custom kitchens. Improve efficiency of our production planning, etc. We have some data in Excel."
   }
 ]

@@ -2,9 +2,41 @@
   {
     "id": "team-datacraft",
     "name": "DataCraft",
-    "about": "Student team building data pipelines and integrations.",
-    "interests": ["Automation", "Data"],
-    "skills": ["Python", "integrations", "SQL"],
-    "tech": ["Python", "pandas", "FastAPI"]
+    "about": "Student team building data pipelines and integrations between business systems.",
+    "interests": ["Automation", "Data", "Integrations"],
+    "skills": ["Python", "integrations", "SQL", "data cleaning"],
+    "tech": ["Python", "pandas", "FastAPI", "PostgreSQL"]
+  },
+  {
+    "id": "team-botfactory",
+    "name": "BotFactory",
+    "about": "We build chat bots and messaging automations for small businesses.",
+    "interests": ["Chatbots", "Customer service", "Education"],
+    "skills": ["Node.js", "Telegram Bot API", "WhatsApp API", "UX writing"],
+    "tech": ["TypeScript", "Node.js", "Next.js", "Redis"]
+  },
+  {
+    "id": "team-pixelworks",
+    "name": "PixelWorks",
+    "about": "Frontend-focused team: dashboards, admin panels and mobile-friendly web apps.",
+    "interests": ["Dashboards", "Retail", "Analytics"],
+    "skills": ["React", "UI design", "REST API", "charts"],
+    "tech": ["React", "Next.js", "Tailwind", "Supabase"]
+  },
+  {
+    "id": "team-mlteam",
+    "name": "Alatau ML",
+    "about": "Applied machine learning: forecasting, classification, computer vision.",
+    "interests": ["Forecasting", "Retail", "Manufacturing", "Data"],
+    "skills": ["Python", "machine learning", "forecasting", "SQL"],
+    "tech": ["Python", "scikit-learn", "Prophet", "Streamlit"]
+  },
+  {
+    "id": "team-secops",
+    "name": "SecOps Students",
+    "about": "Backend and infrastructure team with a focus on privacy and secure integrations.",
+    "interests": ["Healthcare", "Security", "Integrations"],
+    "skills": ["Go", "REST API", "security", "DevOps"],
+    "tech": ["Go", "Docker", "PostgreSQL", "Twilio"]
   }
 ]

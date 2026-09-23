@@ -1,4 +1,5 @@
 // Helpers for API routes: ApiResult envelope, zod body parsing, ingest auth. Owner: A.
+import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import type { ZodType } from 'zod';
 import type { AgentStep, ApiResult } from '@/lib/types';
@@ -28,7 +29,10 @@ export async function parseBody<T>(req: Request, schema: ZodType<T>): Promise<{ 
 
 export function checkIngestToken(req: Request): boolean {
   const expected = process.env.INGEST_TOKEN;
-  if (!expected) return true; // HACK: no token configured → open (local dev)
+  // No token configured: open only for a local dev run; a production deploy must set INGEST_TOKEN.
+  if (!expected) return process.env.NODE_ENV !== 'production' || !process.env.VERCEL;
   const header = req.headers.get('authorization') ?? '';
-  return header === `Bearer ${expected}`;
+  const a = Buffer.from(header);
+  const b = Buffer.from(`Bearer ${expected}`);
+  return a.length === b.length && timingSafeEqual(a, b);
 }

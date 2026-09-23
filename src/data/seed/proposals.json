@@ -1,13 +1,60 @@
 [
   {
     "id": "prop-1",
-    "taskId": "card-1",
-    "teamId": "team-datacraft",
-    "idea": "Python import script that maps Excel columns to CRM fields and deduplicates by order number.",
-    "plan": "Week 1: parse samples; week 2: CRM API client; week 3: dedupe + tests; week 4: pilot.",
-    "deadline": "2026-10-31",
-    "prototypeUrl": "https://example.com/prototype",
+    "taskId": "card-medline",
+    "teamId": "team-botfactory",
+    "idea": "WhatsApp Business API bot that sends reminders 24 h before the visit and understands 'yes/no' replies in Kazakh and Russian; cancelled slots are written back to the Google Sheet.",
+    "plan": "Week 1–2: sheet sync + message templates; week 3–4: reply handling and slot release; week 5–6: pilot with 2 doctors; week 7–8: rollout and report.",
+    "deadline": "2026-11-20",
+    "prototypeUrl": "https://example.com/botfactory/medline-demo",
     "status": "pending",
-    "createdAt": "2026-09-16T12:00:00.000Z"
+    "createdAt": "2026-09-11T10:00:00.000Z"
+  },
+  {
+    "id": "prop-2",
+    "taskId": "card-medline",
+    "teamId": "team-secops",
+    "idea": "Go service on the clinic server with an SMS gateway; only phone + time leave the server, all names stay in the sheet.",
+    "plan": "Week 1: data model and sheet reader; week 2–3: SMS sending and retries; week 4–5: reply parsing; week 6: security review and pilot.",
+    "deadline": "2026-11-05",
+    "prototypeUrl": "https://example.com/secops/reminders",
+    "status": "pending",
+    "createdAt": "2026-09-12T09:30:00.000Z"
+  },
+  {
+    "id": "prop-3",
+    "taskId": "card-dala",
+    "teamId": "team-mlteam",
+    "idea": "Per-SKU demand forecast (Prophet) from the 12-month 1C export plus a mobile count form; order = forecast − stock, rounded to pack size.",
+    "plan": "Week 1: clean CSV and build baseline forecast; week 2: count form; week 3: suggestion page; week 4–5: pilot in one store; week 6: all three stores.",
+    "deadline": "2026-11-01",
+    "prototypeUrl": "https://example.com/alatau/dala-forecast",
+    "status": "accepted",
+    "createdAt": "2026-09-13T12:00:00.000Z",
+    "decidedAt": "2026-09-15T09:00:00.000Z"
+  },
+  {
+    "id": "prop-4",
+    "taskId": "card-dala",
+    "teamId": "team-pixelworks",
+    "idea": "Mobile-first React app for the evening count with a simple moving-average order suggestion.",
+    "plan": "Week 1–2: count UI; week 3: CSV import; week 4: suggestion page; week 5–6: polish.",
+    "deadline": "2026-11-10",
+    "prototypeUrl": "https://example.com/pixelworks/dala-count",
+    "status": "rejected",
+    "rejectReason": "We need a forecast based on the sales history, not just a moving average; the count UI looked great though.",
+    "createdAt": "2026-09-13T15:00:00.000Z",
+    "decidedAt": "2026-09-15T09:05:00.000Z"
+  },
+  {
+    "id": "prop-5",
+    "taskId": "card-qazcargo-seed",
+    "teamId": "team-datacraft",
+    "idea": "Python script reads the evening Excel and sends each driver a Telegram message with the ordered stops at 07:00; dispatcher can re-send from a tiny web page.",
+    "plan": "Week 1: Excel parsing and driver mapping; week 2: Telegram bot; week 3: dispatcher page; week 4: pilot with 5 drivers.",
+    "deadline": "2026-10-25",
+    "prototypeUrl": "https://example.com/datacraft/routes-bot",
+    "status": "pending",
+    "createdAt": "2026-09-15T16:00:00.000Z"
   }
 ]
