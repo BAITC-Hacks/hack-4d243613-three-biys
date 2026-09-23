@@ -2,7 +2,7 @@
 
 TaskForge helps a business turn a rough description of a need into a complete, rated task card, publishes it to an open catalog ranked by readiness, lets student teams submit proposals, and lets the business choose manually. A Windows companion app (the Collector) gathers anonymized work signals so the business can discover *which* problems are worth giving to students.
 
-> Status: scaffold. Sections marked _TODO_ are filled in as features land.
+> Status: working demo. Sections marked _TODO_ are still being filled in.
 
 ## Team
 
