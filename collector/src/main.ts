@@ -43,8 +43,20 @@ async function applyToggles() {
   if (process.platform === 'win32') app.setLoginItemSettings({ openAtLogin: settings.trackerEnabled, args: ['--hidden'] });
 }
 
+// Brand icons (B): collector/renderer/assets. Tray LED: lime = collecting, red = recording, grey = paused.
+const asset = (f: string) => path.join(__dirname, '..', 'renderer', 'assets', f);
+let trayIcon = '';
+
+function updateTrayIcon() {
+  const file = status.meeting.recording ? 'tray-recording.png' : status.tracker.running ? 'tray.png' : 'tray-paused.png';
+  if (!tray || file === trayIcon) return;
+  trayIcon = file;
+  tray.setImage(nativeImage.createFromPath(asset(file)));
+}
+
 function emitStatus() {
   status.settings = settings;
+  updateTrayIcon();
   win?.webContents.send('collector:status', status);
 }
 
@@ -57,6 +69,8 @@ function createWindow() {
     width: 520,
     height: 640,
     show: false,
+    icon: asset('icon.ico'),
+    autoHideMenuBar: true,
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false },
   });
   win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
@@ -64,8 +78,9 @@ function createWindow() {
 }
 
 function createTray() {
-  tray = new Tray(nativeImage.createEmpty());
-  tray.setToolTip('TaskForge Collector');
+  tray = new Tray(nativeImage.createFromPath(asset('tray-paused.png')));
+  trayIcon = 'tray-paused.png';
+  tray.setToolTip('Көпір Collector');
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: 'Open', click: () => win?.show() },
     { label: 'Quit', click: () => { win?.removeAllListeners('close'); app.quit(); } },
