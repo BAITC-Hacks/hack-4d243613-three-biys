@@ -11,7 +11,7 @@ All product code in this repository is written during the competition window, 23
 | Tool | Used by | Purpose |
 |---|---|---|
 | Claude Code (Anthropic) | Team members | Writing and reviewing code, tests, documentation |
-| OpenAI Codex | Team members | Writing and reviewing code |
+| OpenAI Codex | Team members | Writing and reviewing code; drawing the SVG illustrations in `src/components/illustrations` from our brief |
 
 ## AI models used by the product
 
@@ -21,6 +21,7 @@ All product code in this repository is written during the competition window, 23
 | gpt-4.1 | OpenAI | Discover: insights with cited evidence from meetings and activity aggregates |
 | gpt-4o-transcribe (fallback whisper-1) | OpenAI | Transcription of Collector meeting audio chunks |
 | meta/llama-3.3-70b-instruct | NVIDIA (build.nvidia.com, OpenAI-compatible API) | Text fallback when OpenAI is unavailable |
+| gpt-realtime, gpt-4o-mini-transcribe | OpenAI (Realtime API over WebRTC) | Voice interview on the clarify step and its live captions |
 
 ## Materials prepared before the competition (not product code)
 
@@ -32,6 +33,18 @@ All product code in this repository is written during the competition window, 23
 | Prompt drafts | Draft prompts for case analysis and README review |
 
 Official texts of laws are public documents and are cited from their official sources.
+
+## Fonts, icons and images
+
+| Asset | Source | License |
+|---|---|---|
+| Rubik (interface), Tektur (logo) | Google Fonts, loaded at runtime | SIL Open Font License 1.1 |
+| lucide-react icons | npm package | ISC |
+| Logo, favicon, Collector tray and app icons | Drawn by the team during the event (icons rendered with Pillow) | Ours |
+
+## Legal texts
+
+The legal documents in `src/content/legal` (terms, privacy policy, personal data consent, rating rules, AI notice, collaboration agreement, in Kazakh, Russian and English) were written during the event by Islam Shagatayev with AI assistance, based on public laws of the Republic of Kazakhstan.
 
 ## Data
 
