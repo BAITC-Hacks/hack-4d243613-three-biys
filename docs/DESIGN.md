@@ -94,3 +94,11 @@ For C, about 10 minutes:
 3. First visit: mount `<ConsentGate open={!saved} onAccept={(c) => save(c)} />` in the layout; store the result in localStorage (for example `kopir:consent:v1`).
 4. Forms: `<ConsentCheckbox required>` before "Опубликовать" (business confirms the data is theirs to share) and before "Отправить предложение" (team agrees to the terms).
 5. `CollectorDownload` already asks for the employer's confirmation before the download button unlocks.
+
+## Final decisions (15:35)
+
+- **Language: English UI.** B components are being switched to English. Legal documents stay in Russian (official texts); the footer can say "Documents in Russian".
+- **Favicon: "КӨ"** on lime, `src/app/icon.svg` (Next picks it up automatically).
+- **Project page `/catalog/[id]`: A "Document + proposal on the side".** Left: card header (business · industry, title, skill chips) and `TechSpecView`. Right, sticky: score ring + `LevelBadge`, `RatingPanel` compact, proposal form (idea, plan and deadline, prototype link) with `ConsentCheckbox` and the LED button "Send proposal".
+- **Business proposals `/business/tasks/[id]`: A "Compare in columns".** `ProposalCompare` with `skillsNeeded={card.skillsNeeded}`; accepted column gets the lime ring; Accept / Reject under each column; milestones below.
+- **Student `/student`: B "Progress as a game".** Top: team card with team level and a thick progress bar to the next level ("120 of 160 points to level 4"). Then "Quests": milestones as rows with square checkboxes (lime when confirmed, "+40" points). Then "Projects for you" and `Leaderboard` with `currentTeamId`.
