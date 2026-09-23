@@ -1,8 +1,8 @@
-# TaskForge — Three Biys · HackAlem AI, track "AI Sana: gamification of practical tasks"
+# Көпір (working name TaskForge) · Three Biys · HackAlem AI, track "AI Sana: gamification of practical tasks"
 
 TaskForge helps a business turn a rough description of a need into a complete, rated task card, publishes it to an open catalog ranked by readiness, lets student teams submit proposals, and lets the business choose manually. A Windows companion app (the Collector) gathers anonymized work signals so the business can discover *which* problems are worth giving to students.
 
-> Status: working demo. Sections marked _TODO_ are still being filled in.
+> Status: working demo. Hosted at **https://taskforge-app-chi.vercel.app**.
 
 ## For judges — how to check TaskForge
 
@@ -38,15 +38,25 @@ The app opens with a consent screen, then starts collecting. It is **preconfigur
 
 ## Team
 
-- Alibek (omertaevalibekai)
+- **Arman Nurlanbek** (armannurlanbek): lead; AI layer, server and ingest API, rating engine, seed data, Collector logic, deploy.
+- **Islam Shagatayev** (islam-shagatayev): design system and UI components, Collector window, legal documents, demo script.
+- **Alibek** (omertaevalibekai): frontend pages, browser store, catalog and proposals flow.
 
 ## Status
 
-Work in progress.
+Working demo, 23 September 2026. The main scenario runs on the hosted URL, with your own `OPENAI_API_KEY`, or with no key in replay mode.
 
 ## Purpose
 
-_TODO (B): product description._
+Businesses have real tasks for students, but they describe them in one vague sentence, and student teams skip them. Көпір ("bridge" in Kazakh) turns that sentence into a task card a team can act on, and makes improving the card a game for the business:
+
+- **AI interview.** The AI asks at least 3 questions, only about what is missing, sorted by the points each answer brings. It works by voice (OpenAI Realtime) or as a text chat, and it never invents facts: anything not stated stays empty.
+- **Rating 0 to 100 with levels** Draft, Working, Ready and Priority. Deterministic code, not the AI; points count only for fields the business confirmed. The rating is the task's position in the catalog, and "next best actions" show how to raise it.
+- **Catalog and proposals.** Every published task is visible to every team. Teams propose an idea, a plan, a deadline and a prototype link. The business accepts or rejects manually; team points come only from milestones the business confirms.
+- **Collector and Discover.** A Windows app gathers anonymized work signals (app categories, meeting notes) so the business can find tasks it could not describe. Every insight cites evidence; patterns need at least 5 people.
+- **Built for Kazakhstan law.** Consent on the first visit, documents in Kazakh and Russian (legally binding) and English (translation), and an AI notice next to every AI result until a person confirms it.
+
+Design: `docs/DESIGN.md`. Demo script: `docs/DEMO.md`. Tools and materials: `docs/DISCLOSURE.md`.
 
 ## Architecture
 
