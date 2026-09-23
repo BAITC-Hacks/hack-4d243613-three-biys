@@ -2,19 +2,50 @@
   "name": "taskforge-collector",
   "version": "0.1.0",
   "private": true,
-  "description": "TaskForge Collector — Windows tray app that sends anonymized activity events, meeting transcripts and role-mapped chat messages to the TaskForge server.",
+  "description": "TaskForge Collector \u2014 Windows tray app that sends anonymized activity events, meeting transcripts and role-mapped chat messages to the TaskForge server.",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "npm run build && electron .",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dist": "npm run build && electron-builder --win portable --x64 --publish never"
   },
   "devDependencies": {
     "@types/node": "^22.20.4",
     "electron": "^39.0.0",
+    "electron-builder": "^26.15.3",
     "typescript": "^5"
   },
   "dependencies": {
     "get-windows": "^9.2.0"
+  },
+  "productName": "TaskForge Collector",
+  "author": "Three Biys",
+  "build": {
+    "appId": "kz.threebiys.taskforge.collector",
+    "productName": "TaskForge Collector",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "renderer/**/*",
+      "package.json"
+    ],
+    "npmRebuild": false,
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "renderer/assets/icon.ico"
+    },
+    "portable": {
+      "artifactName": "TaskForge-Collector.exe"
+    }
   }
 }
