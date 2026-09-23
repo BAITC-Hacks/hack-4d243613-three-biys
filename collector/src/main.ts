@@ -3,10 +3,11 @@
 import { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage } from 'electron';
 import path from 'node:path';
 import { loadSettings, saveSettings, type CollectorSettings } from './settings';
+import { Tracker, type TrackerStats } from './tracker';
 
 export interface CollectorStatus {
   settings: CollectorSettings;
-  tracker: { running: boolean; eventsSent: number; lastSentAt?: string };
+  tracker: TrackerStats;
   meeting: { recording: boolean; meetingId?: string; chunksSent: number };
   server: { reachable: boolean; lastCheckAt?: string; error?: string };
 }
@@ -16,10 +17,22 @@ let tray: Tray | null = null;
 let settings = loadSettings();
 const status: CollectorStatus = {
   settings,
-  tracker: { running: false, eventsSent: 0 },
+  tracker: { running: false, eventsSent: 0, eventsPending: 0 },
   meeting: { recording: false, chunksSent: 0 },
   server: { reachable: false },
 };
+
+const tracker = new Tracker(
+  { serverUrl: settings.serverUrl, ingestToken: settings.ingestToken, team: settings.team },
+  (t) => { status.tracker = t; emitStatus(); },
+);
+
+async function applyToggles() {
+  tracker.updateConfig({ serverUrl: settings.serverUrl, ingestToken: settings.ingestToken, team: settings.team });
+  if (settings.trackerEnabled) await tracker.start(); else await tracker.stop();
+  // Autostart with Windows only while the tracker is enabled (opt-in).
+  if (process.platform === 'win32') app.setLoginItemSettings({ openAtLogin: settings.trackerEnabled, args: ['--hidden'] });
+}
 
 function emitStatus() {
   status.settings = settings;
@@ -62,26 +75,30 @@ async function checkServer() {
 }
 
 ipcMain.handle('collector:getStatus', () => status);
-ipcMain.handle('collector:setToggle', (_e: unknown, name: 'tracker' | 'meeting', on: boolean) => {
+ipcMain.handle('collector:setToggle', async (_e: unknown, name: 'tracker' | 'meeting', on: boolean) => {
   if (name === 'tracker') settings.trackerEnabled = on;
-  if (name === 'meeting') settings.meetingEnabled = on;
+  if (name === 'meeting') settings.meetingEnabled = on; // TODO(H4): meeting recorder
   saveSettings(settings);
-  // TODO(H3/H4): start/stop tracker and meeting recorder
+  await applyToggles();
   emitStatus();
   return status;
 });
 ipcMain.handle('collector:saveSettings', async (_e: unknown, s: Partial<CollectorSettings>) => {
   settings = { ...settings, ...s };
   saveSettings(settings);
+  await applyToggles();
   await checkServer();
   return status;
 });
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   createWindow();
   createTray();
-  win?.show();
-  void checkServer();
+  if (!process.argv.includes('--hidden')) win?.show();
+  await checkServer();
+  await applyToggles();
 });
+
+app.on('before-quit', () => { void tracker.stop(); });
 
 app.on('window-all-closed', () => { /* keep running in tray */ });
