@@ -4,6 +4,38 @@ TaskForge helps a business turn a rough description of a need into a complete, r
 
 > Status: working demo. Sections marked _TODO_ are still being filled in.
 
+## For judges — how to check TaskForge
+
+### 1. Web app (no install)
+Open **https://taskforge-app-chi.vercel.app** and use the role switcher in the header (Business / Student).
+Golden path: Business → New task → type a short draft → AI questions → card + live rating → Tech docs → Publish → switch to Student → project page → send a proposal → switch to Business → My tasks → accept / reject → confirm milestone. Full steps: [How to verify the main scenario](#how-to-verify-the-main-scenario).
+
+### 2. Web app locally (optional)
+Requires Node.js 20+.
+```bash
+npm install
+npm run dev            # http://localhost:3000
+```
+- **No API key needed:** without `OPENAI_API_KEY` the app runs in replay mode (recorded AI responses), so the whole scenario works offline.
+- **Live AI:** copy `.env.example` to `.env.local` and set `OPENAI_API_KEY`.
+- **Production build check:** `npm run build && npm start`.
+
+### 3. Windows Collector (data collection app)
+Requires Windows 10/11 and Node.js 20+. **Double-click `run-collector.bat`** in the repo root, or:
+```bash
+cd collector
+npm install
+npm start
+```
+The app opens with a consent screen, then starts collecting. It is **preconfigured** to send to the hosted demo (`https://taskforge-app-chi.vercel.app`) with the public demo token `12345` — nothing to set up.
+- **Activity tracker:** on the Collect tab, turn it on. It sends app categories and copy-paste transfers only — no window titles, no content, no names.
+- **Meeting notes:** press **Start meeting notes**, speak for 20–30 seconds (or play a Zoom call), then **Stop** — the transcript appears in the app.
+- **See it in the web app:** open **Business → Discover** and press **Analyze** — insights from your live meeting appear first, with the exact quote as evidence.
+- **Privacy:** activity from a single computer is intentionally hidden (patterns need at least 5 people); the Privacy panel shows this.
+- **Local server instead:** Collector → Settings → Server address `http://localhost:3000` (a local server accepts any token when `INGEST_TOKEN` is not set).
+
+> The demo token is public on purpose so the Collector works with zero setup; it only allows sending anonymized demo data. For a real deployment set your own `INGEST_TOKEN` on the server and in Collector Settings.
+
 ## Team
 
 - Alibek (omertaevalibekai)
@@ -54,7 +86,7 @@ npx tsx scripts/check-seed.ts   # validates seed JSON against the contracts and 
 
 | Situation | What to set |
 |---|---|
-| Hosted demo | **https://taskforge-app-chi.vercel.app** (live OpenAI; Collector data in memory unless Upstash is configured) |
+| Hosted demo | **https://taskforge-app-chi.vercel.app** (live OpenAI; Collector data stored in Upstash Redis) |
 | Your own key | `OPENAI_API_KEY=...` in `.env.local` (or `NVIDIA_API_KEY=...` with `LLM_PROVIDER=nvidia`) |
 | No key at all | leave keys empty → `DEMO_MODE=replay` is used automatically; the main scenario runs from `fixtures/replay/` |
 
@@ -152,14 +184,15 @@ Automated: `npm test` (unit) and `scripts/smoke-replay.sh [baseUrl]` (golden pat
 
 ```bash
 cd collector && npm install && npm start     # builds TypeScript and launches the tray app (Windows)
+# or double-click run-collector.bat in the repo root
 ```
-In the window: server URL (e.g. `https://taskforge-app-chi.vercel.app`), ingest token, team name; toggles **Activity tracker** and **Meeting notes**; "Test connection" calls `/api/health`.
+Defaults: server `https://taskforge-app-chi.vercel.app`, demo token `12345`, team `Sales` — change them in the Settings tab (server URL, access token, team). Toggles **Activity tracker** and **Meeting notes**; "Test connection" calls `/api/health`. A portable `.exe` can be built on Windows with `npm run dist` (output `collector/release/`).
 
 **What it collects:** the *category* of the foreground app every 2 s (CRM / Spreadsheet / Email / Messenger / ERP / Docs / Browser / Meeting / Other), app switches, and copy→switch pairs counted as a *transfer* between categories; meeting audio (system loopback + mic) in 30 s chunks that are transcribed on the server and discarded.
 
 **What never leaves the machine:** window titles, document/clipboard content, URLs, names. The device id is a hash; the server hashes it again and the aggregator (`src/lib/discover/aggregate.ts`) drops it, reporting only team-week aggregates with **≥ 5 contributors** (`k = 5`). `/api/sources.privacy` shows raw events, individuals identified (always 0), suppressed patterns and suppressed teams.
 
-Serverless note: on Vercel, Collector data persists only if `UPSTASH_REDIS_REST_URL/TOKEN` are set; otherwise it lives in memory per instance (fine for a demo). Locally it is stored in `./.data/*.json`.
+Serverless note: on Vercel, Collector data persists in Upstash Redis (`UPSTASH_REDIS_REST_URL/TOKEN`, or the `KV_REST_API_URL/TOKEN` names added by Vercel's Upstash integration); without them it lives in memory per instance. Locally it is stored in `./.data/*.json`.
 
 ## Dependencies
 
