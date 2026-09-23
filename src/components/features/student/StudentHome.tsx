@@ -6,6 +6,26 @@ import { matchTasks } from '@/lib/catalog';
 import { useStore } from '@/lib/store';
 import { useHydrated } from '../useHydrated';
 import { Leaderboard, ProjectCard, TeamCard } from '@/components/domain';
+import type { Match, TaskCard, TeamProfile } from '@/lib/types';
+import { useAiReasons } from './useAiReasons';
+
+function Matches({ team, matches, cards }: { team: TeamProfile; matches: Match[]; cards: TaskCard[] }) {
+  const ai = useAiReasons(team, matches, cards);
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {matches.map((m) => {
+        const card = cards.find((c) => c.id === m.taskId)!;
+        return (
+          <Link key={m.taskId} href={`/catalog/${m.taskId}`} className="space-y-2">
+            <ProjectCard card={card} rating={rateCard(card)} />
+            <ul className="text-xs text-green-800">{m.reasons.map((r) => <li key={r}>✓ {r}</li>)}</ul>
+            {ai[m.taskId] && <p className="text-xs text-gray-600">AI: {ai[m.taskId]}</p>}
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
 
 export function StudentHome() {
   const hydrated = useHydrated();
@@ -30,17 +50,7 @@ export function StudentHome() {
           Suggestions only — the full <Link href="/catalog" className="underline">catalog</Link> is always open to you.
         </p>
         {matches.length === 0 && <p className="text-sm text-gray-500">No matches yet — add interests or skills to your profile.</p>}
-        <div className="grid gap-4 md:grid-cols-2">
-          {matches.map((m) => {
-            const card = cards.find((c) => c.id === m.taskId)!;
-            return (
-              <Link key={m.taskId} href={`/catalog/${m.taskId}`} className="space-y-2">
-                <ProjectCard card={card} rating={rateCard(card)} />
-                <ul className="text-xs text-green-800">{m.reasons.map((r) => <li key={r}>✓ {r}</li>)}</ul>
-              </Link>
-            );
-          })}
-        </div>
+        <Matches team={team} matches={matches} cards={cards} />
       </section>
 
       <section className="space-y-2">
