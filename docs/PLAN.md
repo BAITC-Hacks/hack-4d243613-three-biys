@@ -376,8 +376,8 @@ Hours are Astana time. Realistic start: scaffold lands ~14:35.
 
 ### C — Frontend (Windows)
 **H1 → 15:00**
-- [ ] `layout.tsx` header: role switcher (Business / Student + team picker) + nav; route stubs for all pages → push
-- [ ] `src/lib/store/index.ts` (zustand + persist + seed loader + `resetDemo`), `src/lib/catalog.ts` (`getCatalog`, `matchTasks`)
+- [x] `layout.tsx` header: role switcher (Business / Student + team picker) + nav; route stubs for all pages → push
+- [x] `src/lib/store/index.ts` (zustand + persist + seed loader + `resetDemo`), `src/lib/catalog.ts` (`getCatalog`, `matchTasks`)
 **H2 15:00–16:00**
 - [ ] `/business/new` wizard: draft (+industry) → questions (≥3, sorted by gain, show "why: +N") → card editor (all fields editable, per-field ✓ confirm, source badges, **"not stated" markers**, vagueness flags inline, Discover suggestions as accept-able chips) + live `RatingPanel` with **Next best actions** (click scrolls/focuses the field) + **PositionPreview** + **LevelUpToast** on crossing 40/70/90 + **ScoreHistory** → **Tech docs tab** (generate → edit → confirm) → publish (mock `api-client` until A's endpoints land)
 **H3 16:00–16:40**

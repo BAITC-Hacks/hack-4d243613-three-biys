@@ -1,5 +1,6 @@
-// Route stub — owner: C.
+import { ProjectPage } from '@/components/features/catalog/ProjectPage';
+
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return <h1 className="text-2xl font-semibold">Project {id}</h1>;
+  return <ProjectPage id={id} />;
 }

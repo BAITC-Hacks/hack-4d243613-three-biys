@@ -1,4 +1,5 @@
-// Route stub — owner: C.
-export default function Page() {
-  return <h1 className="text-2xl font-semibold">Student</h1>;
+import { StudentHome } from '@/components/features/student/StudentHome';
+
+export default function StudentPage() {
+  return <StudentHome />;
 }

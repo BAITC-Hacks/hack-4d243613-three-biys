@@ -1,4 +1,5 @@
-// Route stub — owner: C.
-export default function Page() {
-  return <h1 className="text-2xl font-semibold">My tasks</h1>;
+import { TaskList } from '@/components/features/business/TaskList';
+
+export default function TasksPage() {
+  return <TaskList />;
 }

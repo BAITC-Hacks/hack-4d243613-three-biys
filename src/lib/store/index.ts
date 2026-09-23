@@ -1,4 +1,4 @@
-// Browser store — owner: C. Contract signatures (PLAN.md §5); C fills in the real implementation.
+// Browser store — owner: C. Contract signatures (PLAN.md §5).
 'use client';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -7,8 +7,10 @@ import type { CardField, CardFields, Insight, Milestone, Proposal, TaskCard, Tea
 import { seedCards, seedInsights, seedProposals, seedTeams } from '@/data/seed';
 import { rateCard } from '@/lib/rating';
 
+export type Role = 'business' | 'student';
+
 export interface StoreState {
-  role: 'business' | 'student';
+  role: Role;
   currentTeamId: string;
   cards: TaskCard[];
   teams: TeamProfile[];
@@ -17,7 +19,7 @@ export interface StoreState {
   teamPoints: Record<string, number>;
   insights: Insight[];
 
-  setRole: (role: 'business' | 'student') => void;
+  setRole: (role: Role) => void;
   setTeam: (id: string) => void;
   updateTeam: (id: string, patch: Partial<TeamProfile>) => void;
   createCard: (partial: Partial<TaskCard>) => string;
@@ -40,9 +42,17 @@ const emptyFields: CardFields = {
   constraints: null, expectedResult: null, successCriteria: null, contact: null,
 };
 
+const now = () => new Date().toISOString();
+
+// Snapshot for the score-history timeline.
+function withHistory(card: TaskCard, note: string): TaskCard {
+  const r = rateCard(card);
+  return { ...card, history: [...card.history, { ts: now(), total: r.total, level: r.level, note }] };
+}
+
 function seedState() {
   return {
-    role: 'business' as const,
+    role: 'business' as Role,
     currentTeamId: seedTeams[0]?.id ?? '',
     cards: seedCards,
     teams: seedTeams,
@@ -55,68 +65,78 @@ function seedState() {
 
 export const useStore = create<StoreState>()(
   persist(
-    (set, get) => ({
-      ...seedState(),
-      setRole: (role) => set({ role }),
-      setTeam: (currentTeamId) => set({ currentTeamId }),
-      updateTeam: (id, patch) => set({ teams: get().teams.map((t) => (t.id === id ? { ...t, ...patch } : t)) }),
-      createCard: (partial) => {
-        const id = partial.id ?? nanoid(8);
-        const now = new Date().toISOString();
-        const card: TaskCard = {
-          id, businessName: '', industry: '', topic: '', skillsNeeded: [], draftText: '',
-          fields: { ...emptyFields }, confirmed: {}, fieldSource: {}, techSpec: null, techSpecConfirmed: false,
-          status: 'draft', origin: { kind: 'manual' }, history: [], suggestions: {}, createdAt: now, updatedAt: now, ...partial,
-        };
-        set({ cards: [...get().cards, card] });
-        return id;
-      },
-      updateFields: (id, patch) => set({
-        cards: get().cards.map((c) => (c.id === id ? { ...c, fields: { ...c.fields, ...patch }, updatedAt: new Date().toISOString() } : c)),
-      }),
-      confirmField: (id, field, confirmed) => set({
-        cards: get().cards.map((c) => {
-          if (c.id !== id) return c;
-          const next = { ...c, confirmed: { ...c.confirmed, [field]: confirmed } };
-          const r = rateCard(next);
-          return { ...next, history: [...c.history, { ts: new Date().toISOString(), total: r.total, level: r.level, note: `${confirmed ? 'confirmed' : 'unconfirmed'} ${field}` }] };
+    (set, get) => {
+      const patchCard = (id: string, fn: (c: TaskCard) => TaskCard) =>
+        set({ cards: get().cards.map((c) => (c.id === id ? { ...fn(c), updatedAt: now() } : c)) });
+
+      return {
+        ...seedState(),
+        setRole: (role) => set({ role }),
+        setTeam: (currentTeamId) => set({ currentTeamId }),
+        updateTeam: (id, patch) => set({ teams: get().teams.map((t) => (t.id === id ? { ...t, ...patch } : t)) }),
+        createCard: (partial) => {
+          const id = partial.id ?? nanoid(8);
+          const card: TaskCard = {
+            businessName: 'QazCargo', // HACK: no auth — single demo business
+            industry: '', topic: '', skillsNeeded: [], draftText: '',
+            confirmed: {}, fieldSource: {}, techSpec: null, techSpecConfirmed: false,
+            status: 'draft', origin: { kind: 'manual' }, history: [], suggestions: {},
+            ...partial,
+            fields: { ...emptyFields, ...partial.fields },
+            id, createdAt: now(), updatedAt: now(),
+          };
+          set({ cards: [withHistory(card, 'created'), ...get().cards] });
+          return id;
+        },
+        // An edit un-confirms the changed field: points only for confirmed values.
+        updateFields: (id, patch) => patchCard(id, (c) => {
+          const confirmed = { ...c.confirmed };
+          const fieldSource = { ...c.fieldSource };
+          for (const k of Object.keys(patch) as CardField[]) {
+            if (patch[k] === c.fields[k]) continue;
+            confirmed[k] = false;
+            fieldSource[k] = 'manual';
+          }
+          return { ...c, fields: { ...c.fields, ...patch }, confirmed, fieldSource };
         }),
-      }),
-      acceptSuggestion: (id, field) => set({
-        cards: get().cards.map((c) => {
+        confirmField: (id, field, confirmed) => patchCard(id, (c) =>
+          withHistory({ ...c, confirmed: { ...c.confirmed, [field]: confirmed } }, `${confirmed ? 'confirmed' : 'unconfirmed'} ${field}`)),
+        acceptSuggestion: (id, field) => patchCard(id, (c) => {
           const s = c.suggestions[field];
-          if (c.id !== id || !s) return c;
+          if (!s) return c;
           const { [field]: _dropped, ...rest } = c.suggestions;
-          return { ...c, fields: { ...c.fields, [field]: s.text }, fieldSource: { ...c.fieldSource, [field]: 'insight' }, suggestions: rest };
+          return {
+            ...c,
+            fields: { ...c.fields, [field]: s.text },
+            fieldSource: { ...c.fieldSource, [field]: 'insight' },
+            confirmed: { ...c.confirmed, [field]: false },
+            suggestions: rest,
+          };
         }),
-      }),
-      setTechSpec: (id, techSpec, skillsNeeded) => set({
-        cards: get().cards.map((c) => (c.id === id ? { ...c, techSpec, skillsNeeded, techSpecConfirmed: false } : c)),
-      }),
-      confirmTechSpec: (id) => set({ cards: get().cards.map((c) => (c.id === id ? { ...c, techSpecConfirmed: true } : c)) }),
-      publish: (id) => set({
-        cards: get().cards.map((c) => (c.id === id ? { ...c, status: 'published', publishedAt: new Date().toISOString() } : c)),
-      }),
-      submitProposal: (p) => {
-        const id = nanoid(8);
-        set({ proposals: [...get().proposals, { ...p, id, status: 'pending', createdAt: new Date().toISOString() }] });
-        return id;
-      },
-      decideProposal: (id, status, rejectReason) => set({
-        proposals: get().proposals.map((p) => (p.id === id ? { ...p, status, rejectReason, decidedAt: new Date().toISOString() } : p)),
-      }),
-      addMilestone: (m) => set({ milestones: [...get().milestones, { ...m, id: nanoid(8), confirmedByBusiness: false }] }),
-      confirmMilestone: (id) => {
-        const m = get().milestones.find((x) => x.id === id);
-        if (!m || m.confirmedByBusiness) return;
-        set({
-          milestones: get().milestones.map((x) => (x.id === id ? { ...x, confirmedByBusiness: true, confirmedAt: new Date().toISOString() } : x)),
-          teamPoints: { ...get().teamPoints, [m.teamId]: (get().teamPoints[m.teamId] ?? 0) + m.points },
-        });
-      },
-      setInsights: (insights) => set({ insights }),
-      resetDemo: () => set(seedState()),
-    }),
+        setTechSpec: (id, techSpec, skillsNeeded) => patchCard(id, (c) => ({ ...c, techSpec, skillsNeeded, techSpecConfirmed: false })),
+        confirmTechSpec: (id) => patchCard(id, (c) => ({ ...c, techSpecConfirmed: true })),
+        publish: (id) => patchCard(id, (c) => withHistory({ ...c, status: 'published', publishedAt: now() }, 'published')),
+        submitProposal: (p) => {
+          const id = nanoid(8);
+          set({ proposals: [...get().proposals, { ...p, id, status: 'pending', createdAt: now() }] });
+          return id;
+        },
+        decideProposal: (id, status, rejectReason) => set({
+          proposals: get().proposals.map((p) => (p.id === id ? { ...p, status, rejectReason, decidedAt: now() } : p)),
+        }),
+        addMilestone: (m) => set({ milestones: [...get().milestones, { ...m, id: nanoid(8), confirmedByBusiness: false }] }),
+        confirmMilestone: (id) => {
+          const m = get().milestones.find((x) => x.id === id);
+          if (!m || m.confirmedByBusiness) return;
+          set({
+            milestones: get().milestones.map((x) => (x.id === id ? { ...x, confirmedByBusiness: true, confirmedAt: now() } : x)),
+            teamPoints: { ...get().teamPoints, [m.teamId]: (get().teamPoints[m.teamId] ?? 0) + m.points },
+          });
+        },
+        setInsights: (insights) => set({ insights }),
+        resetDemo: () => set(seedState()),
+      };
+    },
     { name: 'taskforge:v1' },
   ),
 );

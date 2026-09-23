@@ -1,4 +1,10 @@
-// Route stub — owner: C.
-export default function Page() {
-  return <h1 className="text-2xl font-semibold">New task</h1>;
+import { Suspense } from 'react';
+import { Constructor } from '@/components/features/constructor/Constructor';
+
+export default function NewTaskPage() {
+  return (
+    <Suspense>
+      <Constructor />
+    </Suspense>
+  );
 }

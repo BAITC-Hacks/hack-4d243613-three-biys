@@ -1,0 +1,174 @@
+'use client';
+
+import { useState } from 'react';
+import type { CardField, TechSpec } from '@/lib/types';
+import { rateCard } from '@/lib/rating';
+import { useStore } from '@/lib/store';
+import { RatingPanel, ScoreHistory, SuggestionChip, TechSpecView } from '@/components/domain';
+import { techSpec as generateTechSpec } from '@/lib/api-client';
+
+const FIELDS: { key: CardField; label: string }[] = [
+  { key: 'title', label: 'Title' },
+  { key: 'context', label: 'Context' },
+  { key: 'need', label: 'Need' },
+  { key: 'users', label: 'Users' },
+  { key: 'data', label: 'Data & materials' },
+  { key: 'constraints', label: 'Constraints' },
+  { key: 'expectedResult', label: 'Expected result' },
+  { key: 'successCriteria', label: 'Success criteria' },
+  { key: 'contact', label: 'Contact & interaction format' },
+];
+
+const LIST_KEYS: { key: Exclude<keyof TechSpec, 'summary'>; label: string }[] = [
+  { key: 'scope', label: 'Scope' },
+  { key: 'dataInputs', label: 'Data inputs' },
+  { key: 'functionalRequirements', label: 'Functional requirements' },
+  { key: 'nonFunctional', label: 'Non-functional' },
+  { key: 'acceptanceCriteria', label: 'Acceptance criteria' },
+  { key: 'suggestedStack', label: 'Suggested stack' },
+  { key: 'openQuestions', label: 'Open questions' },
+];
+
+export function CardEditor({ cardId, onPublished }: { cardId: string; onPublished?: () => void }) {
+  const card = useStore((s) => s.cards.find((c) => c.id === cardId));
+  const { updateFields, confirmField, acceptSuggestion, setTechSpec, confirmTechSpec, publish } = useStore();
+  const [tab, setTab] = useState<'card' | 'tech'>('card');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  if (!card) return <div>Card not found.</div>;
+
+  const rating = rateCard(card);
+
+  const generate = async () => {
+    setBusy(true); setError(null);
+    const res = await generateTechSpec({ fields: card.fields });
+    setBusy(false);
+    if (!res.ok) return setError(res.error.message);
+    setTechSpec(card.id, res.data.techSpec, res.data.skillsNeeded);
+  };
+
+  const editSpec = (patch: Partial<TechSpec>) =>
+    card.techSpec && setTechSpec(card.id, { ...card.techSpec, ...patch }, card.skillsNeeded);
+
+  return (
+    <div className="grid gap-6 md:grid-cols-[1fr_320px]">
+      <div className="space-y-4">
+        <div className="flex gap-2 border-b">
+          {(['card', 'tech'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-3 py-2 ${tab === t ? 'border-b-2 border-blue-600 font-semibold' : 'text-gray-500'}`}
+            >
+              {t === 'card' ? 'Task card' : 'Tech docs'}
+            </button>
+          ))}
+        </div>
+
+        {error && <div className="rounded bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+
+        {tab === 'card' && FIELDS.map(({ key, label }) => (
+          <div key={key} id={`field-${key}`} className="space-y-1">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-medium">{label}</span>
+              {card.fieldSource[key] && (
+                <span className="rounded bg-gray-100 px-1.5 text-xs text-gray-600">from {card.fieldSource[key]}</span>
+              )}
+              {!card.fields[key] && <span className="text-xs text-amber-700">missing</span>}
+              <label className="ml-auto flex items-center gap-1 text-xs">
+                <input
+                  type="checkbox"
+                  disabled={!card.fields[key]}
+                  checked={!!card.confirmed[key]}
+                  onChange={(e) => confirmField(card.id, key, e.target.checked)}
+                />
+                confirmed
+              </label>
+            </div>
+            {card.suggestions[key] && (
+              <SuggestionChip
+                text={card.suggestions[key]!.text}
+                source={card.suggestions[key]!.source}
+                onAccept={() => acceptSuggestion(card.id, key)}
+              />
+            )}
+            <textarea
+              className="h-20 w-full rounded border p-2 text-sm"
+              value={card.fields[key] ?? ''}
+              onChange={(e) => updateFields(card.id, { [key]: e.target.value || null })}
+            />
+          </div>
+        ))}
+
+        {tab === 'tech' && (
+          <div className="space-y-4">
+            <button
+              disabled={busy}
+              onClick={generate}
+              className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+            >
+              {busy ? 'Generating…' : card.techSpec ? 'Regenerate tech docs' : 'Generate tech docs'}
+            </button>
+            {card.techSpec && (
+              <>
+                <label className="block text-sm font-medium">Summary
+                  <textarea
+                    className="mt-1 h-20 w-full rounded border p-2 font-normal"
+                    value={card.techSpec.summary}
+                    onChange={(e) => editSpec({ summary: e.target.value })}
+                  />
+                </label>
+                {LIST_KEYS.map(({ key, label }) => (
+                  <label key={key} className="block text-sm font-medium">{label} <span className="text-xs text-gray-500">(one per line)</span>
+                    <textarea
+                      className="mt-1 h-24 w-full rounded border p-2 font-normal"
+                      value={card.techSpec![key].join('\n')}
+                      onChange={(e) => editSpec({ [key]: e.target.value.split('\n') })}
+                    />
+                  </label>
+                ))}
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={card.techSpecConfirmed}
+                    onChange={() => confirmTechSpec(card.id)}
+                    disabled={card.techSpecConfirmed}
+                  />
+                  I reviewed and confirm the technical documentation
+                </label>
+                <details>
+                  <summary className="cursor-pointer text-sm text-gray-600">Preview as students see it</summary>
+                  <TechSpecView spec={card.techSpec} />
+                </details>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      <aside className="space-y-4">
+        <RatingPanel
+          rating={rating}
+          onAction={(field) => { setTab('card'); setTimeout(() => document.getElementById(`field-${field}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })); }}
+        />
+        {card.history.length > 1 && <ScoreHistory history={card.history} />}
+        {card.status === 'published' ? (
+          <div className="rounded bg-green-50 p-3 text-sm text-green-800">Published to the catalog</div>
+        ) : (
+          <>
+            <button
+              disabled={!card.fields.title}
+              onClick={() => { publish(card.id); onPublished?.(); }}
+              className="w-full rounded bg-green-600 px-4 py-2 text-white disabled:opacity-50"
+            >
+              Publish to catalog
+            </button>
+            {!card.techSpecConfirmed && (
+              <p className="text-xs text-gray-500">Tip: confirm tech docs so students can start faster.</p>
+            )}
+          </>
+        )}
+      </aside>
+    </div>
+  );
+}

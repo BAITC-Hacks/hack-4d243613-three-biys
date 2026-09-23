@@ -1,4 +1,5 @@
-// Route stub — owner: C.
-export default function Page() {
-  return <h1 className="text-2xl font-semibold">Team profile</h1>;
+import { TeamProfileForm } from '@/components/features/student/TeamProfileForm';
+
+export default function ProfilePage() {
+  return <TeamProfileForm />;
 }

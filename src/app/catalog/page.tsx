@@ -1,4 +1,5 @@
-// Route stub — owner: C.
-export default function Page() {
-  return <h1 className="text-2xl font-semibold">Catalog</h1>;
+import { CatalogView } from '@/components/features/catalog/CatalogView';
+
+export default function CatalogPage() {
+  return <CatalogView />;
 }

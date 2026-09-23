@@ -1,4 +1,5 @@
-// Route stub — owner: C.
-export default function Page() {
-  return <h1 className="text-2xl font-semibold">Discover</h1>;
+import { Discover } from '@/components/features/business/Discover';
+
+export default function DiscoverPage() {
+  return <Discover />;
 }
