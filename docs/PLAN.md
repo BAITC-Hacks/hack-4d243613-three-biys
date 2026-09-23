@@ -46,10 +46,10 @@ Levels: 0–39 **draft** (visible, flagged) · 40–69 **working** (proposals + 
 
 **Product: "TaskForge"** (working name). **Split of responsibilities: the Windows app does collection only. Everything else — business side and student side (profiles, catalog, projects, proposals) — is the web app.**
 
-1. **TaskForge Collector (Windows app)** — tray app the business installs (opt-in). Three toggles:
+1. **TaskForge Collector (Windows app)** — tray app the business installs (opt-in). Two toggles:
    - **Activity tracker** (starts with Windows): foreground-app category + clipboard transfers between apps → anonymized events. Window titles/content never leave the machine.
    - **Meeting notes**: captures system audio (Zoom/Teams/Meet/any) + mic → server transcribes → meeting transcript.
-   - **Communication channels**: Telegram bot in the work group → messages with names replaced by roles.
+   - ~~Communication channels (Telegram)~~ — **cut from the start; pitch roadmap only.**
 2. **Business web platform**
    - **Discover**: all sources (seeded 4-week history + live Collector data) → anonymizer (k≥5) + Privacy panel → AI **insights, each with cited evidence** (verbatim quote / real metric + source + date; unsupported insights dropped) + suggested IT solution type → "Use as draft".
    - **Constructor** (spec core): draft → AI questions → card (every field traced to draft/answer, missing = null, never invented) → **deterministic rating** with breakdown and "+N if you add X" → AI **technical documentation for students** (editable, business confirms) → publish.
@@ -60,6 +60,24 @@ Levels: 0–39 **draft** (visible, flagged) · 40–69 **working** (proposals + 
    - **Project page**: full card + **technical documentation** + rating breakdown → submit proposal.
    - **"Projects you can take"**: matches the team profile against projects (level ≥ working) with a reason; never hides the catalog.
 
+**Staying on-track (read this first).** The track's core principle: *the more complete and useful the business describes its task, the higher its rating and catalog position.* Everything we build serves that:
+- **The Collector/Discover is a rating booster, not a separate product.** "Data & materials" (20 pts) and "Context & need" (20 pts) are the hardest fields for a business to fill; evidence from meetings/activity becomes **suggested** text for those fields, marked with its source, and earns points **only after the business confirms it**.
+- **Demo order:** the spec's mandatory flow first (weak draft → questions → rating growth → publish → proposal → manual decision, ~3.5 min), Collector/Discover as the ~1-min "boost" story.
+
+**Track-scoring features (priority order; owners in §8):**
+1. **Catalog position preview** — "Your task is #7 of 12 → add measurable success criteria → #3" (rating directly drives position). *(25 pts: gamification)*
+2. **Next best actions** — missing items sorted by point gain, click jumps to the field. *(25)*
+3. **Transparent quality checks** — per component: ✓ filled ✓ confirmed ✗ measurable, with the rule text. *(25)*
+4. **Side-by-side proposal comparison** for the business (idea, plan, deadline, skill match, link). *(15: catalog & proposals)*
+5. **"How the AI works" panel** — prompt, input JSON, output JSON, validation/repair result for every AI step. *(10: AI — spec explicitly asks to show prompt, I/O format, invalid-response handling)*
+6. **Level-up moments** — toast/animation when crossing 40 / 70 / 90, level badges everywhere. *(25)*
+7. **Questions ranked by points** — each question shows "why: +20 data & materials". *(15: card quality)*
+8. **Team leaderboard** — points only from business-confirmed milestones, never for applying. *(20: step 8 of the flow)*
+9. **Score history** per task — timeline 25 → 45 → 88 (recalculated after each confirmed addition). *(25)*
+10. **Vagueness detector** — flags "ASAP", "etc.", "some data", "improve efficiency" and asks for specifics. *(15)*
+11. **Reject with reason + accept several.** *(15)*
+12. **Proposal completeness check** for students (valid link, required fields, future deadline). *(10: technical quality)*
+
 **Privacy by design:** events not content; device ID pseudonymized, dropped before aggregation; only weekly team aggregates; a pattern is shown only if **≥5 people** contribute; Privacy panel shows raw events / individuals identified = 0 / suppressed patterns. Pitch: *"We analyze how work flows, not who works."*
 
 **What's new:** problem discovery from real operational signals + evidence-cited insights + a transparent, code-computed readiness score that gamifies the business.
@@ -69,7 +87,7 @@ Levels: 0–39 **draft** (visible, flagged) · 40–69 **working** (proposals + 
 
 - **Web:** TypeScript + Next.js (App Router) + Tailwind; **OpenAI SDK** for both LLM providers; **zod** for all AI and ingest I/O; **zustand + localStorage** for business-flow data (cards, proposals, teams), seeded from JSON.
 - **Server store for Collector data** (`src/lib/server/storage.ts`): **Upstash Redis** when `UPSTASH_REDIS_REST_URL` is set (Vercel deploy), else **JSON files in `.data/`** (local / experts, zero setup). Seed history is always merged in.
-- **Collector:** **Electron + TypeScript** in `collector/` (own `package.json`), `get-windows` for the foreground app (fallback: PowerShell script calling user32 `GetForegroundWindow`), Electron clipboard polling, `desktopCapturer` + `audio: 'loopback'` for system audio (Windows), Telegram Bot API via plain `fetch` (`getUpdates` polling).
+- **Collector:** **Electron + TypeScript** in `collector/` (own `package.json`), `get-windows` for the foreground app (fallback: PowerShell script calling user32 `GetForegroundWindow`), Electron clipboard polling, `desktopCapturer` + `audio: 'loopback'` for system audio (Windows). (Telegram: roadmap only.)
 - **Deploy:** Vercel CLI (`npx vercel deploy --prod`).
 - **Models** (one constant `src/lib/llm/models.ts`; verify IDs at scaffold): OpenAI `gpt-4.1-mini` (JSON tasks), `gpt-4.1` for discover if needed, `gpt-4o-transcribe` (fallback `whisper-1`) for audio; NVIDIA `meta/llama-3.3-70b-instruct` at `https://integrate.api.nvidia.com/v1` as text fallback. `DEMO_MODE=live|record|replay`; no key → replay.
 
@@ -79,11 +97,10 @@ Why: one language across web + desktop; file-based routes = few shared files; no
 
 ```
 ┌──────── Windows: TaskForge Collector (Electron) ─────────────┐
-│ Tray + window: [Activity tracker] [Meeting notes] [Telegram]│
-│ settings: serverUrl, ingestToken, team, telegram bot/chat   │
+│ Tray + window: [Activity tracker] [Meeting notes]           │
+│ settings: serverUrl, ingestToken, team                      │
 │ tracker: foreground app → category; clipboard X→Y transfer  │
 │ meeting: loopback+mic → 30s webm chunks                     │
-│ telegram: getUpdates → role-mapped messages                 │
 └──────────────┬──────────────────────────────────────────────┘
                │ HTTPS, Authorization: Bearer INGEST_TOKEN
                ▼
@@ -144,6 +161,8 @@ export interface TaskCard {
   techSpecConfirmed: boolean;
   status: 'draft' | 'published';
   origin: { kind: 'manual' } | { kind: 'insight'; insightId: string };
+  history: { ts: string; total: number; level: Level; note: string }[];   // snapshot on every confirm/publish
+  suggestions: Partial<Record<CardField, { text: string; source: string }>>;  // from Discover evidence; unconfirmed, no points until accepted
   createdAt: string; updatedAt: string; publishedAt?: string;
 }
 
@@ -153,9 +172,20 @@ export type RatingKey =
 export interface RatingComponent {
   key: RatingKey; label: string; max: number; points: number;
   reasons: string[];                   // why points were given
+  checks: { label: string; passed: boolean; points: number; rule: string }[];  // transparent quality checks
   hints: { text: string; gain: number }[];   // "add X → +N"
 }
-export interface Rating { total: number; level: Level; components: RatingComponent[]; }
+export interface NextAction { field: CardField; text: string; gain: number; }
+export interface VaguenessFlag { field: CardField; phrase: string; ask: string; }
+export interface Rating {
+  total: number; level: Level; components: RatingComponent[];
+  nextActions: NextAction[];           // all hints, sorted by gain desc
+  vagueness: VaguenessFlag[];          // code rules: "ASAP", "etc.", "some data", "improve efficiency"…
+}
+export interface PositionPreview {
+  position: number; of: number;        // current rank among published + this card
+  ifNext?: { action: NextAction; position: number };  // rank if the top next action is done
+}
 
 export interface TeamProfile {         // student team; no personal/sensitive attributes
   id: string; name: string; about: string;
@@ -165,6 +195,7 @@ export interface Proposal {
   id: string; taskId: string; teamId: string;
   idea: string; plan: string; deadline: string; prototypeUrl: string;
   status: 'pending' | 'accepted' | 'rejected';
+  rejectReason?: string;               // optional feedback shown to the team
   createdAt: string; decidedAt?: string;
 }
 export interface Milestone {
@@ -199,7 +230,7 @@ export interface PrivacyStats {
   rawEvents: number; individualsIdentified: 0; k: number;
   suppressedPatterns: number; teamsReported: number; teamsSuppressed: number;
 }
-export interface ChatMessage {
+export interface ChatMessage {          // roadmap source; seed empty, kept so SourcesSnapshot is stable
   id: string; date: string; channel: string; role: string; text: string;
   origin: 'seed' | 'live';
 }
@@ -216,6 +247,7 @@ export interface Insight {
   suggestedSolutionType: string;
   evidence: Evidence[];                  // >= 1 after verification
   draftText: string;                     // short, deliberately incomplete draft
+  suggestedFields: Partial<Record<'context' | 'need' | 'data', string>>;  // built only from evidence; become TaskCard.suggestions
 }
 export interface SourcesSnapshot {
   meetings: MeetingNote[];
@@ -230,6 +262,8 @@ export interface AgentStep {
   id: string; ts: string;
   kind: 'thought' | 'tool_call' | 'tool_result' | 'llm_call' | 'validation' | 'error';
   label: string; detail?: unknown; durationMs?: number;
+  prompt?: string; input?: unknown; output?: unknown;   // for the "How the AI works" panel (llm_call / validation steps)
+  validation?: { ok: boolean; errors?: string[]; repaired?: boolean };
   provider?: 'openai' | 'nvidia' | 'replay'; model?: string;
 }
 
@@ -245,7 +279,7 @@ export type ApiResult<T> =
 
 | Endpoint | Request | Response `data` |
 |---|---|---|
-| `/api/ai/clarify` | `{ draftText: string; industry?: string; fields?: Partial<CardFields> }` | `{ extracted: CardFields; questions: { id: string; field: CardField; question: string; why: string }[] }` (≥3, only for null/weak fields) |
+| `/api/ai/clarify` | `{ draftText: string; industry?: string; fields?: Partial<CardFields> }` | `{ extracted: CardFields; questions: { id: string; field: CardField; question: string; why: string; gain: number }[] }` (≥3, only for null/weak fields, sorted by `gain` — server fills `gain` from `rateCard`, not the LLM) |
 | `/api/ai/card` | `{ draftText: string; answers: { questionId: string; field: CardField; question: string; answer: string }[] }` | `{ fields: CardFields; fieldSource: Partial<Record<CardField,'draft'\|'answer'>> }` (null when not stated) |
 | `/api/ai/techspec` | `{ fields: CardFields }` | `{ techSpec: TechSpec; skillsNeeded: string[] }` |
 | `/api/ai/discover` | `{ period: { from: string; to: string } }` (server reads `/api/sources` data itself) | `{ insights: Insight[]; dropped: number }` (every quote/metric verified against sources) |
@@ -258,20 +292,20 @@ export type ApiResult<T> =
 | `POST /api/ingest/events` | `{ deviceId: string; team: string; events: ActivityEventInput[] }` (≤500 per batch) | `{ accepted: number }` |
 | `POST /api/ingest/meeting-audio` | `multipart/form-data`: `audio` (webm/opus ≤ 25 MB), `meetingId`, `title`, `team`, `seq` (0,1,2…), `startedAt` | `{ meetingId: string; seq: number; text: string; transcriptLength: number }` |
 | `POST /api/ingest/meeting-end` | `{ meetingId: string }` | `{ meeting: MeetingNote }` |
-| `POST /api/ingest/messages` | `{ source: 'telegram'; channel: string; messages: { id: string; date: string; role: string; text: string }[] }` | `{ accepted: number }` |
+| `POST /api/ingest/messages` *(roadmap — not built)* | `{ source: 'telegram'; channel: string; messages: { id: string; date: string; role: string; text: string }[] }` | `{ accepted: number }` |
 | `GET /api/sources` | — (no token) | `SourcesSnapshot` (seed + live, aggregated with k=5) |
 | `GET /api/health` | — | `{ ok: true; mode: 'live'\|'replay'; storage: 'redis'\|'file' }` (Collector "Test connection") |
 
-**Collector settings (A, stored in Electron `userData/settings.json`, never committed):** `{ serverUrl: string; ingestToken: string; team: string; trackerEnabled: boolean; meetingEnabled: boolean; telegramEnabled: boolean; telegramBotToken?: string; telegramChatId?: string; roleMap: Record<string, string> }` — `roleMap` maps Telegram user id → role label ("Sales manager"); unmapped → "Team member". Names are never sent.
+**Collector settings (A, stored in Electron `userData/settings.json`, never committed):** `{ serverUrl: string; ingestToken: string; team: string; trackerEnabled: boolean; meetingEnabled: boolean }` — no names or window titles are ever sent.
 
 **Browser store (C) — `src/lib/store/index.ts`, zustand, persisted to localStorage key `taskforge:v1`:**
 state `{ role: 'business' | 'student'; currentTeamId: string; cards: TaskCard[]; teams: TeamProfile[]; proposals: Proposal[]; milestones: Milestone[]; teamPoints: Record<string, number>; insights: Insight[] }`
-actions `setRole, setTeam, updateTeam(id, patch), createCard(partial) → id, updateFields(id, patch), confirmField(id, field, bool), setTechSpec(id, spec, skills), confirmTechSpec(id), publish(id), submitProposal(p) → id, decideProposal(id, 'accepted'|'rejected'), addMilestone(m), confirmMilestone(id), setInsights(list), resetDemo()`.
-`src/lib/catalog.ts` (C): `getCatalog(cards, { topic?, level?, sort: 'rating' | 'new' })` — published only, rating desc, ready/priority boosted; `matchTasks(team, cards): Match[]` — overlap of team interests/skills/tech with task topic/`skillsNeeded`, only level ≥ working, reasons like "Your team knows Python · task needs Python".
+actions `setRole, setTeam, updateTeam(id, patch), createCard(partial) → id, updateFields(id, patch), confirmField(id, field, bool) (pushes a `history` snapshot), acceptSuggestion(id, field), decideProposal(id, status, rejectReason?), setTechSpec(id, spec, skills), confirmTechSpec(id), publish(id), submitProposal(p) → id, decideProposal(id, 'accepted'|'rejected'), addMilestone(m), confirmMilestone(id), setInsights(list), resetDemo()`.
+`src/lib/catalog.ts` (C): `getCatalog(cards, { topic?, level?, sort: 'rating' | 'new' })` — published only, ordered by `catalogSortKey` from `src/lib/rating`; `matchTasks(team, cards): Match[]` — overlap of team interests/skills/tech with task topic/`skillsNeeded`, only level ≥ working, reasons like "Your team knows Python · task needs Python".
 
 **Presentational components (B) — `src/components/ui/**` (generic kit) and `src/components/domain/**`:** props only, no store/API access, typed from `types.ts`: `RatingPanel({ rating })`, `LevelBadge({ level })`, `ScoreBar({ points, max })`, `ProjectCard({ card, rating })`, `TechSpecView({ spec })`, `InsightCard({ insight, onUse })`, `EvidenceChip({ evidence })`, `PrivacyPanel({ privacy, live })`, `AgentTrace({ steps })`, `ProposalCard({ proposal, team, onAccept?, onReject? })`, `TeamCard({ team, points })`. C imports these; until B ships one, C uses a minimal placeholder with the same props.
 
-**Pure functions (A):** `src/lib/rating/index.ts` → `rateCard(card): Rating`, `levelFor(total): Level`. `src/lib/discover/aggregate.ts` → `aggregateActivity(events: RawActivityEvent[], k = 5): { aggregates; privacy }`.
+**Pure functions (A):** `src/lib/rating/index.ts` → `rateCard(card): Rating`, `levelFor(total): Level`, `catalogSortKey(card, rating): number` (the ONE ordering rule: rating desc, ready/priority boosted, newer first on ties — `getCatalog` must use it), `positionPreview(card, publishedCards): PositionPreview`. `src/lib/discover/aggregate.ts` → `aggregateActivity(events: RawActivityEvent[], k = 5): { aggregates; privacy }`.
 
 ## 6. File ownership map
 
@@ -311,16 +345,17 @@ Hours are Astana time. Realistic start: scaffold lands ~14:35.
 **H2 14:40–15:40**
 - [ ] `src/lib/llm/*`: provider switch + fallback, zod + 1 repair retry, `DEMO_MODE` record/replay (`fixtures/replay/<endpoint>-<hash>.json`, replay falls back to latest fixture per endpoint), trace
 - [ ] `/api/ai/clarify`, `/api/ai/card` + prompts; `src/lib/api-client.ts` real calls
-- [ ] `src/lib/rating/index.ts` + `tests/rating.test.ts` (empty = 0, unconfirmed = 0, full ≥ 90)
+- [ ] `src/lib/rating/index.ts`: `rateCard` with per-component `checks` (rule text), `hints`, `nextActions` sorted by gain, `vagueness` flags (code rules), `catalogSortKey`, `positionPreview` + `tests/rating.test.ts` (empty = 0, unconfirmed = 0, full ≥ 90, vague phrase flagged, position improves after next action) — **features 1, 2, 3, 10**
+- [ ] Trace steps carry `prompt`, `input`, `output`, `validation` (feature 5); clarify fills question `gain` from `rateCard` and sorts by it (feature 7)
 - [ ] `src/data/seed/*.json`: 5 drafts, 5 published cards (with techSpec, mixed levels), 5 teams, 5 proposals
 **H3 15:40–16:40**
 - [ ] `src/lib/server/storage.ts` (redis | file), `/api/ingest/*`, `/api/sources`, `/api/health`, transcription via OpenAI
-- [ ] `src/lib/discover/aggregate.ts` (k=5) + seed `meetings.json` (8 over 4 weeks), `activity-events.json` (~2,000, one team below k), `chats.json`
+- [ ] `src/lib/discover/aggregate.ts` (k=5) + seed `meetings.json` (8 over 4 weeks), `activity-events.json` (~2,000, one team below k) — no chats
 - [ ] `/api/ai/techspec`; first Vercel deploy (env: `OPENAI_API_KEY`, `INGEST_TOKEN`, Upstash keys)
 - [ ] Collector tracker (`collector/src/tracker.ts`, `categories.ts`): foreground app every 2 s (`get-windows`; PowerShell fallback), category mapping, clipboard `copy` → `transfer` within 60 s, 30 s batches → `/api/ingest/events`, autostart, pause; IPC status to renderer → B tests on Windows
 **H4 16:40–17:00**
-- [ ] `/api/ai/discover` (single validated call + `src/lib/ai/evidence.ts`, drop unsupported); record golden-path fixtures
-- [ ] Collector meeting notes (`collector/src/meeting.ts`): loopback + mic, 30 s chunks → `/api/ingest/meeting-audio`, Stop → `meeting-end`; (cut-first) `telegram.ts`
+- [ ] `/api/ai/discover` (single validated call + `src/lib/ai/evidence.ts`, drop unsupported; each insight also returns `suggestedFields` for context/need/data built only from evidence); record golden-path fixtures
+- [ ] Collector meeting notes (`collector/src/meeting.ts`): loopback + mic, 30 s chunks → `/api/ingest/meeting-audio`, Stop → `meeting-end`. (Telegram: cut.)
 **H5 17:00–17:45**
 - [ ] Replay-only run of the golden path; final deploy; technical README sections (install, run, env, architecture, rating formula, catalog rules, AI prompts/I-O/error handling, Collector) → B for editing
 
@@ -329,10 +364,10 @@ Hours are Astana time. Realistic start: scaffold lands ~14:35.
 - [ ] Quick look & feel: palette, type scale, spacing → Tailwind tokens in `src/app/globals.css`
 - [ ] `src/components/ui/*`: Button, Card, Badge, Input, Textarea, Select, Tabs, ProgressBar, Stat, EmptyState → push (C builds with these from 15:00)
 **H2 15:00–16:00**
-- [ ] `src/components/domain/*` (props-only, §5): `RatingPanel`, `LevelBadge`, `ScoreBar`, `ProjectCard`, `TechSpecView`, `ProposalCard`, `TeamCard`
+- [ ] `src/components/domain/*` (props-only, §5): `RatingPanel` (total, level, component bars, **checks ✓/✗ with rule text**, **Next best actions** list with `onAction(field)`), `PositionPreview({ preview })` ("#7 of 12 → #3 if you …"), `LevelBadge`, `LevelUpToast({ from, to })`, `ScoreBar`, `ScoreHistory({ history })`, `ProjectCard`, `TechSpecView`, `ProposalCard`, `ProposalCompare({ proposals, teams, onAccept, onReject })`, `TeamCard`, `Leaderboard({ teams, points })`
 - [ ] Collector window UI `collector/renderer/*` (3 toggles, settings form, status/counters, live transcript area) against A's IPC stub
 **H3 16:00–16:40**
-- [ ] `InsightCard`, `EvidenceChip`, `PrivacyPanel`, `AgentTrace`; landing `/` visuals with C; loading/empty/error states
+- [ ] `AgentTrace` with **"How the AI works"** expandable view per step (prompt, input JSON, output JSON, validation result/repair) — feature 5; `InsightCard`, `EvidenceChip`, `SuggestionChip({ text, source, onAccept })`, `PrivacyPanel`; landing `/` visuals with C; loading/empty/error states
 - [ ] Test Collector on Windows whenever A pushes (tracker events reaching `/api/sources`)
 **H4 16:40–17:00**
 - [ ] Visual polish pass on all pages with C; `docs/DEMO.md` (exact demo inputs); pitch deck (problem → product → privacy → roadmap)
@@ -344,13 +379,13 @@ Hours are Astana time. Realistic start: scaffold lands ~14:35.
 - [ ] `layout.tsx` header: role switcher (Business / Student + team picker) + nav; route stubs for all pages → push
 - [ ] `src/lib/store/index.ts` (zustand + persist + seed loader + `resetDemo`), `src/lib/catalog.ts` (`getCatalog`, `matchTasks`)
 **H2 15:00–16:00**
-- [ ] `/business/new` wizard: draft (+industry) → questions (≥3) → card editor (all fields editable, per-field ✓ confirm, source badges) + live `RatingPanel` → **Tech docs tab** (generate → edit → confirm) → publish (mock `api-client` until A's endpoints land)
+- [ ] `/business/new` wizard: draft (+industry) → questions (≥3, sorted by gain, show "why: +N") → card editor (all fields editable, per-field ✓ confirm, source badges, **"not stated" markers**, vagueness flags inline, Discover suggestions as accept-able chips) + live `RatingPanel` with **Next best actions** (click scrolls/focuses the field) + **PositionPreview** + **LevelUpToast** on crossing 40/70/90 + **ScoreHistory** → **Tech docs tab** (generate → edit → confirm) → publish (mock `api-client` until A's endpoints land)
 **H3 16:00–16:40**
 - [ ] `/catalog` (rating sort, topic + level filters, badges, draft flag) + `/catalog/[id]` project page (card + technical documentation + rating breakdown + proposal form)
-- [ ] `/student` (team profile summary, points, "Projects you can take" from `matchTasks`) + `/student/profile` (edit name, about, interests, skills, tech)
-- [ ] `/business/tasks` + `/business/tasks/[id]`: proposals, accept/reject, add/confirm milestone, points
+- [ ] `/student` (team profile summary, points, "Projects you can take" from `matchTasks`, **team Leaderboard** — points only from confirmed milestones) + `/student/profile` (edit name, about, interests, skills, tech); proposal form **completeness check** (valid URL, required fields, future deadline)
+- [ ] `/business/tasks` + `/business/tasks/[id]`: **ProposalCompare** side-by-side, accept (several allowed) / reject **with optional reason**, add/confirm milestone, points
 **H4 16:40–17:00**
-- [ ] `/business/discover`: sources (seed + live from `/api/sources`), `PrivacyPanel`, meetings/chats list, "Analyze" → `AgentTrace` + `InsightCard`s → "Use as draft" (`/business/new?insight=<id>`)
+- [ ] `/business/discover`: sources (seed + live from `/api/sources`), `PrivacyPanel`, meetings list, "Analyze" → `AgentTrace` + `InsightCard`s → "Use as draft" (`/business/new?insight=<id>`: draft prefilled, `suggestedFields` shown as **unconfirmed suggestions** on context/need/data — points only after accept + confirm)
 **H5 17:00–17:45**
 - [ ] Run the golden path end-to-end in replay mode; fix bugs; screenshots for B
 
@@ -367,34 +402,35 @@ Hours are Astana time. Realistic start: scaffold lands ~14:35.
 
 ## 10. Golden-path demo script (≤5 min)
 
-Setup: web app on the Vercel URL in a browser; Collector running on a Windows laptop pointed at the same URL. Demo company **"QazCargo"** (synthetic logistics SME).
-1. **Windows Collector:** show the tray app with tracker on (live event counter). Click **Start meeting notes**, speak one sentence on a Zoom call ("we keep retyping orders from Excel into the CRM"), **Stop** → transcript appears. (Telegram: send one message to the work group → appears.)
-2. **Business → Discover:** sources = 4 weeks of seed + the live meeting/events; **Privacy panel** (individuals identified: 0, suppressed patterns: N). **Analyze** → trace → insights. Top: *"Orders are re-typed from spreadsheets into the CRM"*, evidence = meeting quote (incl. today's) + metric "Sales, 2026-W38: 142 Spreadsheet→CRM transfers, 6 contributors".
-3. **Use as draft** → weak draft: *"Our sales team wastes time moving orders from Excel to the CRM. We want to automate it."*
-4. **Clarify** → ≥3 questions → answer with prepared text (`docs/DEMO.md`) → card, confirm fields → rating ~**45 (working)**; hints "+15 measurable success criteria", "+10 contact & format".
-5. Add *"Cut manual entry time by 80%, zero duplicate orders"* + contact → confirm → ~**88 (ready)** live.
-6. **Tech docs** tab → generate → edit one line → confirm → **Publish**.
-7. Switch to **Student**, team **"DataCraft"** → profile (Python, integrations) → **Projects you can take** shows QazCargo with reason → project page with tech docs → submit proposal.
-8. **Catalog:** QazCargo near the top; a draft-level task still visible with its flag.
-9. Switch to **Business** → proposals (ours + 1 seeded) → **Accept** DataCraft, **Reject** the other → milestone "Import script prototype" → **Confirm** → DataCraft **+points**.
+Setup: web app on the Vercel URL in a browser; Collector running on a Windows laptop pointed at the same URL. Demo company **"QazCargo"** (synthetic logistics SME). **Order = the spec's mandatory demo first (steps 1–7, ~3.5 min), then the Collector/Discover boost (steps 8–9, ~1 min).**
+1. **Business → New task:** type the weak draft: *"Our sales team wastes time moving orders from Excel to the CRM. We want to automate it."* Vagueness flag appears on "automate it".
+2. **Clarify** → ≥3 questions, sorted by points ("why: +20 data & materials") → answer with prepared text (`docs/DEMO.md`) → card with source badges and "not stated" markers → confirm fields → rating ~**45 (working)** + **LevelUpToast**; **PositionPreview** "#7 of 10 → add measurable success criteria → #3"; **Next best actions**: "+15 success criteria", "+10 contact & format".
+3. Click the top action → add *"Cut manual entry time by 80%, zero duplicate orders"* + contact → confirm → ~**88 (ready)** live, toast "Ready — higher catalog position", **ScoreHistory** 25 → 45 → 88. Open **"How the AI works"** on the clarify step for 5 seconds (prompt, input, output, validation).
+4. **Tech docs** tab → generate → edit one line → confirm → **Publish** → **Catalog:** QazCargo at #3; a draft-level task still visible with its flag.
+5. Switch to **Student**, team **"DataCraft"** → profile (Python, integrations) → **Projects you can take** shows QazCargo with reason → project page with tech docs → submit proposal (completeness check).
+6. Switch to **Business** → **ProposalCompare** (ours + 1 seeded) → **Accept** DataCraft, **Reject** the other with a reason.
+7. Milestone "Import script prototype" → **Confirm** → DataCraft **+points** → **Leaderboard** on the student side.
+8. **Boost story — Windows Collector:** tray app, tracker on (live counter) → **Start meeting notes**, one sentence on Zoom → **Stop** → transcript appears.
+9. **Discover:** sources (4 weeks seed + today's live meeting/events), **Privacy panel** (individuals identified: 0). **Analyze** → insight *"Orders are re-typed from spreadsheets into the CRM"* with evidence (meeting quote + "Sales, 2026-W38: 142 Spreadsheet→CRM transfers, 6 contributors") → **Use as draft** → "Data & materials" suggestion chip → accept + confirm → **+20 points**: *"the Collector earns the points businesses usually can't."*
 
-Backup: if Windows/network fails, skip step 1 — seed data carries Discover; if the API fails, `DEMO_MODE=replay`.
+Backup: if Windows/network fails, skip step 8 — seed data carries Discover; if the API fails, `DEMO_MODE=replay`.
 
 ## 11. Cut list (drop in this order)
 
-1. Collector: Telegram
-2. AI `recommend` reasons (rule-based matches stay)
+0. Collector: Telegram / chat source — **already cut** (roadmap only)
+1. AI `recommend` reasons (rule-based matches stay)
+2. ScoreHistory chart (keep the numbers in text), vagueness detector
 3. Collector: live meeting audio (paste a transcript in Discover instead)
 4. Discover AI (keep sources + Privacy panel; insights from a replay fixture)
 5. NVIDIA fallback (replay stays)
 6. Vercel deploy (local run + replay satisfies the README; Collector points at LAN IP)
 7. Collector: activity tracker (only after the 16:00 checkpoint fails)
 
-**Never cut:** full core flow, rating breakdown + recalculation, manual accept/reject, technical docs on project pages, student profile + "projects you can take", README.
+**Never cut:** full core flow, rating breakdown + checks + recalculation, **PositionPreview + Next best actions**, manual accept/reject + ProposalCompare, "How the AI works" panel, technical docs on project pages, student profile + "projects you can take", README.
 
 ## 12. Risks
 
-- **Behind schedule + wider scope** → Collector is isolated in `collector/`; A carries the most scope — cut list applies to A first (Telegram → meeting audio → Discover AI); 16:00 checkpoint: if the tracker isn't sending events, A stops Collector work and finishes the web core; B joins C on pages once the kit is done.
+- **Behind schedule + wider scope** → Collector is isolated in `collector/`; A carries the most scope — cut list applies to A first (meeting audio → Discover AI); 16:00 checkpoint: if the tracker isn't sending events, A stops Collector work and finishes the web core; B joins C on pages once the kit is done.
 - **Windows-native pieces** (`get-windows` build, loopback audio permissions) → PowerShell fallback for the foreground app; paste-transcript fallback for meetings.
 - **LLM JSON / hallucination** → zod + repair retry + null-for-missing + verbatim evidence check; replay for the demo.
 - **localStorage is per browser** → single-browser demo with role switcher + "Reset demo data"; Collector data lives server-side.
