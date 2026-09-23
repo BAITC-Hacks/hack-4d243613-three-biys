@@ -1,6 +1,7 @@
 <!doctype html>
 <!-- КӨПІР Collector window (owner: B). Plain HTML, CSS and JS without a build step: main.ts opens this file
-     with loadFile(), renderer.js talks only to window.collector from src/preload.ts. -->
+     with loadFile(), renderer.js talks only to window.collector from src/preload.ts.
+     Screens: loading, sign in, consent, app shell (tabs Collect, Transcript, Privacy, Settings), confirm dialog. -->
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -15,7 +16,123 @@
     <script src="renderer.js" defer></script>
   </head>
   <body>
-    <div class="app">
+    <!-- ============ LOADING ============ -->
+    <section class="screen screen--center" id="screen-loading" aria-label="Loading">
+      <span class="logo logo--lg" role="img" aria-label="Көпір" lang="kk">
+        <span aria-hidden="true">КӨПІР</span><span class="logo__led" aria-hidden="true"></span>
+      </span>
+      <p class="loading" id="loading-text"><span class="led" aria-hidden="true"></span>Starting Collector…</p>
+      <p class="loading__error" id="loading-error" role="alert" hidden></p>
+      <button type="button" class="btn" id="loading-retry" hidden>Try again</button>
+    </section>
+
+    <!-- ============ SIGN IN ============ -->
+    <section class="screen screen--auth" id="screen-signin" aria-labelledby="signin-title" hidden>
+      <div class="auth" id="signin-card">
+        <div class="brand">
+          <span class="logo" role="img" aria-label="Көпір" lang="kk">
+            <span aria-hidden="true">КӨПІР</span><span class="logo__led" aria-hidden="true"></span>
+          </span>
+          <span class="brand__tag">Collector</span>
+        </div>
+        <svg class="illo" viewBox="0 0 160 120" width="120" height="90" fill="none" stroke="#18181b" stroke-width="2" aria-hidden="true" focusable="false">
+          <rect x="24" y="15" width="112" height="76" fill="#18181b" />
+          <rect x="30" y="21" width="100" height="64" fill="#fafaf7" />
+          <path d="M24 91 10 105h140l-14-14Z" fill="#ffffff" />
+          <path d="M66 99h28" />
+          <path d="M42 35h35" /><rect x="91" y="29" width="25" height="10" fill="#e4e4e7" /><rect x="106" y="29" width="10" height="10" fill="#84cc16" />
+          <path d="M42 52h35" /><rect x="91" y="46" width="25" height="10" fill="#e4e4e7" /><rect x="91" y="46" width="10" height="10" fill="#ffffff" />
+          <path d="M42 69h35" /><rect x="91" y="63" width="25" height="10" fill="#e4e4e7" /><rect x="106" y="63" width="10" height="10" fill="#84cc16" />
+          <rect class="illo__led" x="119" y="24" width="6" height="6" fill="#84cc16" stroke="none" />
+        </svg>
+        <h1 class="auth__title" id="signin-title" tabindex="-1">Sign in to this computer</h1>
+        <p class="auth__pitch">Anonymous work signals that show which tasks are worth solving.</p>
+
+        <form class="auth__form" id="signin-form" novalidate autocomplete="off">
+          <div class="saved" id="signin-saved" hidden>
+            <span class="saved__text"><strong id="signin-saved-host">server</strong> · <span id="signin-saved-team">team</span></span>
+            <button type="button" class="btn btn--sm btn--ghost" id="signin-change">Change</button>
+          </div>
+          <div class="auth__fields" id="signin-conn">
+            <div class="field">
+              <label class="field__label" for="si-server">Server address</label>
+              <input class="input" id="si-server" type="url" inputmode="url" spellcheck="false" placeholder="https://taskforge-app-chi.vercel.app" aria-describedby="si-server-msg" required />
+              <p class="field__msg" id="si-server-msg">The <span lang="kk">Көпір</span> site of your company.</p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="si-team">Team</label>
+              <input class="input" id="si-team" type="text" list="team-options" maxlength="60" spellcheck="false" aria-describedby="si-team-msg" required />
+              <p class="field__msg" id="si-team-msg">Your department, for example Sales.</p>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field__label" for="si-token">Access token</label>
+            <div class="input-group">
+              <input class="input input--mono" id="si-token" type="password" spellcheck="false" autocomplete="off" aria-describedby="si-token-msg" required />
+              <button type="button" class="btn btn--sm btn--attached" id="si-token-toggle" aria-controls="si-token">Show</button>
+            </div>
+            <p class="field__msg" id="si-token-msg">Ask your company admin for the Collector token.</p>
+          </div>
+          <div class="auth__actions">
+            <button type="submit" class="btn btn--primary btn--grow" id="signin-btn">
+              <span class="led" aria-hidden="true"></span><span id="signin-btn-label">Sign in</span>
+            </button>
+            <button type="button" class="btn" id="signin-test">Test connection</button>
+          </div>
+          <p class="form__status" id="signin-status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ CONSENT ============ -->
+    <section class="screen screen--auth" id="screen-consent" aria-labelledby="consent-title" hidden>
+      <div class="auth auth--wide" id="consent-card">
+        <div class="brand">
+          <span class="logo" role="img" aria-label="Көпір" lang="kk">
+            <span aria-hidden="true">КӨПІР</span><span class="logo__led" aria-hidden="true"></span>
+          </span>
+          <span class="brand__tag">Collector</span>
+        </div>
+        <h1 class="auth__title" id="consent-title" tabindex="-1">What this app sends</h1>
+        <div class="columns">
+          <div class="column column--sent">
+            <h2 class="column__title"><span class="led" aria-hidden="true"></span>Sent to the server</h2>
+            <ul class="column__list">
+              <li>App categories: CRM, Spreadsheet, Email</li>
+              <li>Transfers like Spreadsheet → CRM</li>
+              <li>Meeting transcript, only when you start it</li>
+              <li>Your team name</li>
+            </ul>
+          </div>
+          <div class="column column--never">
+            <h2 class="column__title"><span class="never-icon" aria-hidden="true"></span>Never leaves this computer</h2>
+            <ul class="column__list">
+              <li>Window titles</li>
+              <li>Document content</li>
+              <li>Keystrokes</li>
+              <li>Screenshots</li>
+              <li>Names</li>
+            </ul>
+          </div>
+        </div>
+        <p class="rule"><strong>5+ rule.</strong> A pattern is shown only if 5 or more people are in it. Results can never be used to evaluate or punish an individual.</p>
+        <label class="check" for="consent-check">
+          <input type="checkbox" id="consent-check" />
+          <span class="check__box" aria-hidden="true"></span>
+          <span class="check__text">I was notified and agree to anonymized work analytics</span>
+        </label>
+        <p class="legal">Full text: <span class="legal__url" id="consent-url">/legal/collector</span></p>
+        <div class="auth__actions">
+          <button type="button" class="btn btn--primary btn--grow" id="consent-continue" aria-disabled="true">
+            <span class="led led--off" id="consent-led" aria-hidden="true"></span>Continue
+          </button>
+          <button type="button" class="btn" id="consent-back">Back</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ APP SHELL ============ -->
+    <div class="shell" id="screen-app" hidden>
       <header class="top">
         <div class="top__row">
           <div class="brand">
@@ -24,48 +141,67 @@
             </span>
             <span class="brand__tag">Collector</span>
           </div>
-          <button type="button" class="btn btn--sm btn--check" id="check-btn">Test connection</button>
+          <p class="pill" id="pill" data-state="checking" role="status" aria-live="polite">
+            <span class="led led--off" id="pill-led" aria-hidden="true"></span><span class="pill__text" id="pill-text">Checking…</span>
+          </p>
+          <button type="button" class="btn btn--sm" id="pause-btn">Pause all</button>
         </div>
-        <p class="conn" id="conn" data-state="checking" role="status" aria-live="polite">
-          <span class="led led--off" id="conn-led" aria-hidden="true"></span>
-          <span class="conn__title" id="conn-title">Checking connection…</span>
-          <span class="conn__detail" id="conn-detail"></span>
-        </p>
+        <div class="tabs" role="tablist" aria-label="Collector sections" id="tabs">
+          <button type="button" class="tab" role="tab" id="tab-collect" aria-controls="panel-collect" aria-selected="true">Collect</button>
+          <button type="button" class="tab" role="tab" id="tab-transcript" aria-controls="panel-transcript" aria-selected="false" tabindex="-1">
+            Transcript<span class="tab__dot" id="tab-transcript-dot" hidden></span>
+          </button>
+          <button type="button" class="tab" role="tab" id="tab-privacy" aria-controls="panel-privacy" aria-selected="false" tabindex="-1">Privacy</button>
+          <button type="button" class="tab" role="tab" id="tab-settings" aria-controls="panel-settings" aria-selected="false" tabindex="-1">Settings</button>
+        </div>
       </header>
 
       <main class="main" id="main">
         <div class="banner" id="bridge-banner" hidden>
           <strong>Open this window from the Collector app</strong>
-          <span>Showing sample data: the switches and recording are a preview only, nothing is sent.</span>
+          <span>Preview with sample data. Nothing is sent.</span>
+        </div>
+        <div class="banner banner--offline" id="offline-banner" role="status" hidden>
+          <span class="banner__text"><strong>Offline.</strong> <span id="offline-text">Events wait in the queue.</span></span>
+          <button type="button" class="btn btn--sm" id="offline-retry">Retry</button>
+        </div>
+        <div class="banner banner--error" id="token-banner" role="alert" hidden>
+          <span class="banner__text"><strong>Access token rejected.</strong> Nothing reaches the server.</span>
+          <button type="button" class="btn btn--sm btn--primary" id="token-signin">Sign in again</button>
         </div>
 
-        <section class="section" aria-labelledby="collect-title">
-          <h2 class="section__title" id="collect-title">Data collection</h2>
+        <!-- ---------- Collect ---------- -->
+        <section class="panel" role="tabpanel" id="panel-collect" aria-labelledby="tab-collect">
+          <div class="hero" id="hero" data-state="paused">
+            <div class="hero__status">
+              <span class="led led--xl led--off" id="hero-led" aria-hidden="true"></span>
+              <div>
+                <p class="hero__title" id="hero-title">Paused</p>
+                <p class="hero__sub" id="hero-sub">Nothing is collected right now.</p>
+              </div>
+            </div>
+            <div class="hero__count">
+              <span class="hero__num" id="hero-count">0</span>
+              <span class="hero__label" id="hero-count-label">events sent today</span>
+            </div>
+            <button type="button" class="btn btn--primary btn--grow" id="hero-start" hidden>
+              <span class="led" aria-hidden="true"></span><span id="hero-start-label">Start collecting</span>
+            </button>
+          </div>
 
           <article class="card" id="tracker-card" data-on="false">
             <div class="card__head">
               <div class="card__text">
-                <h3 class="card__title" id="tracker-title">Activity tracker</h3>
-                <p class="card__desc" id="tracker-desc">
-                  Every 2&nbsp;s notes the category of the active app and copy-paste between apps. Events go out in
-                  batches every 30&nbsp;s. While on, it starts with Windows.
-                </p>
+                <h2 class="card__title" id="tracker-title">Activity tracker</h2>
+                <p class="card__desc" id="tracker-desc">App categories every 2&nbsp;s, sent every 30&nbsp;s.</p>
               </div>
-              <button
-                type="button"
-                class="switch"
-                id="tracker-switch"
-                role="switch"
-                aria-checked="false"
-                aria-labelledby="tracker-title"
-                aria-describedby="tracker-desc"
-              >
+              <button type="button" class="switch" id="tracker-switch" role="switch" aria-checked="false" aria-labelledby="tracker-title" aria-describedby="tracker-desc">
                 <span class="switch__knob" aria-hidden="true"></span>
               </button>
             </div>
             <p class="live">
               <span class="led led--off" id="tracker-led" aria-hidden="true"></span>
-              <span id="tracker-live">Off. Nothing is collected.</span>
+              <span id="tracker-live">Off</span>
               <strong id="tracker-app"></strong>
             </p>
             <dl class="stats">
@@ -77,7 +213,7 @@
               <div class="stat">
                 <dt class="stat__label">Queued</dt>
                 <dd class="stat__value" id="tracker-pending">0</dd>
-                <dd class="stat__sub">waiting for the batch</dd>
+                <dd class="stat__sub">waiting to send</dd>
               </div>
               <div class="stat">
                 <dt class="stat__label">Last batch</dt>
@@ -91,63 +227,35 @@
           <article class="card" id="meeting-card" data-on="false">
             <div class="card__head">
               <div class="card__text">
-                <h3 class="card__title" id="meeting-heading">Meeting notes</h3>
-                <p class="card__desc" id="meeting-desc">
-                  Records computer audio (Zoom, Teams, Meet) and the microphone in 30&nbsp;s chunks. The server sends
-                  back text only, audio is not stored.
-                </p>
+                <h2 class="card__title" id="meeting-heading">Meeting notes</h2>
+                <p class="card__desc" id="meeting-desc">Computer audio and mic, turned into text every 30&nbsp;s.</p>
               </div>
-              <button
-                type="button"
-                class="switch"
-                id="meeting-switch"
-                role="switch"
-                aria-checked="false"
-                aria-labelledby="meeting-heading"
-                aria-describedby="meeting-desc"
-              >
+              <button type="button" class="switch" id="meeting-switch" role="switch" aria-checked="false" aria-labelledby="meeting-heading" aria-describedby="meeting-desc">
                 <span class="switch__knob" aria-hidden="true"></span>
               </button>
             </div>
-            <p class="live">
-              <span class="led led--off" id="meeting-led" aria-hidden="true"></span>
-              <span id="meeting-live">Not recording</span>
-            </p>
+            <div class="rec" id="rec" hidden>
+              <span class="rec__badge"><span class="rec__square" aria-hidden="true"></span>REC</span>
+              <span class="rec__time" id="rec-time">00:00</span>
+              <span class="rec__title" id="rec-title"></span>
+            </div>
+            <div class="meters" id="meters" hidden>
+              <div class="meter" id="meter-sys"><span class="meter__label">Computer</span><span class="meter__bar" aria-hidden="true"></span></div>
+              <div class="meter" id="meter-mic"><span class="meter__label">Mic</span><span class="meter__bar" aria-hidden="true"></span></div>
+            </div>
             <div class="meet">
               <label class="vh" for="meeting-name">Meeting title</label>
-              <input
-                class="input"
-                id="meeting-name"
-                type="text"
-                maxlength="80"
-                placeholder="Meeting title"
-                autocomplete="off"
-                spellcheck="false"
-              />
+              <input class="input" id="meeting-name" type="text" maxlength="80" placeholder="Meeting title" autocomplete="off" spellcheck="false" />
               <button type="button" class="btn btn--primary btn--meeting" id="meeting-btn" data-action="start">
-                <span class="led" id="meeting-btn-icon" aria-hidden="true"></span>
-                <span id="meeting-btn-label">Start recording</span>
+                <span class="led" id="meeting-btn-icon" aria-hidden="true"></span><span id="meeting-btn-label">Start recording</span>
               </button>
             </div>
             <p class="note" id="meeting-note">Tell participants before you record.</p>
-            <div class="meters" id="meters" hidden>
-              <div class="meter" id="meter-sys">
-                <span class="meter__label">Computer</span><span class="meter__bar" aria-hidden="true"></span>
-              </div>
-              <div class="meter" id="meter-mic">
-                <span class="meter__label">Microphone</span><span class="meter__bar" aria-hidden="true"></span>
-              </div>
-            </div>
-            <dl class="stats">
-              <div class="stat">
-                <dt class="stat__label">Duration</dt>
-                <dd class="stat__value" id="meeting-duration">00:00</dd>
-                <dd class="stat__sub" id="meeting-duration-sub">no recording yet</dd>
-              </div>
+            <dl class="stats stats--2">
               <div class="stat">
                 <dt class="stat__label">Chunks</dt>
                 <dd class="stat__value" id="meeting-chunks">0</dd>
-                <dd class="stat__sub" id="meeting-chunks-sub">chunks of 30&nbsp;s</dd>
+                <dd class="stat__sub" id="meeting-chunks-sub">chunks sent</dd>
               </div>
               <div class="stat">
                 <dt class="stat__label">Transcript</dt>
@@ -162,110 +270,127 @@
           <article class="card card--soon" id="channels-card">
             <div class="card__head">
               <div class="card__text">
-                <h3 class="card__title" id="channels-title">Communication channels (Telegram) <span class="tag">soon</span></h3>
-                <p class="card__desc" id="channels-desc">Work chats with roles instead of names. Not available in this version.</p>
+                <h2 class="card__title" id="channels-title">Communication channels (Telegram) <span class="tag">soon</span></h2>
+                <p class="card__desc" id="channels-desc">Work chats, roles instead of names.</p>
               </div>
-              <button
-                type="button"
-                class="switch"
-                role="switch"
-                aria-checked="false"
-                aria-labelledby="channels-title"
-                aria-describedby="channels-desc"
-                disabled
-              >
+              <button type="button" class="switch" role="switch" aria-checked="false" aria-labelledby="channels-title" aria-describedby="channels-desc" disabled>
                 <span class="switch__knob" aria-hidden="true"></span>
               </button>
             </div>
           </article>
         </section>
 
-        <section class="section" aria-labelledby="settings-title">
-          <h2 class="section__title" id="settings-title">Connection</h2>
-          <form class="card form" id="settings-form" novalidate autocomplete="off">
-            <div class="field">
-              <label class="field__label" for="server-url">Server address</label>
-              <input
-                class="input"
-                id="server-url"
-                name="serverUrl"
-                type="url"
-                inputmode="url"
-                spellcheck="false"
-                placeholder="https://taskforge-roan.vercel.app"
-                aria-describedby="server-url-msg"
-                required
-              />
-              <p class="field__msg" id="server-url-msg">The <span lang="kk">Көпір</span> site that receives events and transcripts.</p>
-            </div>
-            <div class="field">
-              <label class="field__label" for="ingest-token">Ingest token</label>
-              <div class="input-group">
-                <input
-                  class="input input--mono"
-                  id="ingest-token"
-                  name="ingestToken"
-                  type="password"
-                  spellcheck="false"
-                  autocomplete="off"
-                  aria-describedby="ingest-token-msg"
-                />
-                <button type="button" class="btn btn--sm btn--attached" id="token-toggle" aria-controls="ingest-token">
-                  Show
-                </button>
-              </div>
-              <p class="field__msg" id="ingest-token-msg">INGEST_TOKEN from the server. Stored only on this computer.</p>
-            </div>
-            <div class="field">
-              <label class="field__label" for="team">Team</label>
-              <input
-                class="input"
-                id="team"
-                name="team"
-                type="text"
-                list="team-options"
-                maxlength="60"
-                spellcheck="false"
-                aria-describedby="team-msg"
-                required
-              />
-              <datalist id="team-options">
-                <option value="Sales"></option>
-                <option value="Operations"></option>
-                <option value="Finance"></option>
-                <option value="Management"></option>
-              </datalist>
-              <p class="field__msg" id="team-msg">
-                The department these events belong to. The server only shows groups of 5&nbsp;or more people.
-              </p>
-            </div>
-            <div class="form__actions">
-              <button type="submit" class="btn btn--accent" id="save-btn">Save</button>
-              <p class="form__status" id="save-status" role="status" aria-live="polite"></p>
-            </div>
-          </form>
-        </section>
-
-        <section class="section" aria-labelledby="transcript-title">
+        <!-- ---------- Transcript ---------- -->
+        <section class="panel" role="tabpanel" id="panel-transcript" aria-labelledby="tab-transcript" hidden>
           <div class="section__head">
             <h2 class="section__title" id="transcript-title">Meeting transcript</h2>
             <div class="section__actions">
-              <button type="button" class="btn btn--xs" id="copy-btn" aria-disabled="true">Copy</button>
-              <button
-                type="button"
-                class="btn btn--xs"
-                id="clear-btn"
-                aria-disabled="true"
-                title="Clears this window only, the text stays on the server"
-              >
-                Clear
-              </button>
+              <button type="button" class="btn btn--sm" id="copy-btn" aria-disabled="true">Copy</button>
+              <button type="button" class="btn btn--sm" id="clear-btn" aria-disabled="true" title="Clears this window only, the text stays on the server">Clear</button>
             </div>
           </div>
+          <div class="rec rec--bar" id="tx-rec" hidden>
+            <span class="rec__badge"><span class="rec__square" aria-hidden="true"></span>REC</span>
+            <span class="rec__time" id="tx-rec-time">00:00</span>
+            <span class="rec__title" id="tx-rec-title"></span>
+          </div>
           <div class="transcript" id="transcript" role="log" aria-live="polite" aria-labelledby="transcript-title" tabindex="0">
-            <p class="transcript__empty" id="transcript-empty">
-              Text appears here while recording: the server sends a transcript every 30&nbsp;seconds.
-            </p>
+            <div class="empty" id="transcript-empty">
+              <p class="empty__text" id="transcript-empty-text">No transcript yet. Start meeting notes to see text here.</p>
+              <button type="button" class="btn btn--primary" id="transcript-empty-btn"><span class="led" aria-hidden="true"></span>Go to meeting notes</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ---------- Privacy ---------- -->
+        <section class="panel" role="tabpanel" id="panel-privacy" aria-labelledby="tab-privacy" hidden>
+          <div class="privacy-hero">
+            <svg class="illo" viewBox="0 0 160 120" width="112" height="84" fill="none" stroke="#18181b" stroke-width="2" aria-hidden="true" focusable="false">
+              <path d="m80 9 48 17v39L80 109 32 65V26Z" fill="#ffffff" />
+              <path d="M80 19v78" stroke="#e4e4e7" stroke-dasharray="3 5" />
+              <circle class="kp-privacy-dot" cx="53" cy="39" r="3" fill="#18181b" /><rect class="kp-privacy-square" x="49" y="35" width="8" height="8" fill="#84cc16" />
+              <circle class="kp-privacy-dot" cx="69" cy="53" r="4" fill="#18181b" /><rect class="kp-privacy-square" x="65" y="49" width="8" height="8" fill="#84cc16" />
+              <circle class="kp-privacy-dot" cx="53" cy="69" r="5" fill="#18181b" /><rect class="kp-privacy-square" x="49" y="65" width="8" height="8" fill="#84cc16" />
+              <path d="m88 58 8-8-8-8" />
+              <rect x="104" y="35" width="8" height="8" fill="#84cc16" /><rect x="104" y="53" width="8" height="8" fill="#84cc16" /><rect x="104" y="71" width="8" height="8" fill="#84cc16" />
+            </svg>
+            <div>
+              <h2 class="privacy-hero__title">We analyze how work flows, not who works.</h2>
+              <p class="privacy-hero__sub" id="consent-date">Consent not given yet.</p>
+            </div>
+          </div>
+
+          <article class="card">
+            <h2 class="card__title">What left this computer</h2>
+            <p class="card__desc" id="batch-summary">No batch sent yet.</p>
+            <ul class="chips" id="batch-chips" aria-label="Categories in the last batch"></ul>
+            <p class="note" id="batch-note" hidden>Seconds per category, counted in this window. Titles are never recorded.</p>
+          </article>
+
+          <article class="card">
+            <h2 class="card__title">Never leaves this computer</h2>
+            <ul class="never-list">
+              <li>Window titles</li>
+              <li>Document content</li>
+              <li>Clipboard content</li>
+              <li>Keystrokes</li>
+              <li>Screenshots</li>
+              <li>Names</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h2 class="card__title">The 5+ rule</h2>
+            <p class="card__desc">A pattern is shown only if 5 or more people are in it. Results can never be used to evaluate or punish an individual.</p>
+          </article>
+
+          <div class="actions-row">
+            <button type="button" class="btn" id="deletion-btn" aria-expanded="false" aria-controls="deletion-info">Request deletion of my data</button>
+            <button type="button" class="btn btn--danger" id="withdraw-btn">Withdraw consent</button>
+          </div>
+          <div class="card card--flat" id="deletion-info" hidden>
+            <p class="card__desc">Ask your company admin to delete the data. Name your team and the dates. The server keeps only anonymous team events, so they are removed by team and date.</p>
+          </div>
+        </section>
+
+        <!-- ---------- Settings ---------- -->
+        <section class="panel" role="tabpanel" id="panel-settings" aria-labelledby="tab-settings" hidden>
+          <form class="card form" id="settings-form" novalidate autocomplete="off">
+            <h2 class="card__title">Connection</h2>
+            <div class="field">
+              <label class="field__label" for="server-url">Server address</label>
+              <input class="input" id="server-url" name="serverUrl" type="url" inputmode="url" spellcheck="false" placeholder="https://taskforge-app-chi.vercel.app" aria-describedby="server-url-msg" required />
+              <p class="field__msg" id="server-url-msg">The <span lang="kk">Көпір</span> site of your company.</p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="ingest-token">Access token</label>
+              <div class="input-group">
+                <input class="input input--mono" id="ingest-token" name="ingestToken" type="password" spellcheck="false" autocomplete="off" aria-describedby="ingest-token-msg" />
+                <button type="button" class="btn btn--sm btn--attached" id="token-toggle" aria-controls="ingest-token">Show</button>
+              </div>
+              <p class="field__msg" id="ingest-token-msg">Stored only on this computer.</p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="team">Team</label>
+              <input class="input" id="team" name="team" type="text" list="team-options" maxlength="60" spellcheck="false" aria-describedby="team-msg" required />
+              <p class="field__msg" id="team-msg">Groups under 5&nbsp;people are never shown.</p>
+            </div>
+            <div class="form__actions">
+              <button type="submit" class="btn btn--primary" id="save-btn">Save</button>
+              <button type="button" class="btn" id="check-btn">Test connection</button>
+            </div>
+            <p class="form__status" id="save-status" role="status" aria-live="polite"></p>
+          </form>
+
+          <p class="note note--block">Starts with Windows while the tracker is on.</p>
+
+          <article class="card card--flat">
+            <h2 class="card__title">About</h2>
+            <p class="card__desc"><span lang="kk">КӨПІР</span> Collector <span id="app-version">0.1.0</span> · Demo build, HackAlem AI 2026</p>
+          </article>
+
+          <div class="danger-zone">
+            <button type="button" class="btn btn--danger btn--grow" id="signout-btn">Sign out</button>
           </div>
         </section>
       </main>
@@ -279,5 +404,23 @@
         <p>Window titles and content never leave this computer. Only app categories and anonymous events are sent.</p>
       </footer>
     </div>
+
+    <!-- ============ CONFIRM DIALOG (sign out, withdraw consent) ============ -->
+    <dialog class="modal" id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+      <h2 class="modal__title" id="confirm-title">Sign out of this computer?</h2>
+      <p class="modal__text" id="confirm-text">Collection stops and the access token is removed from this computer.</p>
+      <p class="alert" id="confirm-error" role="alert" hidden></p>
+      <div class="modal__actions">
+        <button type="button" class="btn" id="confirm-cancel">Cancel</button>
+        <button type="button" class="btn btn--danger" id="confirm-ok">Sign out</button>
+      </div>
+    </dialog>
+
+    <datalist id="team-options">
+      <option value="Sales"></option>
+      <option value="Operations"></option>
+      <option value="Finance"></option>
+      <option value="Management"></option>
+    </datalist>
   </body>
 </html>
