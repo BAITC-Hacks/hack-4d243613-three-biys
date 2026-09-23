@@ -6,7 +6,7 @@ import { positionPreview, rateCard } from '@/lib/rating';
 import { LEVELS } from '@/lib/catalog';
 import { useStore } from '@/lib/store';
 import {
-  LevelUpToast, PositionPreview, RatingPanel, ScoreHistory, SuggestionChip, TechSpecView,
+  ConsentCheckbox, LevelUpToast, PositionPreview, RatingPanel, ScoreHistory, SuggestionChip, TechSpecView,
 } from '@/components/domain';
 import { techSpec as generateTechSpec } from '@/lib/api-client';
 import { Button, Tabs, Textarea } from '@/components/ui';
@@ -42,6 +42,7 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
   const [toast, setToast] = useState<{ from: Level; to: Level } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const cards = useStore((s) => s.cards);
+  const [dataConsent, setDataConsent] = useState(false);
   if (!card) return <div>Card not found.</div>;
 
   const rating = rateCard(card);
@@ -175,11 +176,15 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
           <div className="rounded-control bg-accent-soft p-3 text-sm text-[#365314]">Published to the catalog</div>
         ) : (
           <>
+            <ConsentCheckbox required checked={dataConsent} onChange={setDataConsent}>
+              The company has the right to share this task and its materials with student teams (
+              <a href="/legal/terms" target="_blank" className="underline">terms</a>).
+            </ConsentCheckbox>
             <Button
               variant="accent"
               size="lg"
               className="w-full"
-              disabled={!card.fields.title}
+              disabled={!card.fields.title || !dataConsent}
               onClick={() => { publish(card.id); onPublished?.(); }}
             >
               Publish to catalog

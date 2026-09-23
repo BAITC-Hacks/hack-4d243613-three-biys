@@ -104,7 +104,8 @@ export const useStore = create<StoreState>()(
         acceptSuggestion: (id, field) => patchCard(id, (c) => {
           const s = c.suggestions[field];
           if (!s) return c;
-          const { [field]: _dropped, ...rest } = c.suggestions;
+          const rest = { ...c.suggestions };
+          delete rest[field];
           return {
             ...c,
             fields: { ...c.fields, [field]: s.text },

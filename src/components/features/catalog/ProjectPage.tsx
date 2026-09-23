@@ -5,7 +5,7 @@ import type { CardField } from '@/lib/types';
 import { rateCard } from '@/lib/rating';
 import { useStore } from '@/lib/store';
 import { useHydrated } from '../useHydrated';
-import { LevelBadge, RatingPanel, TechSpecView } from '@/components/domain';
+import { ConsentCheckbox, LevelBadge, RatingPanel, TechSpecView } from '@/components/domain';
 import { Button, Input, Textarea } from '@/components/ui';
 
 const FIELD_LABELS: [CardField, string][] = [
@@ -55,6 +55,7 @@ function ProposalForm({ taskId }: { taskId: string }) {
   const team = teams.find((t) => t.id === currentTeamId);
   const existing = proposals.find((p) => p.taskId === taskId && p.teamId === currentTeamId);
   const [form, setForm] = useState({ idea: '', plan: '', deadline: '', prototypeUrl: '' });
+  const [agree, setAgree] = useState(false);
 
   if (role !== 'student' || !team) {
     return <p className="text-sm text-muted">Switch to Student to submit a proposal.</p>;
@@ -88,7 +89,10 @@ function ProposalForm({ taskId }: { taskId: string }) {
           <li key={c.label} className={c.ok ? 'text-[#365314]' : 'text-muted'}>{c.ok ? '✓' : '○'} {c.label}</li>
         ))}
       </ul>
-      <Button disabled={!valid} 
+      <ConsentCheckbox required checked={agree} onChange={setAgree}>
+        Our team agrees to the <a href="/legal/terms" target="_blank" className="underline">terms of use</a>.
+      </ConsentCheckbox>
+      <Button disabled={!valid || !agree}
         onClick={() => submitProposal({ taskId, teamId: team.id, ...form })}>
         Submit proposal
       </Button>
