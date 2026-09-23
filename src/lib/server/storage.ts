@@ -7,8 +7,12 @@ export type StorageKind = 'redis' | 'file' | 'memory';
 
 // redis on Vercel when Upstash is configured; JSON files in .data/ locally; memory (per-instance, ephemeral) when
 // running serverless without Upstash — good enough for a demo, but the README says to set Upstash for persistence.
+// Vercel's Upstash integration names the vars KV_REST_API_*; a manual setup uses UPSTASH_REDIS_REST_*.
+const redisUrl = () => process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+const redisToken = () => process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+
 export function storageKind(): StorageKind {
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) return 'redis';
+  if (redisUrl() && redisToken()) return 'redis';
   return process.env.VERCEL ? 'memory' : 'file';
 }
 
@@ -31,7 +35,7 @@ async function fileSet<T>(key: string, value: T): Promise<void> {
 
 async function redis() {
   const { Redis } = await import('@upstash/redis');
-  return new Redis({ url: process.env.UPSTASH_REDIS_REST_URL!, token: process.env.UPSTASH_REDIS_REST_TOKEN! });
+  return new Redis({ url: redisUrl()!, token: redisToken()! });
 }
 
 export async function getJson<T>(key: string, fallback: T): Promise<T> {
