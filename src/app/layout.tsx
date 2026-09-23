@@ -17,7 +17,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppHeader />
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">{children}</main>
         <footer className="border-t-2 border-border">
-          <div className="mx-auto max-w-6xl px-4 py-4">
+          <div className="mx-auto max-w-6xl space-y-2 px-4 py-4">
+            <p className="text-xs text-muted">Documents in Russian</p>
             <LegalLinks docs={LEGAL_LIST.map(({ slug, title }) => ({ slug, title }))} />
           </div>
         </footer>

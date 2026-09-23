@@ -74,7 +74,7 @@ export function Discover() {
         {insights.length > 0 && <AiNoticeBanner />}
         <div className="grid gap-4 md:grid-cols-2">
           {insights.map((i) => (
-            <InsightCard key={i.id} insight={i} onUse={() => router.push(`/business/new?insight=${i.id}`)} />
+            <InsightCard key={i.id} insight={i} useLabel="Use as draft" onUse={() => router.push(`/business/new?insight=${i.id}`)} />
           ))}
         </div>
       </section>

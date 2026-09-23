@@ -170,7 +170,7 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
       </div>
 
       <aside className="space-y-4">
-        {toast && <div className="fixed right-4 top-4 z-50"><LevelUpToast from={toast.from} to={toast.to} /></div>}
+        {toast && <LevelUpToast from={toast.from} to={toast.to} onClose={() => setToast(null)} />}
         <PositionPreview preview={preview} />
         <RatingPanel
           rating={rating}

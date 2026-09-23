@@ -6,7 +6,7 @@ import { rateCard } from '@/lib/rating';
 import { useStore } from '@/lib/store';
 import { useHydrated } from '../useHydrated';
 import { ConsentCheckbox, LevelBadge, RatingPanel, TechSpecView } from '@/components/domain';
-import { Button, Input, Textarea } from '@/components/ui';
+import { Badge, Button, Input, Textarea } from '@/components/ui';
 
 const FIELD_LABELS: [CardField, string][] = [
   ['context', 'Context'], ['need', 'Need'], ['users', 'Users'], ['data', 'Data & materials'],
@@ -22,15 +22,20 @@ export function ProjectPage({ id }: { id: string }) {
   const rating = rateCard(card);
 
   return (
-    <div className="grid gap-6 md:grid-cols-[1fr_320px]">
+    <div className="grid gap-6 md:grid-cols-[1fr_360px]">
       <div className="space-y-6">
-        <div>
-          <div className="flex items-center gap-3">
+        <header className="space-y-2">
+          <p className="text-sm text-muted">{card.businessName} · {card.industry} · {card.topic}</p>
+          <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-extrabold">{card.fields.title}</h1>
             <LevelBadge level={rating.level} />
           </div>
-          <p className="text-sm text-muted">{card.businessName} · {card.industry} · {card.topic}</p>
-        </div>
+          {card.skillsNeeded.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {card.skillsNeeded.map((s) => <Badge key={s}>{s}</Badge>)}
+            </div>
+          )}
+        </header>
         <section className="space-y-3">
           {FIELD_LABELS.map(([k, label]) => (
             <div key={k}>
@@ -43,9 +48,11 @@ export function ProjectPage({ id }: { id: string }) {
           <h2 className="text-xl font-extrabold">Technical documentation</h2>
           {card.techSpec ? <TechSpecView spec={card.techSpec} /> : <p className="text-sm text-muted">Not provided yet.</p>}
         </section>
-        <ProposalForm taskId={card.id} />
       </div>
-      <aside><RatingPanel rating={rating} /></aside>
+      <aside className="space-y-4 md:sticky md:top-6 md:self-start">
+        <RatingPanel rating={rating} showVagueness={false} maxActions={0} />
+        <ProposalForm taskId={card.id} />
+      </aside>
     </div>
   );
 }
@@ -72,14 +79,14 @@ function ProposalForm({ taskId }: { taskId: string }) {
   const checks = proposalChecks(form);
   const valid = checks.every((c) => c.ok);
   return (
-    <section className="space-y-2 rounded-control border-2 border-border p-4">
-      <h2 className="text-xl font-extrabold">Submit a proposal as {team.name}</h2>
+    <section className="space-y-2 rounded-control border-2 border-border bg-surface p-4 shadow-card">
+      <h2 className="text-lg font-extrabold">Send a proposal as {team.name}</h2>
       <Textarea className="h-20" placeholder="Idea"
         value={form.idea} onChange={(e) => setForm({ ...form, idea: e.target.value })} />
       <Textarea className="h-24" placeholder="Plan"
         value={form.plan} onChange={(e) => setForm({ ...form, plan: e.target.value })} />
       <div className="flex flex-wrap gap-2 text-sm">
-        <Input type="date" 
+        <Input type="date"
           value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} />
         <Input className="flex-1" placeholder="Prototype link"
           value={form.prototypeUrl} onChange={(e) => setForm({ ...form, prototypeUrl: e.target.value })} />
@@ -94,7 +101,7 @@ function ProposalForm({ taskId }: { taskId: string }) {
       </ConsentCheckbox>
       <Button disabled={!valid || !agree}
         onClick={() => submitProposal({ taskId, teamId: team.id, ...form })}>
-        Submit proposal
+        Send proposal
       </Button>
     </section>
   );
