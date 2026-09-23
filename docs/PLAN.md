@@ -88,7 +88,7 @@ Levels: 0–39 **draft** (visible, flagged) · 40–69 **working** (proposals + 
 - **Web:** TypeScript + Next.js (App Router) + Tailwind; **OpenAI SDK** for both LLM providers; **zod** for all AI and ingest I/O; **zustand + localStorage** for business-flow data (cards, proposals, teams), seeded from JSON.
 - **Server store for Collector data** (`src/lib/server/storage.ts`): **Upstash Redis** when `UPSTASH_REDIS_REST_URL` is set (Vercel deploy), else **JSON files in `.data/`** (local / experts, zero setup). Seed history is always merged in.
 - **Collector:** **Electron + TypeScript** in `collector/` (own `package.json`), `get-windows` for the foreground app (fallback: PowerShell script calling user32 `GetForegroundWindow`), Electron clipboard polling, `desktopCapturer` + `audio: 'loopback'` for system audio (Windows). (Telegram: roadmap only.)
-- **Deploy:** Vercel CLI (`npm run deploy`, run by A after each checkpoint). Production URL: https://taskforge-roan.vercel.app
+- **Deploy:** Vercel CLI (`npm run deploy`, run by A after each checkpoint). Production URL: https://taskforge-app-chi.vercel.app
 - **Models** (one constant `src/lib/llm/models.ts`; verify IDs at scaffold): OpenAI `gpt-4.1-mini` (JSON tasks), `gpt-4.1` for discover if needed, `gpt-4o-transcribe` (fallback `whisper-1`) for audio; NVIDIA `meta/llama-3.3-70b-instruct` at `https://integrate.api.nvidia.com/v1` as text fallback. `DEMO_MODE=live|record|replay`; no key → replay.
 
 Why: one language across web + desktop; file-based routes = few shared files; no DB needed for the core; Collector is a separate package so it never conflicts with the web app.

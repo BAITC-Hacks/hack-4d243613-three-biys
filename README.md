@@ -54,7 +54,7 @@ npx tsx scripts/check-seed.ts   # validates seed JSON against the contracts and 
 
 | Situation | What to set |
 |---|---|
-| Hosted demo | **https://taskforge-roan.vercel.app** (live OpenAI; Collector data in memory unless Upstash is configured) |
+| Hosted demo | **https://taskforge-app-chi.vercel.app** (live OpenAI; Collector data in memory unless Upstash is configured) |
 | Your own key | `OPENAI_API_KEY=...` in `.env.local` (or `NVIDIA_API_KEY=...` with `LLM_PROVIDER=nvidia`) |
 | No key at all | leave keys empty → `DEMO_MODE=replay` is used automatically; the main scenario runs from `fixtures/replay/` |
 
@@ -153,7 +153,7 @@ Automated: `npm test` (unit) and `scripts/smoke-replay.sh [baseUrl]` (golden pat
 ```bash
 cd collector && npm install && npm start     # builds TypeScript and launches the tray app (Windows)
 ```
-In the window: server URL (e.g. `https://taskforge-roan.vercel.app`), ingest token, team name; toggles **Activity tracker** and **Meeting notes**; "Test connection" calls `/api/health`.
+In the window: server URL (e.g. `https://taskforge-app-chi.vercel.app`), ingest token, team name; toggles **Activity tracker** and **Meeting notes**; "Test connection" calls `/api/health`.
 
 **What it collects:** the *category* of the foreground app every 2 s (CRM / Spreadsheet / Email / Messenger / ERP / Docs / Browser / Meeting / Other), app switches, and copy→switch pairs counted as a *transfer* between categories; meeting audio (system loopback + mic) in 30 s chunks that are transcribed on the server and discarded.
 

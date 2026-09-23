@@ -1,0 +1,8 @@
+collector
+.data
+fixtures/replay/*.tmp
+tests
+scripts
+docs
+.agents
+.codex
