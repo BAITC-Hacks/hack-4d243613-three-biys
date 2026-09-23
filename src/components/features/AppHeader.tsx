@@ -73,7 +73,7 @@ export function AppHeader() {
                 className="text-xs text-muted underline"
                 onClick={() => { if (confirm('Reset demo data?')) resetDemo(); }}
               >
-                Reset demo
+                Reset demo data
               </button>
             </div>
           </>
