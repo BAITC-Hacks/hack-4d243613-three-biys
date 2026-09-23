@@ -53,9 +53,27 @@ const VAGUE: { re: RegExp; ask: string }[] = [
   { re: /\bbetter\b|\bfaster\b|\beasier\b/i, ask: 'Replace "better/faster" with a measurable target.' },
 ];
 
+// Placeholder answers that must never count as "filled" (also used by clarify to map them to null).
+const PLACEHOLDERS = new Set(['n/a', 'na', 'none', 'no', 'nothing', 'unknown', 'tbd', 'todo', 'test', '-', '--', '—', '?', '...',
+  'не указано', 'не указан', 'нет', 'нет данных', 'неизвестно', 'пока нет', 'не знаю', 'жоқ', 'белгісіз']);
+const MASH = /^(asdf|qwer|zxcv|йцук|фыва|test|lorem|aaa+|xxx+|123+)/i;
+
+export function isPlaceholder(text: string | null | undefined): boolean {
+  const t = (text ?? '').trim().toLowerCase().replace(/[.!\s]+$/g, '');
+  return !t || PLACEHOLDERS.has(t);
+}
+
+/** A field counts as filled only with real content: ≥ 20 characters and ≥ 3 distinct real words, no placeholders or key-mashing. */
+export function isMeaningful(text: string | null | undefined): boolean {
+  const t = (text ?? '').trim();
+  if (t.length < 20 || isPlaceholder(t)) return false;
+  const realWords = t.split(/\s+/).map((w) => w.toLowerCase().replace(/[^\p{L}\p{N}@.+]/gu, '')).filter((w) => /\p{L}{2,}|\d{2,}|@/u.test(w) && !MASH.test(w));
+  return new Set(realWords).size >= 3;
+}
+
 function filledAndConfirmed(card: RatableCard, field: CardField): { filled: boolean; confirmed: boolean; text: string } {
   const text = (card.fields[field] ?? '').trim();
-  return { filled: text.length >= 8, confirmed: !!card.confirmed[field], text };
+  return { filled: isMeaningful(text), confirmed: !!card.confirmed[field], text };
 }
 
 function words(text: string) {
@@ -78,7 +96,7 @@ function gated(card: RatableCard, field: CardField, label: string, basePoints: n
   const f = filledAndConfirmed(card, field);
   const gate = f.filled && f.confirmed;
   const checks: Check[] = [
-    { label: `${label}: filled`, passed: f.filled, points: 0, rule: 'At least a short sentence is provided (≥ 8 characters)' },
+    { label: `${label}: filled`, passed: f.filled, points: 0, rule: 'Real content: at least 3 distinct words and 20 characters (placeholders like "N/A", "-", "asdf" do not count)' },
     { label: `${label}: confirmed by business`, passed: gate, points: basePoints, rule: 'Points only for filled AND confirmed fields' },
     ...extra.map((e) => ({ label: e.label, passed: gate && e.test(f.text), points: e.points, rule: e.rule })),
   ];

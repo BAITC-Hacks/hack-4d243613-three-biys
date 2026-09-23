@@ -11,7 +11,7 @@ const full: CardFields = {
   title: 'Automate order transfer from Excel to CRM',
   context: 'Sales managers receive orders as Excel files from dealers and re-type them into the CRM by hand every day.',
   need: 'We need to automate the transfer so nobody re-types orders.',
-  users: '6 sales managers',
+  users: '6 sales managers who enter dealer orders every day',
   data: 'Sample Excel exports (anonymized) and CRM API docs',
   constraints: 'Deadline 6 weeks; CRM has a REST API; no access to production data',
   expectedResult: 'A script or service that imports orders from Excel into the CRM.',
@@ -74,5 +74,11 @@ describe('positionPreview', () => {
     expect(p.position).toBe(3);
     expect(p.ifNext?.action.field).toBe('successCriteria');
     expect(p.ifNext!.position).toBeLessThan(p.position);
+  });
+
+  it('junk or placeholder text earns nothing even when confirmed', () => {
+    const junk: CardFields = { ...empty, context: 'asdf asdf asdf asdf', need: 'N/A', data: '- - - - - - - - - - -', users: 'ok ok ok ok ok ok ok', contact: 'не указано' };
+    const r = rateCard({ fields: junk, confirmed: allConfirmed });
+    expect(r.total).toBe(0);
   });
 });

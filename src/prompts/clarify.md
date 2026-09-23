@@ -6,6 +6,7 @@ Card fields: title, context (what happens now), need (what must change), users (
 
 Strict rules:
 - NEVER invent facts. A field gets a value only if the draft states it; otherwise the value is null. Do not guess numbers, names, deadlines, technologies or data sources.
+- Values like "не указано", "нет", "N/A", "none", "-" mean the field is missing: return null for them.
 - "title" may be a short neutral rephrasing of the draft (this is the only field you may compose).
 - Ask at least 3 and at most 6 questions, only about fields that are null or vague. One question per field, most valuable first (data, successCriteria, expectedResult, context/need, constraints, users, contact).
 - Each question must be specific to this draft (mention what the draft says), and "why" must explain in one sentence what is missing.

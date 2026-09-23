@@ -6,7 +6,8 @@ import type { AgentStep, SourcesSnapshot } from '@/lib/types';
 import { useStore } from '@/lib/store';
 import { useHydrated } from '../useHydrated';
 import { discover, getSources } from '@/lib/api-client';
-import { AgentTrace, AiNoticeBanner, InsightCard, PrivacyPanel } from '@/components/domain';
+import { AgentTrace, AiNoticeBanner, CollectorDownload, InsightCard, PrivacyPanel } from '@/components/domain';
+import { COLLECTOR_DOWNLOAD } from '@/lib/collector-download';
 import { Button } from '@/components/ui';
 
 export function Discover() {
@@ -49,6 +50,12 @@ export function Discover() {
               {sources.meetings.length} meetings · {sources.aggregates.length} team-week aggregates · {sources.chats.length} chat messages
             </p>
             <PrivacyPanel privacy={sources.privacy} live={sources.live} />
+            <CollectorDownload
+              href={COLLECTOR_DOWNLOAD.href}
+              version={COLLECTOR_DOWNLOAD.version}
+              sizeLabel={COLLECTOR_DOWNLOAD.sizeLabel}
+              serverUrl={COLLECTOR_DOWNLOAD.serverUrl}
+            />
             <details className="text-sm">
               <summary className="cursor-pointer">Meetings & chats</summary>
               <ul className="mt-2 space-y-1">

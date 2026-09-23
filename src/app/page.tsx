@@ -1,8 +1,13 @@
 import { Landing } from '@/components/domain';
-
-// HACK: hosted demo URL shown in the Collector section; no Collector installer is published yet (collectorHref omitted).
-const SERVER_URL = 'https://taskforge-app-chi.vercel.app';
+import { COLLECTOR_DOWNLOAD } from '@/lib/collector-download';
 
 export default function Home() {
-  return <Landing serverUrl={SERVER_URL} />;
+  return (
+    <Landing
+      serverUrl={COLLECTOR_DOWNLOAD.serverUrl}
+      collectorHref={COLLECTOR_DOWNLOAD.href}
+      collectorVersion={COLLECTOR_DOWNLOAD.version}
+      collectorSizeLabel={COLLECTOR_DOWNLOAD.sizeLabel}
+    />
+  );
 }
