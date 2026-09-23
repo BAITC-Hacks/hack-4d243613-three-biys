@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { AgentStep, CardField, Insight, TaskCard } from '@/lib/types';
-import { AgentTrace } from '@/components/domain';
+import { AgentTrace, AiNoticeBanner } from '@/components/domain';
 import { useStore } from '@/lib/store';
 import { useHydrated } from '../useHydrated';
 import { clarify, buildCard } from '@/lib/api-client';
@@ -128,6 +128,7 @@ function Wizard({ insight }: { insight?: Insight }) {
       {step === 'questions' && (
         <section className="space-y-4">
           <h1 className="text-2xl font-extrabold">AI found gaps in your draft</h1>
+          <AiNoticeBanner />
           {trace.length > 0 && (
             <details className="rounded-control border-2 border-border p-3 text-sm">
               <summary className="cursor-pointer text-muted">How the AI works</summary>

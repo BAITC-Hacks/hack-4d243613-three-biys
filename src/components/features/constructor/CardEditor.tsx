@@ -6,7 +6,7 @@ import { positionPreview, rateCard } from '@/lib/rating';
 import { LEVELS } from '@/lib/catalog';
 import { useStore } from '@/lib/store';
 import {
-  ConsentCheckbox, LevelUpToast, PositionPreview, RatingPanel, ScoreHistory, SuggestionChip, TechSpecView,
+  AiNoticeBanner, ConsentCheckbox, LevelUpToast, PositionPreview, RatingPanel, ScoreHistory, SuggestionChip, TechSpecView,
 } from '@/components/domain';
 import { techSpec as generateTechSpec } from '@/lib/api-client';
 import { Button, Tabs, Textarea } from '@/components/ui';
@@ -83,6 +83,11 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
         />
 
         {error && <div className="rounded-control bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+
+        {tab === 'card' && FIELDS.some(({ key }) => card.fields[key] && card.fieldSource[key] !== 'manual' && !card.confirmed[key]) && (
+          <AiNoticeBanner />
+        )}
+        {tab === 'tech' && card.techSpec && !card.techSpecConfirmed && <AiNoticeBanner />}
 
         {tab === 'card' && FIELDS.map(({ key, label }) => (
           <div key={key} id={`field-${key}`} className="space-y-1">

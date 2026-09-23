@@ -12,6 +12,7 @@ import { Select } from '@/components/ui';
 export function CatalogView() {
   const hydrated = useHydrated();
   const cards = useStore((s) => s.cards);
+  const proposals = useStore((s) => s.proposals);
   const [q, setQ] = useState<CatalogOptions>({ sort: 'rating' });
   if (!hydrated) return null;
 
@@ -42,7 +43,7 @@ export function CatalogView() {
         {items.map(({ card, rating }) => (
           <Link key={card.id} href={`/catalog/${card.id}`}
             className={`block transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 ${rating.level === 'priority' ? 'rounded-control ring-2 ring-accent' : ''}`}>
-            <ProjectCard card={card} rating={rating} />
+            <ProjectCard card={card} rating={rating} proposalsCount={proposals.filter((p) => p.taskId === card.id).length} />
             {rating.level === 'draft' && (
               <p className="mt-1 px-1 text-xs text-amber-700">Needs clarification — you can still send a proposal.</p>
             )}

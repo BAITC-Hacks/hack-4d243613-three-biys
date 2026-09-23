@@ -6,7 +6,7 @@ import type { AgentStep, SourcesSnapshot } from '@/lib/types';
 import { useStore } from '@/lib/store';
 import { useHydrated } from '../useHydrated';
 import { discover, getSources } from '@/lib/api-client';
-import { AgentTrace, InsightCard, PrivacyPanel } from '@/components/domain';
+import { AgentTrace, AiNoticeBanner, InsightCard, PrivacyPanel } from '@/components/domain';
 import { Button } from '@/components/ui';
 
 export function Discover() {
@@ -71,6 +71,7 @@ export function Discover() {
         </Button>
         {error && <div className="rounded-control bg-red-50 p-3 text-sm text-red-700">{error}</div>}
         {trace.length > 0 && <AgentTrace steps={trace} />}
+        {insights.length > 0 && <AiNoticeBanner />}
         <div className="grid gap-4 md:grid-cols-2">
           {insights.map((i) => (
             <InsightCard key={i.id} insight={i} onUse={() => router.push(`/business/new?insight=${i.id}`)} />

@@ -35,6 +35,7 @@ export function TaskDetail({ id }: { id: string }) {
 function Proposals({ taskId }: { taskId: string }) {
   const { proposals, teams, milestones, teamPoints, decideProposal, addMilestone, confirmMilestone } = useStore();
   const list = proposals.filter((p) => p.taskId === taskId);
+  const skillsNeeded = useStore((s) => s.cards.find((c) => c.id === taskId)?.skillsNeeded);
   const accepted = list.filter((p) => p.status === 'accepted');
   const [draft, setDraft] = useState({ teamId: '', title: '', points: 50 });
 
@@ -47,13 +48,9 @@ function Proposals({ taskId }: { taskId: string }) {
         <ProposalCompare
           proposals={list}
           teams={teams}
+          skillsNeeded={skillsNeeded}
           onAccept={(id) => decideProposal(id, 'accepted')}
-          onReject={(id, reason) => {
-            // HACK: native prompt until B's ProposalCompare collects the reason itself.
-            const r = reason ?? window.prompt('Reason for the team (optional):');
-            if (r === null) return;
-            decideProposal(id, 'rejected', r.trim() || undefined);
-          }}
+          onReject={(id, reason) => decideProposal(id, 'rejected', reason?.trim() || undefined)}
         />
       </section>
 

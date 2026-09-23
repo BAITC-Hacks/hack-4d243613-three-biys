@@ -57,7 +57,7 @@ export function StudentHome() {
       <section className="space-y-2">
         <h2 className="text-xl font-extrabold">Leaderboard</h2>
         <p className="text-xs text-muted">Points come only from milestones confirmed by the business — never for applying.</p>
-        <Leaderboard teams={teams} points={teamPoints} />
+        <Leaderboard teams={teams} points={teamPoints} currentTeamId={team.id} />
       </section>
 
       <section className="space-y-2">
