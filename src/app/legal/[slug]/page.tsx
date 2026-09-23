@@ -18,7 +18,7 @@ export default async function LegalPage({
   const lang = isLegalLang(rawLang) ? rawLang : 'en';
   return (
     <div className="space-y-6">
-      <LegalLanguageSwitch current={lang} basePath={`/legal/${slug}`} />
+      <LegalLanguageSwitch current={lang} basePath={`/legal/${slug}`} className="mx-auto w-full max-w-6xl" />
       <LegalDocument doc={getLegalDoc(slug, lang)} />
     </div>
   );
