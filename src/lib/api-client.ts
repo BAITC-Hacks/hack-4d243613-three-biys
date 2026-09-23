@@ -99,5 +99,14 @@ export async function getSources(): Promise<ApiResult<SourcesSnapshot>> {
   }
 }
 
+// Voice interview (OpenAI Realtime): the client lives in src/lib/voice/interview.ts; this only checks availability.
+export async function voiceAvailable(): Promise<boolean> {
+  try {
+    const res = await fetch('/api/health');
+    const j = (await res.json()) as ApiResult<{ mode: string }>;
+    return j.ok && j.data.mode === 'live';
+  } catch { return false; }
+}
+
 // Convenience re-exports so C only imports from here.
 export type { TeamProfile, Level };

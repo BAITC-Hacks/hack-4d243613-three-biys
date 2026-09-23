@@ -5,6 +5,8 @@ export const MODELS = {
     discover: 'gpt-4.1',         // discover — longer context
     transcribe: 'gpt-4o-transcribe',
     transcribeFallback: 'whisper-1',
+    realtime: 'gpt-realtime',      // voice interview (speech-to-speech over WebRTC)
+    realtimeTranscribe: 'gpt-4o-mini-transcribe',
   },
   nvidia: {
     json: 'meta/llama-3.3-70b-instruct',
