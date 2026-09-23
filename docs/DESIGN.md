@@ -71,6 +71,7 @@ Rules:
 
 Real screens get more air than the mockups: content width up to `max-w-6xl` (1152px), sections separated by `gap-12` to `gap-16`, cards `p-5` to `p-6`, one primary (LED) button per screen. Mockups: https://claude.ai/artifact/G2BwtAXQxsLo5ETguctgdi
 
+- **Landing `/` is ready (16:05):** `src/app/page.tsx` → `import { Landing } from '@/components/domain'; export default function Home() { return <Landing collectorHref={...} serverUrl={...} />; }`. Seven animated sections: hero, pains, how it works, cost calculator in ₸, rating showcase, Collector, final CTA. Each section is also exported separately.
 - **Landing `/`: "Pulse".** Full-width hero, height about 60vh: faint 22px grid background, three lime square waves pulsing out from the center (illustration `HeroPulse`, coming from `src/components/illustrations`), the big logo `<Logo size="xl" />`, one line "Мост между задачей бизнеса и студенческой командой", two buttons: primary "Описать задачу" → `/business/new`, secondary "Найти проект" → `/catalog`. Below: a row of 5 step cards with icons (Черновик, Вопросы ИИ, Карточка, Рейтинг 0-100, Каталог). Then `<CollectorDownload />`.
 - **New task `/business/new`: "Wizard + rating panel".** Three columns on desktop: left a vertical step rail (5 steps with icons, the current step is a white box with a lime hard shadow), center the form or card editor, right a sticky `RatingPanel` (ring, level badge, catalog position "#5 из 12 → #2", hints "+10 Контакт и формат"). On narrow screens the rail becomes a horizontal step bar and the panel moves below the form.
 - **Catalog `/catalog`: "Tiles".** Filter chips on top (active chip lime with a hard shadow), sort "по рейтингу", a 2-3 column grid of `ProjectCard`s with the score in a colored block, draft tasks visible with "нужно уточнение". Right column: `Leaderboard`.
@@ -114,6 +115,36 @@ For C, about 10 minutes:
 3. First visit: mount `<ConsentGate open={!saved} onAccept={(c) => save(c)} />` in the layout; store the result in localStorage (for example `kopir:consent:v1`).
 4. Forms: `<ConsentCheckbox required>` before "Опубликовать" (business confirms the data is theirs to share) and before "Отправить предложение" (team agrees to the terms).
 5. `CollectorDownload` already asks for the employer's confirmation before the download button unlocks.
+
+### Three languages (16:00)
+
+Documents exist in Kazakh (`kk/`), Russian (folder root) and English (`en/`). KK and RU are legally binding with equal force; EN is a translation, and every document shows its `legalNote` above the text. For C, `/legal/[slug]/page.tsx`:
+
+```tsx
+import { notFound } from 'next/navigation';
+import { LegalDocument } from '@/components/domain';
+import { LegalLanguageSwitch } from '@/components/domain/legal';
+import { LEGAL_DOCS, getLegalDoc, isLegalLang, type LegalSlug } from '@/content/legal';
+
+export default async function LegalPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ lang?: string }> }) {
+  const { slug } = await params;
+  const { lang: q } = await searchParams;
+  if (!(slug in LEGAL_DOCS)) notFound();
+  const lang = isLegalLang(q) ? q : 'en';
+  return (
+    <>
+      <LegalLanguageSwitch current={lang} basePath={`/legal/${slug}`} className="mx-auto mb-6 w-full max-w-6xl" />
+      <LegalDocument doc={getLegalDoc(slug as LegalSlug, lang)} />
+    </>
+  );
+}
+```
+
+Footer: `<LegalLinks docs={getLegalList('en')} lang="en" />`.
+
+## AI interview (16:05)
+
+`AiInterview` in `src/components/domain/interview.tsx` is a pop-up window where the AI interviews the business about its task (the Clarify step of `/business/new`). It has a voice-first mode with an animated orb avatar, and a "Switch to text chat" button for people who prefer typing. Questions come from `/api/ai/clarify`, answers go to `/api/ai/card`. For voice, pass `voice={{ status, onStart, onStop }}` from A's `VoiceInterview` (`src/lib/voice/interview.ts`).
 
 ## Final decisions (15:35)
 

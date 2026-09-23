@@ -16,4 +16,14 @@ export { LegalDocument, ConsentCheckbox, ConsentGate, LegalLinks, AiNoticeBanner
 export { ProjectCard, TechSpecView, ProposalCard, ProposalCompare, TeamCard, Leaderboard } from './cards';
 export { EvidenceChip, InsightCard, PrivacyPanel, AgentTrace, SuggestionChip } from './discover';
 export type { Consents } from './legal';
+export { AiInterview, InterviewAvatar } from './interview';
+export type {
+  AiInterviewProps, InterviewAnswer, InterviewAvatarProps, InterviewAvatarState, InterviewAvatarVariant, InterviewMode,
+  InterviewQuestion, InterviewVoice,
+} from './interview';
+export {
+  Landing, LandingHero, PainSection, HowItWorks, ImpactCalculator, RatingShowcase, CollectorSection, FinalCta,
+  Reveal, useReveal, useReducedMotion,
+} from './landing';
+export type { LandingProps } from './landing';
 
