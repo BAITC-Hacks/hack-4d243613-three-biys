@@ -10,10 +10,10 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
 
 const variants: Record<ButtonVariant, string> = {
   // Approved primary: graphite with a pulsing lime LED (class btn-led in globals.css).
-  primary: 'btn-led bg-primary text-primary-foreground hover:bg-[#27272a]',
+  primary: 'btn-led border-transparent bg-primary text-primary-foreground hover:bg-[#27272a]',
   secondary: 'border-border bg-surface text-foreground hover:bg-accent-soft',
-  ghost: 'text-foreground hover:bg-foreground/5',
-  danger: 'bg-danger text-white hover:bg-danger/90',
+  ghost: 'border-transparent text-foreground hover:bg-foreground/5',
+  danger: 'border-transparent bg-danger text-white hover:bg-danger/90',
   accent: 'border-border bg-accent text-accent-foreground shadow-card hover:bg-[#a3e635] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none',
 };
 
@@ -51,7 +51,7 @@ export function buttonClasses({
   className,
 }: ButtonClassOptions = {}) {
   return clsx(
-    'inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-control border-2 border-transparent font-semibold select-none',
+    'inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-control border-2 font-semibold select-none',
     'transition-[background-color,color,box-shadow,translate] duration-150 motion-reduce:transition-none active:translate-y-px',
     'disabled:pointer-events-none aria-disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0',
     !loading && 'disabled:opacity-50 aria-disabled:opacity-50',
