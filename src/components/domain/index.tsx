@@ -6,47 +6,12 @@ import type {
 } from '@/lib/types';
 import { Badge, Card } from '@/components/ui';
 
-export function LevelBadge({ level }: { level: Level }) {
-  return <Badge>{level}</Badge>;
-}
+import { LevelBadge } from './rating';
 
-export function ScoreBar({ points, max }: { points: number; max: number }) {
-  const pct = max > 0 ? Math.round((points / max) * 100) : 0;
-  return (
-    <div className="h-2 w-full rounded bg-border">
-      <div className="h-2 rounded bg-primary" style={{ width: `${pct}%` }} />
-    </div>
-  );
-}
-
-export function RatingPanel({ rating, onAction }: { rating: Rating; onAction?: (field: CardField) => void }) {
-  return (
-    <Card>
-      <div className="flex items-center justify-between">
-        <span className="text-lg font-semibold">{rating.total} / 100</span>
-        <LevelBadge level={rating.level} />
-      </div>
-      <ul className="mt-3 space-y-2">
-        {rating.components.map((c) => (
-          <li key={c.key}>
-            <div className="flex justify-between text-sm"><span>{c.label}</span><span>{c.points}/{c.max}</span></div>
-            <ScoreBar points={c.points} max={c.max} />
-            {c.checks.map((k) => <p key={k.label} className="text-xs text-muted">{k.passed ? '✓' : '✗'} {k.label} — {k.rule}</p>)}
-          </li>
-        ))}
-      </ul>
-      {rating.nextActions.length > 0 && (
-        <div className="mt-3">
-          <p className="text-sm font-medium">Next best actions</p>
-          {rating.nextActions.map((a) => (
-            <button key={a.field + a.text} className="block text-left text-xs text-primary" onClick={() => onAction?.(a.field)}>+{a.gain}: {a.text}</button>
-          ))}
-        </div>
-      )}
-      {rating.vagueness.map((v) => <p key={v.field + v.phrase} className="mt-1 text-xs text-red-700">“{v.phrase}” in {v.field}: {v.ask}</p>)}
-    </Card>
-  );
-}
+// Real implementations (owner: B).
+export { RatingPanel, PositionPreview, LevelBadge, LevelUpToast, ScoreBar, ScoreHistory, levelLabel } from './rating';
+export type { RatingLocale } from './rating';
+export { CollectorDownload } from './collector';
 
 export function ProjectCard({ card, rating }: { card: TaskCard; rating: Rating }) {
   return (
@@ -140,23 +105,6 @@ export function TeamCard({ team, points }: { team: TeamProfile; points: number }
       <p className="text-xs">{[...team.interests, ...team.skills, ...team.tech].join(' · ')}</p>
     </Card>
   );
-}
-
-export function PositionPreview({ preview }: { preview: PositionPreviewData }) {
-  return (
-    <p className="text-sm">
-      Catalog position: #{preview.position} of {preview.of}
-      {preview.ifNext && <> → #{preview.ifNext.position} if you {preview.ifNext.action.text.toLowerCase()} (+{preview.ifNext.action.gain})</>}
-    </p>
-  );
-}
-
-export function LevelUpToast({ from, to }: { from: Level; to: Level }) {
-  return <div className="rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground">Level up: {from} → {to}</div>;
-}
-
-export function ScoreHistory({ history }: { history: TaskCard['history'] }) {
-  return <p className="text-sm text-muted">{history.map((h) => h.total).join(' → ') || 'No history yet'}</p>;
 }
 
 export function SuggestionChip({ text, source, onAccept }: { text: string; source: string; onAccept?: () => void }) {
