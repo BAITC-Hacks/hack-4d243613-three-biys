@@ -11,9 +11,14 @@ export interface CollectorSettings {
   meetingEnabled: boolean;
 }
 
+// Demo defaults: the hosted server and its public demo token, so the app connects with no setup (judges included).
+// The token only gates writes of anonymized demo data; override both in Settings for a real deployment.
+export const DEMO_SERVER_URL = 'https://taskforge-app-chi.vercel.app';
+export const DEMO_INGEST_TOKEN = '12345';
+
 export const defaultSettings: CollectorSettings = {
-  serverUrl: 'http://localhost:3000',
-  ingestToken: '',
+  serverUrl: DEMO_SERVER_URL,
+  ingestToken: DEMO_INGEST_TOKEN,
   team: 'Sales',
   trackerEnabled: false,
   meetingEnabled: false,
@@ -25,7 +30,11 @@ function settingsPath() {
 
 export function loadSettings(): CollectorSettings {
   try {
-    return { ...defaultSettings, ...JSON.parse(fs.readFileSync(settingsPath(), 'utf8')) };
+    const saved = { ...defaultSettings, ...JSON.parse(fs.readFileSync(settingsPath(), 'utf8')) } as CollectorSettings;
+    // Settings saved by an older build may hold an empty token/URL — fall back to the demo defaults.
+    if (!saved.ingestToken) saved.ingestToken = DEMO_INGEST_TOKEN;
+    if (!saved.serverUrl) saved.serverUrl = DEMO_SERVER_URL;
+    return saved;
   } catch {
     return { ...defaultSettings };
   }
