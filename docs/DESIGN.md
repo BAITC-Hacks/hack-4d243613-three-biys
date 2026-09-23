@@ -83,3 +83,14 @@ Real screens get more air than the mockups: content width up to `max-w-6xl` (115
 ## Illustrations
 
 Coming in `src/components/illustrations/` (inline SVG, light animations, reduced-motion safe): HeroPulse, BridgeBuild, RadarScan, step icons (StepDraft, StepQuestions, StepCard, StepRating, StepPublish), level icons, empty states (EmptyCatalog, EmptyProposals, EmptyTasks), AiThinking loader, PublishedStamp, LevelUpBurst, PrivacyShield, CollectorLaptop, MilestoneFlag, TeamAvatar, BusinessAvatar, ErrorBridge, GridBackground.
+
+## Legal documents and consent (B: texts by Islam, lawyer)
+
+Texts: `src/content/legal.ts` (`LEGAL_DOCS.terms`, `LEGAL_DOCS.privacy`, `LEGAL_DOCS.collector`, `LEGAL_LIST`), written for the Law of the Republic of Kazakhstan "On personal data and their protection". Components in `src/components/domain/legal.tsx`, exported from `@/components/domain`.
+
+For C, about 10 minutes:
+1. Route `src/app/legal/[slug]/page.tsx`: `<LegalDocument doc={LEGAL_DOCS[slug]} />`, `notFound()` for unknown slugs.
+2. Footer in `layout.tsx`: `<LegalLinks docs={LEGAL_LIST} />`.
+3. First visit: mount `<ConsentGate open={!saved} onAccept={(c) => save(c)} />` in the layout; store the result in localStorage (for example `kopir:consent:v1`).
+4. Forms: `<ConsentCheckbox required>` before "Опубликовать" (business confirms the data is theirs to share) and before "Отправить предложение" (team agrees to the terms).
+5. `CollectorDownload` already asks for the employer's confirmation before the download button unlocks.

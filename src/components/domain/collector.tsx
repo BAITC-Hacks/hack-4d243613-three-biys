@@ -1,8 +1,11 @@
+'use client';
 // Collector download block (owner: B, design). Shown on /business/discover and the landing.
 // Props only: the page passes the real download URL once A publishes the Windows build.
+import { useState } from 'react';
 import clsx from 'clsx';
 import { Download, MonitorSmartphone, ShieldCheck } from 'lucide-react';
 import { buttonClasses } from '@/components/ui/button';
+import { ConsentCheckbox } from './legal';
 
 export function CollectorDownload({
   href,
@@ -19,6 +22,7 @@ export function CollectorDownload({
   serverUrl?: string;
   className?: string;
 }) {
+  const [agreed, setAgreed] = useState(false);
   const features = [
     ['Трекер активности', 'Категории приложений и переносы между ними, без содержимого окон'],
     ['Заметки встреч', 'Звук Zoom, Teams или Meet превращается в расшифровку'],
@@ -55,9 +59,23 @@ export function CollectorDownload({
 
         <div className="flex w-full shrink-0 flex-col gap-3 md:w-64">
           {href ? (
-            <a href={href} download className={buttonClasses({ variant: 'primary', size: 'lg', className: 'w-full' })}>
-              <Download aria-hidden="true" /> Скачать для Windows
-            </a>
+            <>
+              <ConsentCheckbox checked={agreed} onChange={setAgreed} required>
+                Сотрудники уведомлены и согласны на{' '}
+                <a href="/legal/collector" target="_blank" rel="noreferrer">
+                  обезличенную аналитику
+                </a>
+              </ConsentCheckbox>
+              {agreed ? (
+                <a href={href} download className={buttonClasses({ variant: 'primary', size: 'lg', className: 'w-full' })}>
+                  <Download aria-hidden="true" /> Скачать для Windows
+                </a>
+              ) : (
+                <span aria-disabled="true" className={buttonClasses({ variant: 'primary', size: 'lg', className: 'w-full' })}>
+                  <Download aria-hidden="true" /> Скачать для Windows
+                </span>
+              )}
+            </>
           ) : (
             <span
               aria-disabled="true"

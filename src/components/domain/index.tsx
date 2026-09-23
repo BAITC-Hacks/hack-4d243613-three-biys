@@ -12,6 +12,8 @@ import { LevelBadge } from './rating';
 export { RatingPanel, PositionPreview, LevelBadge, LevelUpToast, ScoreBar, ScoreHistory, levelLabel } from './rating';
 export type { RatingLocale } from './rating';
 export { CollectorDownload } from './collector';
+export { LegalDocument, ConsentCheckbox, ConsentGate, LegalLinks } from './legal';
+export type { Consents } from './legal';
 
 export function ProjectCard({ card, rating }: { card: TaskCard; rating: Rating }) {
   return (
