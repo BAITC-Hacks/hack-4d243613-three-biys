@@ -357,7 +357,7 @@ Hours are Astana time. Realistic start: scaffold lands ~14:35.
 - [x] `/api/ai/discover` (single validated call + `src/lib/ai/evidence.ts`, drop unsupported; each insight also returns `suggestedFields` for context/need/data built only from evidence); record golden-path fixtures
 - [x] Collector meeting notes (`collector/src/meeting.ts`): loopback + mic, 30 s chunks → `/api/ingest/meeting-audio`, Stop → `meeting-end`. (Telegram: cut.)
 **H5 17:00–17:45**
-- [ ] Replay-only run of the golden path; final deploy; technical README sections (install, run, env, architecture, rating formula, catalog rules, AI prompts/I-O/error handling, Collector) → B for editing
+- [x] Replay-only run of the golden path; final deploy; technical README sections (install, run, env, architecture, rating formula, catalog rules, AI prompts/I-O/error handling, Collector) → B for editing
 
 ### B — Design (Windows)
 **H1 → 15:00**

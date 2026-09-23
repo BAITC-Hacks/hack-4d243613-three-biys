@@ -17,7 +17,10 @@ All product code in this repository is written during the competition window, 23
 
 | Model / API | Provider | Purpose |
 |---|---|---|
-| To be filled in when the model is wired in | OpenAI | |
+| gpt-4.1-mini | OpenAI | Clarifying questions, card assembly, technical documentation, recommendation reasons (JSON, zod-validated) |
+| gpt-4.1 | OpenAI | Discover: insights with cited evidence from meetings and activity aggregates |
+| gpt-4o-transcribe (fallback whisper-1) | OpenAI | Transcription of Collector meeting audio chunks |
+| meta/llama-3.3-70b-instruct | NVIDIA (build.nvidia.com, OpenAI-compatible API) | Text fallback when OpenAI is unavailable |
 
 ## Materials prepared before the competition (not product code)
 
