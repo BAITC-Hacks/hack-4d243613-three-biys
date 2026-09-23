@@ -43,7 +43,23 @@ export async function discover(req: DiscoverRequest, trace: AgentStep[]): Promis
     })),
   };
   const system = await loadPrompt('discover');
-  const out = await callJson({ endpoint: 'discover', system, user: JSON.stringify(input, null, 1), schema: DiscoverResponseSchema, trace, task: 'discover', maxTokens: 3000, timeoutMs: 90_000 });
+  // Live Collector meetings get their own pass so they are never drowned out by the longer history; run both in parallel.
+  const live = input.meetings.filter((m) => m.source === 'live');
+  const liveCall = live.length
+    ? callJson({
+        endpoint: 'discover-live', system,
+        user: JSON.stringify({ period: req.period, meetings: live, aggregates: [], note: 'Only live meetings. Return one insight per live meeting that states any need, goal or problem.' }, null, 1),
+        schema: DiscoverResponseSchema, trace, task: 'discover', maxTokens: 1500, timeoutMs: 60_000,
+      }).catch(() => ({ insights: [], dropped: 0 }))
+    : Promise.resolve({ insights: [], dropped: 0 });
+  const [liveOut, out] = await Promise.all([
+    liveCall,
+    callJson({ endpoint: 'discover', system, user: JSON.stringify(input, null, 1), schema: DiscoverResponseSchema, trace, task: 'discover', maxTokens: 3000, timeoutMs: 90_000 }),
+  ]);
+  const liveIds = new Set(live.map((m) => m.id));
+  const liveVerified = verifyInsights(liveOut.insights.map((x, i) => ({ ...x, id: `live-${i + 1}` })), snap, trace);
   const verified = verifyInsights(out.insights, snap, trace);
-  return { insights: verified.insights, dropped: verified.dropped };
+  // History insights that only restate a live one (same live meeting cited) are skipped to avoid duplicates.
+  const rest = verified.insights.filter((x) => !x.evidence.some((e) => liveIds.has(e.sourceId)));
+  return { insights: [...liveVerified.insights, ...rest], dropped: liveVerified.dropped + verified.dropped };
 }
