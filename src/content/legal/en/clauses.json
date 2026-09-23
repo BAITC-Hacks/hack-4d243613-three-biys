@@ -1,0 +1,88 @@
+{
+  "version": "0.1",
+  "updated": "2026-09-23",
+  "lang": "en",
+  "legalNote": "This English version is provided for convenience only. The Kazakh and Russian versions are legally binding and have equal force. In case of any discrepancy, the Kazakh and Russian versions prevail.",
+  "groups": [
+    {
+      "id": "ip",
+      "label": "Rights to the result",
+      "required": true,
+      "affectsField": "constraints",
+      "options": [
+        { "id": "ip_business", "label": "Rights go to the business", "hint": "The business gets the full result, the team keeps authorship", "summary": "Rights to the result pass to the business", "clause": "The Team members transfer to the Business the exclusive property rights to the result of the work in full from the moment the last milestone is confirmed. The Team members retain the personal non-property rights of authors, including the right to be named as authors." },
+        { "id": "ip_license", "label": "Rights stay with the team, the business gets a license", "hint": "The team can keep developing the result, the business uses it for free", "summary": "Rights stay with the team, the business gets a license", "clause": "The exclusive property rights to the result of the work remain with the Team members. The Team grants the Business a free non-exclusive license to use the result for the Business's internal needs without limitation of term or territory." },
+        { "id": "ip_joint", "label": "Joint rights", "hint": "Both parties use the result, rights can be sold only together", "summary": "Rights to the result are joint", "clause": "The exclusive property rights to the result of the work belong jointly to the Business and the Team members. Each party may use the result for its own needs. Rights may be transferred to third parties only with the consent of both parties." }
+      ]
+    },
+    {
+      "id": "portfolio",
+      "label": "Portfolio",
+      "required": true,
+      "affectsField": "constraints",
+      "options": [
+        { "id": "portfolio_allowed", "label": "Can be shown", "hint": "The best option for students and for the business's reputation", "summary": "The result can be shown in a portfolio", "clause": "The Team may show the result and the project description in portfolios and at educational events without disclosing confidential information of the Business." },
+        { "id": "portfolio_approval", "label": "After approval", "hint": "The business sees in advance what will be shown", "summary": "Portfolio use after approval by the business", "clause": "The Team may show the result in a portfolio only after written approval of the Business. The Business responds to a request within 5 working days." },
+        { "id": "portfolio_anonymous", "label": "Without the company name", "hint": "The result can be shown, the business name is hidden", "summary": "Portfolio use without the company name", "clause": "The Team may show the result in a portfolio without naming the Business and without its data." },
+        { "id": "portfolio_forbidden", "label": "Not allowed", "hint": "The team may mention only the fact of participation", "summary": "The result cannot be shown in a portfolio", "clause": "The Team may not show the result to third parties. The Team may mention in its portfolio only the fact of participation in the project." }
+      ]
+    },
+    {
+      "id": "confidentiality",
+      "label": "Confidentiality",
+      "required": true,
+      "affectsField": "constraints",
+      "options": [
+        { "id": "conf_open", "label": "Open information", "hint": "Suitable for educational tasks without secrets", "summary": "Task information is open", "clause": "Information on the task is not confidential, except for personal data." },
+        { "id": "conf_basic", "label": "Basic", "hint": "Non-public information is not disclosed for 1 year", "summary": "Basic confidentiality, 1 year", "clause": "The Team does not disclose to third parties any non-public information of the Business received during the work for 1 year after the work ends." },
+        { "id": "conf_nda", "label": "Strict, NDA", "hint": "For trade secrets, 3 years", "summary": "NDA regime for trade secrets, 3 years", "clause": "Information that the Business has marked as a trade secret is used by the Team only for work on the task and is not disclosed for 3 years after the work ends. Only the Team members who have confirmed this agreement get access to it." }
+      ]
+    },
+    {
+      "id": "data",
+      "label": "Data for the work",
+      "required": true,
+      "affectsField": "constraints",
+      "options": [
+        { "id": "data_synthetic", "label": "Synthetic", "hint": "The fastest start with no risks", "summary": "The team works with synthetic data", "clause": "The Business provides the Team only with synthetic data created for the work on the task." },
+        { "id": "data_anonymized", "label": "Depersonalized", "hint": "Real data without personal information", "summary": "The team works with depersonalized data", "clause": "The Business provides the Team with data depersonalized before transfer. The Team makes no attempts to re-identify the data subjects." },
+        { "id": "data_real", "label": "Real, under a separate agreement", "hint": "Only with a legal basis", "summary": "Real data under a separate agreement", "clause": "Real data, including personal data, is provided to the Team only where a legal basis exists and under a separate agreement of the parties that defines the purposes, the processing periods and the protection measures." }
+      ]
+    },
+    {
+      "id": "response",
+      "label": "Response time to proposals",
+      "required": true,
+      "affectsField": "contact",
+      "options": [
+        { "id": "response_2", "label": "2 working days", "value": 2, "summary": "Replies to proposals within 2 working days", "clause": "The Business reviews proposals and communicates its decision within 2 working days." },
+        { "id": "response_3", "label": "3 working days", "value": 3, "summary": "Replies to proposals within 3 working days", "clause": "The Business reviews proposals and communicates its decision within 3 working days." },
+        { "id": "response_5", "label": "5 working days", "value": 5, "summary": "Replies to proposals within 5 working days", "clause": "The Business reviews proposals and communicates its decision within 5 working days." },
+        { "id": "response_7", "label": "7 working days", "value": 7, "summary": "Replies to proposals within 7 working days", "clause": "The Business reviews proposals and communicates its decision within 7 working days." }
+      ]
+    },
+    {
+      "id": "format",
+      "label": "Format of interaction",
+      "required": true,
+      "affectsField": "contact",
+      "options": [
+        { "id": "format_weekly_call", "label": "Weekly call", "summary": "Weekly call with the contact person", "clause": "The parties hold an online call once a week. Between calls, questions are resolved in a work chat." },
+        { "id": "format_chat", "label": "Work chat", "summary": "Consultations in a work chat", "clause": "Consultations take place in a work chat. The contact person of the Business answers questions within 1 working day." },
+        { "id": "format_email", "label": "Email", "summary": "Consultations by email", "clause": "Consultations take place by email. The contact person of the Business replies within 2 working days." },
+        { "id": "format_onsite", "label": "Office meetings", "summary": "Meetings at the business's office", "clause": "The parties meet at the office of the Business on an agreed schedule. Interim questions are resolved in a work chat." }
+      ]
+    },
+    {
+      "id": "reward",
+      "label": "What the team gets",
+      "required": false,
+      "affectsField": null,
+      "options": [
+        { "id": "reward_none", "label": "Educational project", "summary": "Educational project without payment", "clause": "The work is performed for educational purposes without remuneration unless the parties agree otherwise." },
+        { "id": "reward_internship", "label": "Internship afterwards", "summary": "The best members will be offered an internship", "clause": "Following the work, the Business considers inviting Team members to an internship. The invitation is not an obligation of the Business." },
+        { "id": "reward_paid", "label": "Payment", "summary": "Payment by agreement", "clause": "The Business pays the Team remuneration of {{rewardAmount}} after the last milestone is confirmed, under a separate contract." }
+      ]
+    }
+  ]
+}

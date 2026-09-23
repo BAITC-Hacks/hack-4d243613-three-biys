@@ -1,6 +1,6 @@
 # Legal content for Көпір
 
-Legal texts for the platform, written during the hackathon (23 Sep 2026) by Islam Shagatayev (lawyer, role B). Texts are in Russian; Kazakh versions are TODO. Content only, no code: render it with one `LegalPage` component in the app's design.
+Legal texts for the platform, written during the hackathon (23 Sep 2026) by Islam Shagatayev (lawyer, role B). Texts are in Russian, Kazakh and English (see Languages). Content only, no code: render it with one `LegalPage` component in the app's design.
 
 ## Files
 
@@ -15,6 +15,16 @@ Legal texts for the platform, written during the hackathon (23 Sep 2026) by Isla
 | `clauses.json` | | "Collaboration terms" block in the task card: one option per group |
 
 Every `.md` file starts with YAML frontmatter: `slug`, `title`, `version`, `updated`, `status`, plus optional `checkboxLabel`, `bannerText`, `template`, `source`.
+
+## Languages
+
+| Folder | Language | Legal force |
+|---|---|---|
+| root (`*.md`, `clauses.json`) | Russian (`lang: ru`) | Binding |
+| `kk/` | Kazakh (`lang: kk`) | Binding, equal to Russian |
+| `en/` | English (`lang: en`) | Convenience translation only, no legal force |
+
+Every language version has the same `slug`, file names and clause `id`s. Every file has a `legalNote` in its frontmatter (in `clauses.json` it is a top-level field). Show it as a notice above the document. `checkboxLabel` and `bannerText` exist in each language.
 
 ## Placeholders
 

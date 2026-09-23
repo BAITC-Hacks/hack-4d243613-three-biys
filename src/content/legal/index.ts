@@ -1,10 +1,13 @@
 // Legal content of Көпір (owner: B; texts by Islam Shagatayev, lawyer).
 // Source of truth: the .md files in this folder. docs.generated.ts embeds them as strings.
-import { LEGAL_RAW, type LegalRawSlug } from './docs.generated';
+import { LEGAL_LANGS, LEGAL_RAW, LEGAL_RAW_BY_LANG, type LegalLang, type LegalRawSlug } from './docs.generated';
 import { parseMarkdown, type ParsedDoc } from './markdown';
 import clausesData from './clauses.json';
+import clausesKk from './kk/clauses.json';
+import clausesEn from './en/clauses.json';
 
 export type { Block, ParsedDoc } from './markdown';
+export { LEGAL_LANGS, type LegalLang };
 export type LegalSlug = LegalRawSlug | 'collector';
 
 /** Values for {{placeholders}} known in the MVP. Anything else renders as an empty highlighted field. */
@@ -59,22 +62,53 @@ export const LEGAL_DOCS = Object.fromEntries([
 ]) as Record<LegalSlug, ParsedDoc>;
 
 /** Documents linked in the footer, in this order. */
-export const LEGAL_LIST: ParsedDoc[] = [
-  LEGAL_DOCS.terms,
-  LEGAL_DOCS.privacy,
-  LEGAL_DOCS['rating-rules'],
-  LEGAL_DOCS['ai-notice'],
-];
+const LIST_SLUGS = ['terms', 'privacy', 'rating-rules', 'ai-notice'] as const;
+export const LEGAL_LIST: ParsedDoc[] = LIST_SLUGS.map((s) => LEGAL_DOCS[s]);
+
+/**
+ * Russian (root) and Kazakh (kk/) are legally binding with equal force; English (en/) is a convenience translation.
+ * Every en/kk document carries meta.lang and meta.legalNote (shown above the text). Missing translations fall back to Russian.
+ */
+export const LEGAL_DOCS_BY_LANG = Object.fromEntries(
+  LEGAL_LANGS.map((lang) => [
+    lang,
+    Object.fromEntries(
+      (Object.keys(LEGAL_DOCS) as LegalSlug[]).map((slug) => {
+        const raw = slug === 'collector' ? undefined : LEGAL_RAW_BY_LANG[lang][slug];
+        return [slug, raw ? parseMarkdown(slug, raw) : LEGAL_DOCS[slug]];
+      }),
+    ),
+  ]),
+) as Record<LegalLang, Record<LegalSlug, ParsedDoc>>;
+
+export function isLegalLang(lang: unknown): lang is LegalLang {
+  return typeof lang === 'string' && (LEGAL_LANGS as readonly string[]).includes(lang);
+}
+
+/** Document in the requested language (default ru, the official text). */
+export function getLegalDoc(slug: LegalSlug, lang: LegalLang = 'ru'): ParsedDoc {
+  return LEGAL_DOCS_BY_LANG[lang][slug];
+}
+
+/** Footer list in the requested language. */
+export function getLegalList(lang: LegalLang = 'ru'): ParsedDoc[] {
+  return LIST_SLUGS.map((s) => LEGAL_DOCS_BY_LANG[lang][s]);
+}
 
 export function isLegalSlug(slug: string): slug is LegalSlug {
   return slug in LEGAL_DOCS;
 }
 
-/** Text of the consent checkbox from consent.md frontmatter. */
-export const CONSENT_LABEL = LEGAL_DOCS.consent.meta.checkboxLabel ?? 'Я даю согласие на обработку персональных данных';
+/** Text of the consent checkbox from consent.md frontmatter, in the interface language. */
+export const getConsentLabel = (lang: LegalLang = 'en') =>
+  LEGAL_DOCS_BY_LANG[lang].consent.meta.checkboxLabel ?? LEGAL_DOCS.consent.meta.checkboxLabel ?? '';
 /** Banner shown next to every AI result until a person confirms it (ai-notice.md frontmatter). */
-export const AI_BANNER_TEXT =
-  LEGAL_DOCS['ai-notice'].meta.bannerText ?? 'Подготовлено с помощью ИИ. Проверьте и подтвердите перед публикацией.';
+export const getAiBannerText = (lang: LegalLang = 'en') =>
+  LEGAL_DOCS_BY_LANG[lang]['ai-notice'].meta.bannerText ?? LEGAL_DOCS['ai-notice'].meta.bannerText ?? '';
+/** Russian texts, kept for existing imports. */
+export const CONSENT_LABEL = getConsentLabel('ru');
+export const AI_BANNER_TEXT = getAiBannerText('ru');
 
 /** Options for the "Collaboration terms" block of a task card (see README.md in this folder). */
 export const COLLAB_CLAUSES = clausesData;
+export const COLLAB_CLAUSES_BY_LANG = { ru: clausesData, kk: clausesKk, en: clausesEn } as const;

@@ -7,9 +7,9 @@
 //   <LegalLinks docs={LEGAL_LIST} />                                     footer
 import { Fragment, useId, useState, type ReactNode } from 'react';
 import clsx from 'clsx';
-import { Check, FileText, Sparkles } from 'lucide-react';
+import { Check, FileText, Languages, Scale, Sparkles } from 'lucide-react';
 import { buttonClasses } from '@/components/ui/button';
-import { LEGAL_DEFAULTS, type ParsedDoc } from '@/content/legal';
+import { LEGAL_DEFAULTS, getAiBannerText, getConsentLabel, type LegalLang, type ParsedDoc } from '@/content/legal';
 
 /** Renders **bold** and {{placeholders}}. Unknown placeholders become an empty highlighted field. */
 function Inline({ text, values }: { text: string; values: Record<string, string> }) {
@@ -42,6 +42,15 @@ function Inline({ text, values }: { text: string; values: Record<string, string>
   );
 }
 
+/** Document chrome follows the document language, not the interface language. */
+const CHROME: Record<LegalLang, { contents: string; version: string; draft: string }> = {
+  ru: { contents: 'Содержание', version: 'Версия', draft: 'Проект документа' },
+  kk: { contents: 'Мазмұны', version: 'Нұсқа', draft: 'Құжат жобасы' },
+  en: { contents: 'Contents', version: 'Version', draft: 'Draft document' },
+};
+const docLang = (doc: ParsedDoc): LegalLang =>
+  doc.meta.lang === 'kk' || doc.meta.lang === 'en' ? doc.meta.lang : 'ru';
+
 export function LegalDocument({
   doc,
   values,
@@ -54,10 +63,12 @@ export function LegalDocument({
 }) {
   const v = { ...LEGAL_DEFAULTS, ...values };
   const toc = doc.blocks.flatMap((b) => (b.type === 'h2' ? [b] : []));
+  const lang = docLang(doc);
+  const c = CHROME[lang];
   return (
-    <article className={clsx('mx-auto grid w-full max-w-6xl gap-8 md:grid-cols-[240px_1fr]', className)}>
-      <nav aria-label="Contents" className="md:sticky md:top-6 md:max-h-[calc(100vh-3rem)] md:self-start md:overflow-y-auto">
-        <p className="text-xs font-extrabold tracking-[0.12em] text-muted uppercase">Contents</p>
+    <article lang={lang} className={clsx('mx-auto grid w-full max-w-6xl gap-8 md:grid-cols-[240px_1fr]', className)}>
+      <nav aria-label={c.contents} className="md:sticky md:top-6 md:max-h-[calc(100vh-3rem)] md:self-start md:overflow-y-auto">
+        <p className="text-xs font-extrabold tracking-[0.12em] text-muted uppercase">{c.contents}</p>
         <ol className="mt-3 grid gap-0.5 border-l-2 border-border">
           {toc.map((h) => (
             <li key={h.id}>
@@ -71,12 +82,24 @@ export function LegalDocument({
       <div className="min-w-0 rounded-card border-2 border-border bg-surface p-6 shadow-card sm:p-10">
         <p className="flex flex-wrap items-center gap-2 text-xs font-extrabold tracking-[0.12em] text-muted uppercase">
           <FileText aria-hidden="true" className="size-4" />
-          {doc.meta.version ? `Version ${doc.meta.version}` : null}
+          {doc.meta.version ? `${c.version} ${doc.meta.version}` : null}
           {doc.meta.updated ? ` · ${doc.meta.updated}` : null}
           {doc.meta.status === 'draft' ? (
-            <span className="border-2 border-border bg-[#fde047] px-1.5 py-0.5 text-foreground">Draft document</span>
+            <span className="border-2 border-border bg-[#fde047] px-1.5 py-0.5 text-foreground">{c.draft}</span>
           ) : null}
         </p>
+        {doc.meta.legalNote ? (
+          <p
+            role="note"
+            className={clsx(
+              'mt-4 flex max-w-[70ch] items-start gap-2 border-2 border-border px-3 py-2 text-sm leading-5',
+              lang === 'en' ? 'bg-[#fef9c3]' : 'bg-accent-soft',
+            )}
+          >
+            <Scale aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+            <span>{doc.meta.legalNote}</span>
+          </p>
+        ) : null}
         <div className="mt-4 grid max-w-[70ch] gap-4 text-[15px] leading-relaxed">
           {doc.blocks.map((b, i) => {
             switch (b.type) {
@@ -212,9 +235,9 @@ export type Consents = { terms: boolean; privacy: boolean; news: boolean; accept
 export function ConsentGate({
   open,
   onAccept,
-  termsHref = '/legal/terms',
-  privacyHref = '/legal/privacy',
-  consentHref = '/legal/consent',
+  termsHref = '/legal/terms?lang=en',
+  privacyHref = '/legal/privacy?lang=en',
+  consentHref = '/legal/consent?lang=en',
 }: {
   open: boolean;
   onAccept: (consents: Consents) => void;
@@ -254,8 +277,8 @@ export function ConsentGate({
             processing of the data you provide.
           </p>
           <p className="flex items-center gap-2 text-xs text-muted">
-            <FileText aria-hidden="true" className="size-4 shrink-0" />
-            Legal documents are in Russian.
+            <Languages aria-hidden="true" className="size-4 shrink-0" />
+            Documents in Kazakh and Russian (legally binding) and English (translation).
           </p>
           <ConsentCheckbox checked={terms} onChange={setTerms} required>
             I accept the{' '}
@@ -264,7 +287,7 @@ export function ConsentGate({
             </a>
           </ConsentCheckbox>
           <ConsentCheckbox checked={privacy} onChange={setPrivacy} required>
-            I consent to the processing of my personal data.{' '}
+            {getConsentLabel('en')}.{' '}
             <a href={consentHref} target="_blank" rel="noreferrer">
               Consent text
             </a>{' '}
@@ -291,7 +314,7 @@ export function ConsentGate({
 }
 
 /** AI transparency banner (English summary of ai-notice.md). Show it next to every AI result until a person confirms it. */
-export function AiNoticeBanner({ href = '/legal/ai-notice', className }: { href?: string; className?: string }) {
+export function AiNoticeBanner({ href = '/legal/ai-notice?lang=en', className }: { href?: string; className?: string }) {
   return (
     <p
       role="note"
@@ -299,7 +322,7 @@ export function AiNoticeBanner({ href = '/legal/ai-notice', className }: { href?
     >
       <Sparkles aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
       <span>
-        Prepared with AI. Review and confirm before publishing.{' '}
+        {getAiBannerText('en')}{' '}
         <a href={href} target="_blank" rel="noreferrer" className="font-semibold underline decoration-2 underline-offset-2">
           How we use AI
         </a>
@@ -309,18 +332,78 @@ export function AiNoticeBanner({ href = '/legal/ai-notice', className }: { href?
 }
 
 /** Footer row with links to the legal documents. */
-export function LegalLinks({ docs, className }: { docs: Pick<ParsedDoc, 'slug' | 'title'>[]; className?: string }) {
+export function LegalLinks({
+  docs,
+  lang,
+  className,
+}: {
+  docs: Pick<ParsedDoc, 'slug' | 'title'>[];
+  /** Appends ?lang= to every link, e.g. 'en' for the English interface. */
+  lang?: LegalLang;
+  className?: string;
+}) {
   return (
     <nav aria-label="Legal documents" className={clsx('flex flex-wrap gap-x-5 gap-y-2 text-sm', className)}>
       {docs.map((d) => (
         <a
           key={d.slug}
-          href={`/legal/${d.slug}`}
+          href={lang ? `/legal/${d.slug}?lang=${lang}` : `/legal/${d.slug}`}
           className="font-medium underline decoration-accent decoration-2 underline-offset-4 hover:bg-accent-soft"
         >
           {d.title}
         </a>
       ))}
+    </nav>
+  );
+}
+
+const LANG_OPTIONS: { lang: LegalLang; short: string; name: string; official: boolean }[] = [
+  { lang: 'kk', short: 'KK', name: 'Қазақша', official: true },
+  { lang: 'ru', short: 'RU', name: 'Русский', official: true },
+  { lang: 'en', short: 'EN', name: 'English', official: false },
+];
+
+/**
+ * Language switch for /legal/[slug] (brutal tabs as links, works in server components).
+ *   <LegalLanguageSwitch current={lang} basePath={`/legal/${slug}`} />   → /legal/terms?lang=kk
+ */
+export function LegalLanguageSwitch({
+  current,
+  basePath,
+  className,
+}: {
+  current: LegalLang;
+  basePath: string;
+  className?: string;
+}) {
+  return (
+    <nav aria-label="Document language" className={clsx('flex flex-wrap items-center gap-3', className)}>
+      <ul className="flex gap-2">
+        {LANG_OPTIONS.map((o) => {
+          const active = o.lang === current;
+          return (
+            <li key={o.lang}>
+              <a
+                href={`${basePath}?lang=${o.lang}`}
+                hrefLang={o.lang}
+                lang={o.lang}
+                aria-current={active ? 'page' : undefined}
+                title={o.official ? `${o.name} · legally binding` : `${o.name} · translation`}
+                className={clsx(
+                  'inline-flex min-h-10 items-center gap-2 border-2 border-border px-3 text-sm font-bold transition-[transform,box-shadow] duration-150',
+                  active
+                    ? '-translate-x-px -translate-y-px bg-accent text-accent-foreground shadow-[3px_3px_0_var(--foreground)]'
+                    : 'bg-surface hover:bg-accent-soft',
+                )}
+              >
+                <span className="font-extrabold">{o.short}</span>
+                <span className="hidden sm:inline">{o.name}</span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="text-xs text-muted">KK and RU are legally binding. EN is a translation.</p>
     </nav>
   );
 }
