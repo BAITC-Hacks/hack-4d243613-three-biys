@@ -42,6 +42,9 @@ export function CatalogView() {
           <Link key={card.id} href={`/catalog/${card.id}`}
             className={rating.level === 'priority' ? 'rounded ring-2 ring-amber-400' : ''}>
             <ProjectCard card={card} rating={rating} />
+            {rating.level === 'draft' && (
+              <p className="mt-1 px-1 text-xs text-amber-700">Needs clarification — you can still send a proposal.</p>
+            )}
           </Link>
         ))}
       </div>

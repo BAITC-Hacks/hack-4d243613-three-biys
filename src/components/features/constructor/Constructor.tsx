@@ -8,9 +8,22 @@ import { useStore } from '@/lib/store';
 import { useHydrated } from '../useHydrated';
 import { clarify, buildCard } from '@/lib/api-client';
 import type { ClarifyResponse } from '@/lib/schemas';
+import { rateCard } from '@/lib/rating';
+import { CardEditor } from './CardEditor';
 
 type ClarifyQuestion = ClarifyResponse['questions'][number];
-import { CardEditor } from './CardEditor';
+
+// Same code rules as the card editor, applied to the raw draft.
+const draftVagueness = (draft: string) =>
+  draft.trim()
+    ? rateCard({
+      fields: {
+        title: null, context: null, need: draft, users: null, data: null,
+        constraints: null, expectedResult: null, successCriteria: null, contact: null,
+      },
+      confirmed: {},
+    }).vagueness
+    : [];
 
 type Step = 'draft' | 'questions' | 'card';
 
@@ -92,6 +105,9 @@ function Wizard({ insight }: { insight?: Insight }) {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
           />
+          {draftVagueness(draft).map((v) => (
+            <div key={v.phrase} className="text-xs text-amber-800">Vague: “{v.phrase}” — {v.ask}</div>
+          ))}
           <div className="flex gap-3">
             <label className="text-sm">Industry
               <input className="ml-2 rounded border px-2 py-1" value={industry} onChange={(e) => setIndustry(e.target.value)} />
