@@ -66,3 +66,20 @@ Rules:
 
 - Generic: `src/components/ui/*` (Button, Card, Badge, Input, Select, Tabs, ProgressBar, Stat, EmptyState and more).
 - Domain: `src/components/domain/*` (RatingPanel, LevelBadge, PositionPreview, LevelUpToast, ProjectCard, ProposalCompare and more). Props follow the contract in `docs/PLAN.md`, §5.
+
+## Pages (approved 15:20, all variant A)
+
+Real screens get more air than the mockups: content width up to `max-w-6xl` (1152px), sections separated by `gap-12` to `gap-16`, cards `p-5` to `p-6`, one primary (LED) button per screen. Mockups: https://claude.ai/artifact/G2BwtAXQxsLo5ETguctgdi
+
+- **Landing `/`: "Pulse".** Full-width hero, height about 60vh: faint 22px grid background, three lime square waves pulsing out from the center (illustration `HeroPulse`, coming from `src/components/illustrations`), the big logo `<Logo size="xl" />`, one line "Мост между задачей бизнеса и студенческой командой", two buttons: primary "Описать задачу" → `/business/new`, secondary "Найти проект" → `/catalog`. Below: a row of 5 step cards with icons (Черновик, Вопросы ИИ, Карточка, Рейтинг 0-100, Каталог). Then `<CollectorDownload />`.
+- **New task `/business/new`: "Wizard + rating panel".** Three columns on desktop: left a vertical step rail (5 steps with icons, the current step is a white box with a lime hard shadow), center the form or card editor, right a sticky `RatingPanel` (ring, level badge, catalog position "#5 из 12 → #2", hints "+10 Контакт и формат"). On narrow screens the rail becomes a horizontal step bar and the panel moves below the form.
+- **Catalog `/catalog`: "Tiles".** Filter chips on top (active chip lime with a hard shadow), sort "по рейтингу", a 2-3 column grid of `ProjectCard`s with the score in a colored block, draft tasks visible with "нужно уточнение". Right column: `Leaderboard`.
+- **Discover `/business/discover`: "Radar".** Left a dark panel: animated radar (`RadarScan`), source counters, privacy numbers (0 людей идентифицировано, k = 5), lime "Анализировать" button. Right: `InsightCard`s with a quoted piece of evidence and "В черновик". Below or above: `<CollectorDownload href=... serverUrl=... />`.
+
+## Collector download
+
+`src/components/domain/collector.tsx` exports `CollectorDownload({ href?, version?, sizeLabel?, serverUrl? })`. Without `href` the button reads "Скоро для Windows". For A: publish the Windows build (for example a zip in `public/downloads/` or an external link) and pass its URL. For C: place it on `/business/discover` and the landing.
+
+## Illustrations
+
+Coming in `src/components/illustrations/` (inline SVG, light animations, reduced-motion safe): HeroPulse, BridgeBuild, RadarScan, step icons (StepDraft, StepQuestions, StepCard, StepRating, StepPublish), level icons, empty states (EmptyCatalog, EmptyProposals, EmptyTasks), AiThinking loader, PublishedStamp, LevelUpBurst, PrivacyShield, CollectorLaptop, MilestoneFlag, TeamAvatar, BusinessAvatar, ErrorBridge, GridBackground.
