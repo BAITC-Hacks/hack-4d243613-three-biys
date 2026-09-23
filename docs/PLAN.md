@@ -343,14 +343,14 @@ Hours are Astana time. Realistic start: scaffold lands ~14:35.
 - [x] PLAN.md → push
 - [x] Scaffold: Next.js app, all web deps, `types.ts`, `schemas.ts`, stubs for every area, `collector/` skeleton (Electron main + empty `renderer/` for B) with its deps, `.env.example`, README skeleton → push
 **H2 14:40–15:40**
-- [ ] `src/lib/llm/*`: provider switch + fallback, zod + 1 repair retry, `DEMO_MODE` record/replay (`fixtures/replay/<endpoint>-<hash>.json`, replay falls back to latest fixture per endpoint), trace
-- [ ] `/api/ai/clarify`, `/api/ai/card` + prompts; `src/lib/api-client.ts` real calls
-- [ ] `src/lib/rating/index.ts`: `rateCard` with per-component `checks` (rule text), `hints`, `nextActions` sorted by gain, `vagueness` flags (code rules), `catalogSortKey`, `positionPreview` + `tests/rating.test.ts` (empty = 0, unconfirmed = 0, full ≥ 90, vague phrase flagged, position improves after next action) — **features 1, 2, 3, 10**
-- [ ] Trace steps carry `prompt`, `input`, `output`, `validation` (feature 5); clarify fills question `gain` from `rateCard` and sorts by it (feature 7)
-- [ ] `src/data/seed/*.json`: 5 drafts, 5 published cards (with techSpec, mixed levels), 5 teams, 5 proposals
+- [x] `src/lib/llm/*`: provider switch + fallback, zod + 1 repair retry, `DEMO_MODE` record/replay (`fixtures/replay/<endpoint>-<hash>.json`, replay falls back to latest fixture per endpoint), trace
+- [x] `/api/ai/clarify`, `/api/ai/card` + prompts; `src/lib/api-client.ts` real calls
+- [x] `src/lib/rating/index.ts`: `rateCard` with per-component `checks` (rule text), `hints`, `nextActions` sorted by gain, `vagueness` flags (code rules), `catalogSortKey`, `positionPreview` + `tests/rating.test.ts` (empty = 0, unconfirmed = 0, full ≥ 90, vague phrase flagged, position improves after next action) — **features 1, 2, 3, 10**
+- [x] Trace steps carry `prompt`, `input`, `output`, `validation` (feature 5); clarify fills question `gain` from `rateCard` and sorts by it (feature 7)
+- [x] `src/data/seed/*.json`: 5 drafts, 5 published cards (with techSpec, mixed levels), 5 teams, 5 proposals
 **H3 15:40–16:40**
-- [ ] `src/lib/server/storage.ts` (redis | file), `/api/ingest/*`, `/api/sources`, `/api/health`, transcription via OpenAI
-- [ ] `src/lib/discover/aggregate.ts` (k=5) + seed `meetings.json` (8 over 4 weeks), `activity-events.json` (~2,000, one team below k) — no chats
+- [x] `src/lib/server/storage.ts` (redis | file), `/api/ingest/*`, `/api/sources`, `/api/health`, transcription via OpenAI
+- [x] `src/lib/discover/aggregate.ts` (k=5) + seed `meetings.json` (8 over 4 weeks), `activity-events.json` (~2,000, one team below k) — no chats
 - [ ] `/api/ai/techspec`; first Vercel deploy (env: `OPENAI_API_KEY`, `INGEST_TOKEN`, Upstash keys)
 - [ ] Collector tracker (`collector/src/tracker.ts`, `categories.ts`): foreground app every 2 s (`get-windows`; PowerShell fallback), category mapping, clipboard `copy` → `transfer` within 60 s, 30 s batches → `/api/ingest/events`, autostart, pause; IPC status to renderer → B tests on Windows
 **H4 16:40–17:00**

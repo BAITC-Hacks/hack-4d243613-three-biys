@@ -1,0 +1,66 @@
+[
+  {
+    "id": "mt-2026-08-25-sales",
+    "date": "2026-08-25",
+    "title": "Sales weekly",
+    "team": "Sales",
+    "origin": "seed",
+    "transcript": "Head of sales: Let's go through last week. Dealers sent 214 orders, all as Excel attachments.\nSales manager: Same story as always — I open the Excel, copy each line into the CRM by hand. It takes me about two hours a day.\nSales manager 2: Mine too. Yesterday I entered the same order twice because the dealer resent the file with one line changed.\nHead of sales: Okay, note it. We also need to talk about the price list update for September."
+  },
+  {
+    "id": "mt-2026-08-27-ops",
+    "date": "2026-08-27",
+    "title": "Operations stand-up",
+    "team": "Operations",
+    "origin": "seed",
+    "transcript": "Dispatcher: Drivers keep asking for the route in the chat because the morning call is too early for some of them.\nOperations lead: We still call all 25 drivers every morning, it takes an hour.\nDispatcher: If the route was in a message they could just read it.\nOperations lead: Let's put it on the list, but the main thing this week is the warehouse move."
+  },
+  {
+    "id": "mt-2026-09-01-sales",
+    "date": "2026-09-01",
+    "title": "Sales weekly",
+    "team": "Sales",
+    "origin": "seed",
+    "transcript": "Head of sales: September plan is 1,200 orders. Any blockers?\nSales manager: The CRM entry. Every order from the dealer spreadsheet has to be retyped into the CRM, field by field. When there are 40 orders in one file it eats the whole morning.\nSales manager 3: And the CRM search is slow, so we sometimes create a duplicate customer instead of finding the existing one.\nHead of sales: How many duplicates last month?\nSales manager 3: Around 30 that we noticed.\nHead of sales: That's a lot of cleanup for finance. Let's see if IT can look at it."
+  },
+  {
+    "id": "mt-2026-09-03-mgmt",
+    "date": "2026-09-03",
+    "title": "Management meeting",
+    "team": "Management",
+    "origin": "seed",
+    "transcript": "CEO: Revenue is on plan, but I keep hearing about manual work in sales.\nHead of sales: Yes — orders come from dealers as Excel and we retype them into the CRM. It is the single biggest time sink for the team.\nCFO: And the duplicate orders end up in my reports.\nCEO: We are talking to the university about student projects; this could be one of them. Let's describe it properly.\nHead of sales: I will draft something this week."
+  },
+  {
+    "id": "mt-2026-09-08-sales",
+    "date": "2026-09-08",
+    "title": "Sales weekly",
+    "team": "Sales",
+    "origin": "seed",
+    "transcript": "Head of sales: Quick one today. Dealer files: the new dealer sends orders in a different column order, so the copy-paste breaks.\nSales manager 2: I now check every line twice. Two hours became three.\nSales manager: We keep retyping orders from Excel into the CRM and nobody has time to call new leads.\nHead of sales: Understood. I sent the draft to the university, they want a clearer description of the data we can share."
+  },
+  {
+    "id": "mt-2026-09-10-ops",
+    "date": "2026-09-10",
+    "title": "Operations stand-up",
+    "team": "Operations",
+    "origin": "seed",
+    "transcript": "Operations lead: Warehouse move is done. Back to routine: morning route calls.\nDispatcher: Two drivers missed stops yesterday because they wrote the route down wrong on the phone.\nOperations lead: If the route came as a message in the messenger they would have it in front of them all day.\nDispatcher: The route table is ready in Excel the evening before anyway, we just read it out loud."
+  },
+  {
+    "id": "mt-2026-09-15-sales",
+    "date": "2026-09-15",
+    "title": "Sales weekly",
+    "team": "Sales",
+    "origin": "seed",
+    "transcript": "Head of sales: The university asked what data we can give the students. I said anonymized dealer Excel files from the last three months and the CRM API documentation.\nSales manager 3: Can we also give them the list of duplicates we cleaned up? That shows the problem.\nHead of sales: Good idea. Also, the dealer with the different column order sent 60 orders yesterday.\nSales manager 2: Retyped all of them. Please make this the first project."
+  },
+  {
+    "id": "mt-2026-09-17-mgmt",
+    "date": "2026-09-17",
+    "title": "Management meeting",
+    "team": "Management",
+    "origin": "seed",
+    "transcript": "CEO: Status on the student project?\nHead of sales: Draft is in. The task is the Excel-to-CRM order entry. Success would be cutting manual entry time by most of it and no duplicate orders.\nCFO: If duplicates go to zero I can close the month two days faster.\nCEO: Then let's make sure the description has the numbers in it. Dispatch routes can be the second project."
+  }
+]
