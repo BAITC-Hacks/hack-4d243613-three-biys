@@ -1,0 +1,33 @@
+{
+  "endpoint": "card",
+  "hash": "340f3d2011",
+  "recordedAt": "2026-09-23T09:38:18.504Z",
+  "provider": "openai",
+  "model": "gpt-4.1-mini",
+  "system": "You are an assistant that turns a business draft plus the business's answers to clarifying questions into a task card for student teams.\n\nCard fields: title, context, need, users, data, constraints, expectedResult, successCriteria, contact.\n\nStrict rules:\n- Use ONLY information from the draft and the answers. NEVER add facts, numbers, names, technologies, deadlines or data sources that the business did not state.\n- If nothing in the draft or answers covers a field, its value is null. Never write placeholders like \"TBD\" or \"not specified\".\n- Write each field as 1–3 clear sentences in the language of the draft, keeping the business's own facts and wording (you may fix grammar and remove filler).\n- \"fieldSource\" says where each non-null field came from: \"draft\" if it comes from the draft text, \"answer\" if it comes (at least partly) from an answer.\n- An answer like \"I don't know\", \"no\", \"-\" or an empty answer gives null for that field.\n\nReturn ONLY a JSON object of this exact shape:\n{\n  \"fields\": { \"title\": string|null, \"context\": string|null, \"need\": string|null, \"users\": string|null, \"data\": string|null, \"constraints\": string|null, \"expectedResult\": string|null, \"successCriteria\": string|null, \"contact\": string|null },\n  \"fieldSource\": { \"<field>\": \"draft\" | \"answer\" }\n}\n",
+  "user": "{\n  \"draftText\": \"Our sales team wastes time moving orders from Excel to the CRM. We want to automate it.\",\n  \"answers\": [\n    {\n      \"questionId\": \"q1\",\n      \"field\": \"data\",\n      \"question\": \"What data formats or examples are involved?\",\n      \"answer\": \"Dealers send orders as Excel files (xlsx), 20-40 orders per file. We can share anonymized files from the last 3 months and the CRM REST API documentation.\"\n    },\n    {\n      \"questionId\": \"q2\",\n      \"field\": \"expectedResult\",\n      \"question\": \"What concrete deliverable do you expect?\",\n      \"answer\": \"A script or small service that imports the orders from the Excel files into the CRM without manual entry.\"\n    },\n    {\n      \"questionId\": \"q3\",\n      \"field\": \"users\",\n      \"question\": \"Who will use it?\",\n      \"answer\": \"6 sales managers who enter the orders today.\"\n    },\n    {\n      \"questionId\": \"q4\",\n      \"field\": \"constraints\",\n      \"question\": \"Deadlines, technology, access?\",\n      \"answer\": \"First version in 6 weeks. CRM has a REST API. No access to production data, only anonymized files.\"\n    },\n    {\n      \"questionId\": \"q5\",\n      \"field\": \"successCriteria\",\n      \"question\": \"How will you measure success?\",\n      \"answer\": \"-\"\n    }\n  ]\n}",
+  "output": {
+    "fields": {
+      "title": "Automate Order Import from Excel to CRM",
+      "context": "The sales team currently wastes time moving orders from Excel to the CRM manually.",
+      "need": "Automate the transfer of orders from Excel files into the CRM system to save time.",
+      "users": "Six sales managers who currently enter the orders manually.",
+      "data": "Dealers send orders as Excel files (xlsx) containing 20-40 orders per file. Anonymized files from the last 3 months and the CRM REST API documentation can be shared.",
+      "constraints": "First version needed in 6 weeks. CRM provides a REST API. No access to production data, only anonymized files are available.",
+      "expectedResult": "A script or small service that imports orders from Excel files into the CRM without manual entry.",
+      "successCriteria": null,
+      "contact": null
+    },
+    "fieldSource": {
+      "title": "draft",
+      "context": "draft",
+      "need": "draft",
+      "users": "answer",
+      "data": "answer",
+      "constraints": "answer",
+      "expectedResult": "answer",
+      "successCriteria": "answer",
+      "contact": "draft"
+    }
+  }
+}

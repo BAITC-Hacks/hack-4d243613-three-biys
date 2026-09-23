@@ -1,0 +1,68 @@
+{
+  "endpoint": "techspec",
+  "hash": "a7fbba8b56",
+  "recordedAt": "2026-09-23T09:38:24.121Z",
+  "provider": "openai",
+  "model": "gpt-4.1-mini",
+  "system": "You are a technical lead writing short technical documentation for a student team, based on a confirmed business task card.\n\nStrict rules:\n- Base everything on the card. Do not invent data sources, integrations, numbers or deadlines the card does not mention. Where the card is silent, put the question into \"openQuestions\" instead of assuming.\n- Keep each list item to one line. 3–7 items per list; \"openQuestions\" may be empty only if the card really covers everything.\n- \"suggestedStack\" is a recommendation (mark it as such in \"summary\"), consistent with any technology constraints in the card.\n- \"skillsNeeded\": 3–6 short skill/technology tags useful for matching student teams (e.g. \"Python\", \"REST API\", \"SQL\", \"React\", \"data cleaning\").\n- Answer in the language of the card.\n\nReturn ONLY a JSON object of this exact shape:\n{\n  \"techSpec\": {\n    \"summary\": string,\n    \"scope\": string[],\n    \"dataInputs\": string[],\n    \"functionalRequirements\": string[],\n    \"nonFunctional\": string[],\n    \"acceptanceCriteria\": string[],\n    \"suggestedStack\": string[],\n    \"openQuestions\": string[]\n  },\n  \"skillsNeeded\": string[]\n}\n",
+  "user": "{\n  \"card\": {\n    \"title\": \"Automate Order Import from Excel to CRM\",\n    \"context\": \"The sales team currently wastes time moving orders from Excel to the CRM manually.\",\n    \"need\": \"Automate the transfer of orders from Excel files into the CRM system to save time.\",\n    \"users\": \"Six sales managers who currently enter the orders manually.\",\n    \"data\": \"Dealers send orders as Excel files (xlsx) containing 20-40 orders per file. Anonymized files from the last 3 months and the CRM REST API documentation can be shared.\",\n    \"constraints\": \"First version needed in 6 weeks. CRM provides a REST API. No access to production data, only anonymized files are available.\",\n    \"expectedResult\": \"A script or small service that imports orders from Excel files into the CRM without manual entry.\",\n    \"successCriteria\": \"Cut manual entry time by 80%, zero duplicate orders\",\n    \"contact\": \"Head of sales, weekly 30-min call, questions via chat\"\n  }\n}",
+  "output": {
+    "techSpec": {
+      "summary": "Develop a script or small service to automate importing orders from Excel (xlsx) files into the CRM via its REST API, reducing manual entry time by 80% and avoiding duplicates. Suggested stack includes Python with Excel and REST API libraries.",
+      "scope": [
+        "Parse Excel files containing 20-40 orders each",
+        "Validate and transform order data for CRM compatibility",
+        "Use CRM REST API to create orders programmatically",
+        "Handle duplicate detection to prevent repeated entries",
+        "Provide logging and error reporting for import operations",
+        "Support manual trigger or scheduled import runs"
+      ],
+      "dataInputs": [
+        "Anonymized Excel (xlsx) order files from dealers",
+        "CRM REST API endpoints and authentication details"
+      ],
+      "functionalRequirements": [
+        "Read and parse Excel files to extract order data",
+        "Map Excel data fields to CRM order fields",
+        "Authenticate and connect to CRM REST API",
+        "Create new orders in CRM via API calls",
+        "Detect and skip duplicate orders",
+        "Log import results and errors"
+      ],
+      "nonFunctional": [
+        "Complete initial version within 6 weeks",
+        "Ensure zero duplicate orders after import",
+        "Maintain data privacy using anonymized files",
+        "Provide stable and reliable import process",
+        "Allow easy updates for future CRM API changes"
+      ],
+      "acceptanceCriteria": [
+        "Manual order entry time reduced by at least 80%",
+        "No duplicate orders created in CRM",
+        "Successful import of orders from provided anonymized files",
+        "Weekly progress updates with Head of Sales",
+        "Script/service runs without manual intervention after trigger"
+      ],
+      "suggestedStack": [
+        "Python (recommended) for scripting",
+        "openpyxl or pandas for Excel file parsing",
+        "Requests or HTTP client library for REST API calls",
+        "Logging framework for import tracking"
+      ],
+      "openQuestions": [
+        "Should the import be triggered manually or scheduled automatically?",
+        "What exact fields and data validation rules are required for orders?",
+        "Are there any CRM API rate limits or quotas to consider?",
+        "Is there a preferred deployment environment for the script/service?",
+        "How should errors or failed imports be reported to users?"
+      ]
+    },
+    "skillsNeeded": [
+      "Python",
+      "Excel file parsing",
+      "REST API integration",
+      "Data validation",
+      "Logging and error handling"
+    ]
+  }
+}

@@ -1,0 +1,149 @@
+{
+  "endpoint": "discover",
+  "hash": "e4a49a567f",
+  "recordedAt": "2026-09-23T09:38:34.460Z",
+  "provider": "openai",
+  "model": "gpt-4.1",
+  "system": "You are an operations analyst. You receive anonymized work signals from one company: meeting transcripts (speakers are roles, never names) and weekly team activity aggregates (hours per app category, copy-paste transfers between app categories, frequent app switches; each with the number of contributors).\n\nFind recurring operational problems that a student IT team could solve. For every problem, cite evidence. Evidence is the only thing that makes an insight valid.\n\nStrict rules:\n- Every evidence item must point to a real source in the input: a meeting id, or a team-week aggregate id in the form \"<team>:<week>\".\n- For a meeting, \"quote\" must be an EXACT verbatim substring of that transcript (copy it character by character, 5–25 words). Do not paraphrase, do not fix grammar.\n- For an aggregate, \"metric\" must repeat real numbers from that aggregate, e.g. \"142 Spreadsheet→CRM transfers, 6 contributors\". Never invent or round numbers.\n- Do not mention names, individuals, or anything that identifies a person. Teams and roles only.\n- \"frequency\" is the largest count you cited for the problem (or the number of meetings that mention it if there is no metric).\n- \"draftText\" is a short, deliberately incomplete business draft (1–2 sentences) written as the business would say it — the platform will ask clarifying questions later.\n- \"suggestedFields\" (context, need, data) may contain ONLY facts that appear in the cited evidence, rephrased minimally. If the evidence does not support a field, omit it.\n- Return at most 5 insights, most impactful first. If nothing is supported by evidence, return an empty list.\n\nReturn ONLY a JSON object of this exact shape:\n{\n  \"insights\": [\n    {\n      \"id\": \"ins-1\",\n      \"title\": string,\n      \"problem\": string,\n      \"affectedTeam\": string,\n      \"frequency\": number,\n      \"impact\": \"low\" | \"medium\" | \"high\",\n      \"suggestedSolutionType\": string,\n      \"evidence\": [ { \"sourceType\": \"meeting\" | \"activity\", \"sourceId\": string, \"date\": \"YYYY-MM-DD\", \"quote\"?: string, \"metric\"?: string } ],\n      \"draftText\": string,\n      \"suggestedFields\": { \"context\"?: string, \"need\"?: string, \"data\"?: string }\n    }\n  ],\n  \"dropped\": 0\n}\n",
+  "user": "{\n \"period\": {\n  \"from\": \"2026-08-24\",\n  \"to\": \"2026-09-23\"\n },\n \"meetings\": [\n  {\n   \"id\": \"mt-2026-08-25-sales\",\n   \"date\": \"2026-08-25\",\n   \"team\": \"Sales\",\n   \"title\": \"Sales weekly\",\n   \"transcript\": \"Head of sales: Let's go through last week. Dealers sent 214 orders, all as Excel attachments.\\nSales manager: Same story as always — I open the Excel, copy each line into the CRM by hand. It takes me about two hours a day.\\nSales manager 2: Mine too. Yesterday I entered the same order twice because the dealer resent the file with one line changed.\\nHead of sales: Okay, note it. We also need to talk about the price list update for September.\"\n  },\n  {\n   \"id\": \"mt-2026-08-27-ops\",\n   \"date\": \"2026-08-27\",\n   \"team\": \"Operations\",\n   \"title\": \"Operations stand-up\",\n   \"transcript\": \"Dispatcher: Drivers keep asking for the route in the chat because the morning call is too early for some of them.\\nOperations lead: We still call all 25 drivers every morning, it takes an hour.\\nDispatcher: If the route was in a message they could just read it.\\nOperations lead: Let's put it on the list, but the main thing this week is the warehouse move.\"\n  },\n  {\n   \"id\": \"mt-2026-09-01-sales\",\n   \"date\": \"2026-09-01\",\n   \"team\": \"Sales\",\n   \"title\": \"Sales weekly\",\n   \"transcript\": \"Head of sales: September plan is 1,200 orders. Any blockers?\\nSales manager: The CRM entry. Every order from the dealer spreadsheet has to be retyped into the CRM, field by field. When there are 40 orders in one file it eats the whole morning.\\nSales manager 3: And the CRM search is slow, so we sometimes create a duplicate customer instead of finding the existing one.\\nHead of sales: How many duplicates last month?\\nSales manager 3: Around 30 that we noticed.\\nHead of sales: That's a lot of cleanup for finance. Let's see if IT can look at it.\"\n  },\n  {\n   \"id\": \"mt-2026-09-03-mgmt\",\n   \"date\": \"2026-09-03\",\n   \"team\": \"Management\",\n   \"title\": \"Management meeting\",\n   \"transcript\": \"CEO: Revenue is on plan, but I keep hearing about manual work in sales.\\nHead of sales: Yes — orders come from dealers as Excel and we retype them into the CRM. It is the single biggest time sink for the team.\\nCFO: And the duplicate orders end up in my reports.\\nCEO: We are talking to the university about student projects; this could be one of them. Let's describe it properly.\\nHead of sales: I will draft something this week.\"\n  },\n  {\n   \"id\": \"mt-2026-09-08-sales\",\n   \"date\": \"2026-09-08\",\n   \"team\": \"Sales\",\n   \"title\": \"Sales weekly\",\n   \"transcript\": \"Head of sales: Quick one today. Dealer files: the new dealer sends orders in a different column order, so the copy-paste breaks.\\nSales manager 2: I now check every line twice. Two hours became three.\\nSales manager: We keep retyping orders from Excel into the CRM and nobody has time to call new leads.\\nHead of sales: Understood. I sent the draft to the university, they want a clearer description of the data we can share.\"\n  },\n  {\n   \"id\": \"mt-2026-09-10-ops\",\n   \"date\": \"2026-09-10\",\n   \"team\": \"Operations\",\n   \"title\": \"Operations stand-up\",\n   \"transcript\": \"Operations lead: Warehouse move is done. Back to routine: morning route calls.\\nDispatcher: Two drivers missed stops yesterday because they wrote the route down wrong on the phone.\\nOperations lead: If the route came as a message in the messenger they would have it in front of them all day.\\nDispatcher: The route table is ready in Excel the evening before anyway, we just read it out loud.\"\n  },\n  {\n   \"id\": \"mt-2026-09-15-sales\",\n   \"date\": \"2026-09-15\",\n   \"team\": \"Sales\",\n   \"title\": \"Sales weekly\",\n   \"transcript\": \"Head of sales: The university asked what data we can give the students. I said anonymized dealer Excel files from the last three months and the CRM API documentation.\\nSales manager 3: Can we also give them the list of duplicates we cleaned up? That shows the problem.\\nHead of sales: Good idea. Also, the dealer with the different column order sent 60 orders yesterday.\\nSales manager 2: Retyped all of them. Please make this the first project.\"\n  },\n  {\n   \"id\": \"mt-2026-09-17-mgmt\",\n   \"date\": \"2026-09-17\",\n   \"team\": \"Management\",\n   \"title\": \"Management meeting\",\n   \"transcript\": \"CEO: Status on the student project?\\nHead of sales: Draft is in. The task is the Excel-to-CRM order entry. Success would be cutting manual entry time by most of it and no duplicate orders.\\nCFO: If duplicates go to zero I can close the month two days faster.\\nCEO: Then let's make sure the description has the numbers in it. Dispatch routes can be the second project.\"\n  }\n ],\n \"aggregates\": [\n  {\n   \"id\": \"Operations:2026-W35\",\n   \"date\": \"2026-08-24\",\n   \"team\": \"Operations\",\n   \"week\": \"2026-W35\",\n   \"contributors\": 5,\n   \"hoursByCategory\": {\n    \"ERP\": 19.4,\n    \"Docs\": 19.6,\n    \"Spreadsheet\": 23.9,\n    \"Messenger\": 20.7,\n    \"Email\": 18.2\n   },\n   \"transfers\": [\n    {\n     \"from\": \"Messenger\",\n     \"to\": \"ERP\",\n     \"count\": 64,\n     \"contributors\": 5\n    }\n   ],\n   \"topSwitches\": [\n    {\n     \"a\": \"Messenger\",\n     \"b\": \"Spreadsheet\",\n     \"count\": 13,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"Email\",\n     \"b\": \"Messenger\",\n     \"count\": 13,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"ERP\",\n     \"b\": \"Spreadsheet\",\n     \"count\": 12,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"Docs\",\n     \"b\": \"Spreadsheet\",\n     \"count\": 9,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"Email\",\n     \"b\": \"Spreadsheet\",\n     \"count\": 8,\n     \"contributors\": 5\n    }\n   ]\n  },\n  {\n   \"id\": \"Operations:2026-W36\",\n   \"date\": \"2026-08-31\",\n   \"team\": \"Operations\",\n   \"week\": \"2026-W36\",\n   \"contributors\": 5,\n   \"hoursByCategory\": {\n    \"Email\": 21.2,\n    \"Docs\": 23,\n    \"Spreadsheet\": 23.5,\n    \"ERP\": 16.3,\n    \"Messenger\": 19.1\n   },\n   \"transfers\": [\n    {\n     \"from\": \"Messenger\",\n     \"to\": \"ERP\",\n     \"count\": 71,\n     \"contributors\": 5\n    }\n   ],\n   \"topSwitches\": [\n    {\n     \"a\": \"Messenger\",\n     \"b\": \"Spreadsheet\",\n     \"count\": 12,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"ERP\",\n     \"b\": \"Spreadsheet\",\n     \"count\": 11,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"Docs\",\n     \"b\": \"ERP\",\n     \"count\": 11,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"Docs\",\n     \"b\": \"Email\",\n     \"count\": 9,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"Email\",\n     \"b\": \"Spreadsheet\",\n     \"count\": 8,\n     \"contributors\": 5\n    }\n   ]\n  },\n  {\n   \"id\": \"Operations:2026-W37\",\n   \"date\": \"2026-09-07\",\n   \"team\": \"Operations\",\n   \"week\": \"2026-W37\",\n   \"contributors\": 5,\n   \"hoursByCategory\": {\n    \"Docs\": 27.3,\n    \"ERP\": 23.2,\n    \"Email\": 15,\n    \"Spreadsheet\": 14.3,\n    \"Messenger\": 15.5\n   },\n   \"transfers\": [\n    {\n     \"from\": \"Messenger\",\n     \"to\": \"ERP\",\n     \"count\": 69,\n     \"contributors\": 5\n    }\n   ],\n   \"topSwitches\": [\n    {\n     \"a\": \"Docs\",\n     \"b\": \"ERP\",\n     \"count\": 19,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"Docs\",\n     \"b\": \"Messenger\",\n     \"count\": 12,\n     \"contributors\": 5\n    }\n   ]\n  },\n  {\n   \"id\": \"Operations:2026-W38\",\n   \"date\": \"2026-09-14\",\n   \"team\": \"Operations\",\n   \"week\": \"2026-W38\",\n   \"contributors\": 5,\n   \"hoursByCategory\": {\n    \"ERP\": 17.2,\n    \"Docs\": 22.5,\n    \"Messenger\": 19.6,\n    \"Spreadsheet\": 20.9,\n    \"Email\": 18.7\n   },\n   \"transfers\": [\n    {\n     \"from\": \"Messenger\",\n     \"to\": \"ERP\",\n     \"count\": 80,\n     \"contributors\": 5\n    }\n   ],\n   \"topSwitches\": [\n    {\n     \"a\": \"Docs\",\n     \"b\": \"Messenger\",\n     \"count\": 20,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"ERP\",\n     \"b\": \"Email\",\n     \"count\": 11,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"Email\",\n     \"b\": \"Messenger\",\n     \"count\": 7,\n     \"contributors\": 5\n    }\n   ]\n  },\n  {\n   \"id\": \"Sales:2026-W35\",\n   \"date\": \"2026-08-24\",\n   \"team\": \"Sales\",\n   \"week\": \"2026-W35\",\n   \"contributors\": 6,\n   \"hoursByCategory\": {\n    \"Browser\": 22.8,\n    \"Email\": 24,\n    \"Messenger\": 24.6,\n    \"CRM\": 24.2,\n    \"Spreadsheet\": 25.8\n   },\n   \"transfers\": [\n    {\n     \"from\": \"Spreadsheet\",\n     \"to\": \"CRM\",\n     \"count\": 118,\n     \"contributors\": 6\n    }\n   ],\n   \"topSwitches\": [\n    {\n     \"a\": \"CRM\",\n     \"b\": \"Messenger\",\n     \"count\": 16,\n     \"contributors\": 6\n    },\n    {\n     \"a\": \"Browser\",\n     \"b\": \"Email\",\n     \"count\": 16,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"Email\",\n     \"b\": \"Messenger\",\n     \"count\": 15,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"CRM\",\n     \"b\": \"Spreadsheet\",\n     \"count\": 14,\n     \"contributors\": 6\n    },\n    {\n     \"a\": \"Browser\",\n     \"b\": \"Spreadsheet\",\n     \"count\": 12,\n     \"contributors\": 5\n    }\n   ]\n  },\n  {\n   \"id\": \"Sales:2026-W36\",\n   \"date\": \"2026-08-31\",\n   \"team\": \"Sales\",\n   \"week\": \"2026-W36\",\n   \"contributors\": 6,\n   \"hoursByCategory\": {\n    \"Browser\": 23.2,\n    \"CRM\": 22.7,\n    \"Email\": 26.3,\n    \"Messenger\": 21.1,\n    \"Spreadsheet\": 26.7\n   },\n   \"transfers\": [\n    {\n     \"from\": \"Spreadsheet\",\n     \"to\": \"CRM\",\n     \"count\": 127,\n     \"contributors\": 6\n    }\n   ],\n   \"topSwitches\": [\n    {\n     \"a\": \"Email\",\n     \"b\": \"Spreadsheet\",\n     \"count\": 21,\n     \"contributors\": 6\n    },\n    {\n     \"a\": \"Messenger\",\n     \"b\": \"Spreadsheet\",\n     \"count\": 18,\n     \"contributors\": 6\n    },\n    {\n     \"a\": \"Browser\",\n     \"b\": \"CRM\",\n     \"count\": 16,\n     \"contributors\": 6\n    },\n    {\n     \"a\": \"Email\",\n     \"b\": \"Messenger\",\n     \"count\": 14,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"Browser\",\n     \"b\": \"Messenger\",\n     \"count\": 13,\n     \"contributors\": 6\n    }\n   ]\n  },\n  {\n   \"id\": \"Sales:2026-W37\",\n   \"date\": \"2026-09-07\",\n   \"team\": \"Sales\",\n   \"week\": \"2026-W37\",\n   \"contributors\": 6,\n   \"hoursByCategory\": {\n    \"Messenger\": 21.7,\n    \"CRM\": 24.8,\n    \"Spreadsheet\": 27,\n    \"Email\": 26,\n    \"Browser\": 24.7\n   },\n   \"transfers\": [\n    {\n     \"from\": \"Spreadsheet\",\n     \"to\": \"CRM\",\n     \"count\": 131,\n     \"contributors\": 6\n    }\n   ],\n   \"topSwitches\": [\n    {\n     \"a\": \"Browser\",\n     \"b\": \"Spreadsheet\",\n     \"count\": 23,\n     \"contributors\": 6\n    },\n    {\n     \"a\": \"Email\",\n     \"b\": \"Messenger\",\n     \"count\": 16,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"CRM\",\n     \"b\": \"Spreadsheet\",\n     \"count\": 15,\n     \"contributors\": 6\n    },\n    {\n     \"a\": \"Email\",\n     \"b\": \"Spreadsheet\",\n     \"count\": 12,\n     \"contributors\": 6\n    },\n    {\n     \"a\": \"Messenger\",\n     \"b\": \"Spreadsheet\",\n     \"count\": 10,\n     \"contributors\": 6\n    }\n   ]\n  },\n  {\n   \"id\": \"Sales:2026-W38\",\n   \"date\": \"2026-09-14\",\n   \"team\": \"Sales\",\n   \"week\": \"2026-W38\",\n   \"contributors\": 6,\n   \"hoursByCategory\": {\n    \"Browser\": 22.9,\n    \"Spreadsheet\": 28.3,\n    \"Email\": 19.4,\n    \"Messenger\": 21.3,\n    \"CRM\": 27\n   },\n   \"transfers\": [\n    {\n     \"from\": \"Spreadsheet\",\n     \"to\": \"CRM\",\n     \"count\": 142,\n     \"contributors\": 6\n    }\n   ],\n   \"topSwitches\": [\n    {\n     \"a\": \"CRM\",\n     \"b\": \"Spreadsheet\",\n     \"count\": 18,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"Messenger\",\n     \"b\": \"Spreadsheet\",\n     \"count\": 13,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"Email\",\n     \"b\": \"Messenger\",\n     \"count\": 13,\n     \"contributors\": 6\n    },\n    {\n     \"a\": \"Browser\",\n     \"b\": \"Messenger\",\n     \"count\": 12,\n     \"contributors\": 5\n    },\n    {\n     \"a\": \"Browser\",\n     \"b\": \"CRM\",\n     \"count\": 12,\n     \"contributors\": 5\n    }\n   ]\n  }\n ]\n}",
+  "output": {
+    "insights": [
+      {
+        "id": "ins-1",
+        "title": "Manual Excel-to-CRM Order Entry Consumes Excessive Sales Time and Causes Errors",
+        "problem": "Sales team spends significant time manually retyping dealer orders from Excel into the CRM, leading to duplicate entries and reduced capacity for new business.",
+        "affectedTeam": "Sales",
+        "frequency": 142,
+        "impact": "high",
+        "suggestedSolutionType": "automation/integration",
+        "evidence": [
+          {
+            "sourceType": "meeting",
+            "sourceId": "mt-2026-08-25-sales",
+            "date": "2026-08-25",
+            "quote": "I open the Excel, copy each line into the CRM by hand. It takes me about two hours a day."
+          },
+          {
+            "sourceType": "meeting",
+            "sourceId": "mt-2026-09-01-sales",
+            "date": "2026-09-01",
+            "quote": "Every order from the dealer spreadsheet has to be retyped into the CRM, field by field. When there are 40 orders in one file it eats the whole morning."
+          },
+          {
+            "sourceType": "meeting",
+            "sourceId": "mt-2026-09-01-sales",
+            "date": "2026-09-01",
+            "quote": "And the CRM search is slow, so we sometimes create a duplicate customer instead of finding the existing one."
+          },
+          {
+            "sourceType": "meeting",
+            "sourceId": "mt-2026-09-08-sales",
+            "date": "2026-09-08",
+            "quote": "We keep retyping orders from Excel into the CRM and nobody has time to call new leads."
+          },
+          {
+            "sourceType": "meeting",
+            "sourceId": "mt-2026-09-15-sales",
+            "date": "2026-09-15",
+            "quote": "Retyped all of them. Please make this the first project."
+          },
+          {
+            "sourceType": "meeting",
+            "sourceId": "mt-2026-09-17-mgmt",
+            "date": "2026-09-17",
+            "quote": "The task is the Excel-to-CRM order entry. Success would be cutting manual entry time by most of it and no duplicate orders."
+          },
+          {
+            "sourceType": "activity",
+            "sourceId": "Sales:2026-W38",
+            "date": "2026-09-14",
+            "metric": "142 Spreadsheet→CRM transfers, 6 contributors"
+          }
+        ],
+        "draftText": "Sales spends hours retyping dealer orders from Excel into the CRM, causing duplicate entries and leaving little time for new leads. We need a way to automate or streamline this process.",
+        "suggestedFields": {
+          "context": "Dealer orders are received as Excel files and must be entered into the CRM manually.",
+          "need": "Reduce manual entry time and eliminate duplicate orders.",
+          "data": "142 Spreadsheet→CRM transfers in one week, 6 contributors; up to three hours per day spent on entry; around 30 duplicates noticed last month."
+        }
+      },
+      {
+        "id": "ins-2",
+        "title": "Inconsistent Dealer File Formats Increase Sales Data Entry Burden",
+        "problem": "Variations in dealer Excel file formats (e.g., column order) disrupt copy-paste workflows, increasing time spent and risk of errors.",
+        "affectedTeam": "Sales",
+        "frequency": 60,
+        "impact": "medium",
+        "suggestedSolutionType": "data normalization tool",
+        "evidence": [
+          {
+            "sourceType": "meeting",
+            "sourceId": "mt-2026-09-08-sales",
+            "date": "2026-09-08",
+            "quote": "the new dealer sends orders in a different column order, so the copy-paste breaks."
+          },
+          {
+            "sourceType": "meeting",
+            "sourceId": "mt-2026-09-08-sales",
+            "date": "2026-09-08",
+            "quote": "I now check every line twice. Two hours became three."
+          },
+          {
+            "sourceType": "meeting",
+            "sourceId": "mt-2026-09-15-sales",
+            "date": "2026-09-15",
+            "quote": "the dealer with the different column order sent 60 orders yesterday."
+          }
+        ],
+        "draftText": "Some dealers send order files with different column layouts, making copy-paste into the CRM unreliable and much slower. We need a way to handle these format differences.",
+        "suggestedFields": {
+          "context": "Dealer Excel files have inconsistent column orders.",
+          "need": "Normalize or map columns to reduce manual checking and speed up entry.",
+          "data": "One dealer sent 60 orders in a different format, increasing entry time from two to three hours."
+        }
+      },
+      {
+        "id": "ins-3",
+        "title": "Manual Dispatch Route Communication Causes Inefficiency and Errors",
+        "problem": "Operations team spends significant time calling drivers to communicate routes, leading to missed stops and errors when drivers write down information themselves.",
+        "affectedTeam": "Operations",
+        "frequency": 80,
+        "impact": "medium",
+        "suggestedSolutionType": "automated messaging system",
+        "evidence": [
+          {
+            "sourceType": "meeting",
+            "sourceId": "mt-2026-08-27-ops",
+            "date": "2026-08-27",
+            "quote": "We still call all 25 drivers every morning, it takes an hour."
+          },
+          {
+            "sourceType": "meeting",
+            "sourceId": "mt-2026-09-10-ops",
+            "date": "2026-09-10",
+            "quote": "Two drivers missed stops yesterday because they wrote the route down wrong on the phone."
+          },
+          {
+            "sourceType": "meeting",
+            "sourceId": "mt-2026-09-10-ops",
+            "date": "2026-09-10",
+            "quote": "The route table is ready in Excel the evening before anyway, we just read it out loud."
+          },
+          {
+            "sourceType": "activity",
+            "sourceId": "Operations:2026-W38",
+            "date": "2026-09-14",
+            "metric": "80 Messenger→ERP transfers, 5 contributors"
+          }
+        ],
+        "draftText": "Dispatchers spend an hour daily calling drivers with their routes, but drivers sometimes make mistakes writing them down. The route is already available in Excel the night before.",
+        "suggestedFields": {
+          "context": "Routes are communicated by phone each morning, though the route table is ready in Excel the previous evening.",
+          "need": "Send routes to drivers via message to reduce errors and save time.",
+          "data": "80 Messenger→ERP transfers in one week; two drivers missed stops due to transcription errors."
+        }
+      }
+    ],
+    "dropped": 0
+  }
+}
