@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import type { CardField, Insight, TaskCard } from '@/lib/types';
+import type { AgentStep, CardField, Insight, TaskCard } from '@/lib/types';
+import { AgentTrace } from '@/components/domain';
 import { useStore } from '@/lib/store';
 import { useHydrated } from '../useHydrated';
 import { clarify, buildCard } from '@/lib/api-client';
@@ -34,12 +35,14 @@ function Wizard({ insight }: { insight?: Insight }) {
   const [cardId, setCardId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [trace, setTrace] = useState<AgentStep[]>([]);
 
   const runClarify = async () => {
     setBusy(true); setError(null);
     const res = await clarify({ draftText: draft, industry });
     setBusy(false);
     if (!res.ok) return setError(res.error.message);
+    setTrace(res.trace);
     setQuestions([...res.data.questions].sort((a, b) => b.gain - a.gain));
     setStep('questions');
   };
@@ -110,6 +113,12 @@ function Wizard({ insight }: { insight?: Insight }) {
       {step === 'questions' && (
         <section className="space-y-4">
           <h1 className="text-2xl font-bold">AI found gaps in your draft</h1>
+          {trace.length > 0 && (
+            <details className="rounded border p-3 text-sm">
+              <summary className="cursor-pointer text-gray-600">How the AI works</summary>
+              <div className="mt-2"><AgentTrace steps={trace} /></div>
+            </details>
+          )}
           {questions.map((q) => (
             <div key={q.id} className="space-y-1">
               <div className="font-medium">{q.question}</div>

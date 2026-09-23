@@ -59,10 +59,16 @@ function ProposalForm({ taskId }: { taskId: string }) {
     return <p className="text-sm text-gray-500">Switch to Student to submit a proposal.</p>;
   }
   if (existing) {
-    return <div className="rounded bg-blue-50 p-3 text-sm">{team.name} already submitted a proposal — status: <b>{existing.status}</b></div>;
+    return (
+      <div className="rounded bg-blue-50 p-3 text-sm">
+        {team.name} already submitted a proposal — status: <b>{existing.status}</b>
+        {existing.rejectReason && <div className="mt-1 text-gray-700">Feedback: {existing.rejectReason}</div>}
+      </div>
+    );
   }
 
-  const valid = form.idea.trim() && form.plan.trim() && form.deadline;
+  const checks = proposalChecks(form);
+  const valid = checks.every((c) => c.ok);
   return (
     <section className="space-y-2 rounded border p-4">
       <h2 className="text-xl font-semibold">Submit a proposal as {team.name}</h2>
@@ -76,10 +82,34 @@ function ProposalForm({ taskId }: { taskId: string }) {
         <input className="flex-1 rounded border px-2 py-1" placeholder="Prototype link"
           value={form.prototypeUrl} onChange={(e) => setForm({ ...form, prototypeUrl: e.target.value })} />
       </div>
+      <ul className="text-xs">
+        {checks.map((c) => (
+          <li key={c.label} className={c.ok ? 'text-green-700' : 'text-gray-500'}>{c.ok ? '✓' : '○'} {c.label}</li>
+        ))}
+      </ul>
       <button disabled={!valid} className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
         onClick={() => submitProposal({ taskId, teamId: team.id, ...form })}>
         Submit proposal
       </button>
     </section>
   );
+}
+
+function isHttpUrl(s: string) {
+  try {
+    return ['http:', 'https:'].includes(new URL(s).protocol);
+  } catch {
+    return false;
+  }
+}
+
+// Proposal completeness check: required fields, valid prototype link, future deadline.
+function proposalChecks(f: { idea: string; plan: string; deadline: string; prototypeUrl: string }) {
+  const today = new Date().toISOString().slice(0, 10);
+  return [
+    { label: 'Idea described (20+ characters)', ok: f.idea.trim().length >= 20 },
+    { label: 'Plan described (20+ characters)', ok: f.plan.trim().length >= 20 },
+    { label: 'Deadline is in the future', ok: !!f.deadline && f.deadline > today },
+    { label: 'Prototype link is a valid http(s) URL', ok: isHttpUrl(f.prototypeUrl.trim()) },
+  ];
 }

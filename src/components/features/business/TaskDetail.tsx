@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useStore } from '@/lib/store';
 import { useHydrated } from '../useHydrated';
-import { ProposalCard } from '@/components/domain';
+import { ProposalCompare } from '@/components/domain';
 import { CardEditor } from '../constructor/CardEditor';
 
 export function TaskDetail({ id }: { id: string }) {
@@ -41,17 +41,17 @@ function Proposals({ taskId }: { taskId: string }) {
         <h2 className="text-xl font-semibold">Proposals ({list.length})</h2>
         <p className="text-xs text-gray-500">You decide — accept one, several or none. Nothing is assigned automatically.</p>
         {list.length === 0 && <p className="text-sm text-gray-500">No proposals yet.</p>}
-        <div className="grid gap-3 md:grid-cols-2">
-          {list.map((p) => {
-            const team = teams.find((t) => t.id === p.teamId);
-            if (!team) return null;
-            return (
-              <ProposalCard key={p.id} proposal={p} team={team}
-                onAccept={() => decideProposal(p.id, 'accepted')}
-                onReject={() => decideProposal(p.id, 'rejected')} />
-            );
-          })}
-        </div>
+        <ProposalCompare
+          proposals={list}
+          teams={teams}
+          onAccept={(id) => decideProposal(id, 'accepted')}
+          onReject={(id, reason) => {
+            // HACK: native prompt until B's ProposalCompare collects the reason itself.
+            const r = reason ?? window.prompt('Reason for the team (optional):');
+            if (r === null) return;
+            decideProposal(id, 'rejected', r.trim() || undefined);
+          }}
+        />
       </section>
 
       <section className="space-y-3">

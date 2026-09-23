@@ -5,7 +5,7 @@ import { rateCard } from '@/lib/rating';
 import { matchTasks } from '@/lib/catalog';
 import { useStore } from '@/lib/store';
 import { useHydrated } from '../useHydrated';
-import { ProjectCard, TeamCard } from '@/components/domain';
+import { Leaderboard, ProjectCard, TeamCard } from '@/components/domain';
 
 export function StudentHome() {
   const hydrated = useHydrated();
@@ -44,6 +44,12 @@ export function StudentHome() {
       </section>
 
       <section className="space-y-2">
+        <h2 className="text-xl font-semibold">Leaderboard</h2>
+        <p className="text-xs text-gray-500">Points come only from milestones confirmed by the business — never for applying.</p>
+        <Leaderboard teams={teams} points={teamPoints} />
+      </section>
+
+      <section className="space-y-2">
         <h2 className="text-xl font-semibold">Our proposals</h2>
         {mine.length === 0 && <p className="text-sm text-gray-500">None yet.</p>}
         <ul className="space-y-1 text-sm">
@@ -52,6 +58,7 @@ export function StudentHome() {
               <Link href={`/catalog/${p.taskId}`} className="underline">
                 {cards.find((c) => c.id === p.taskId)?.fields.title ?? p.taskId}
               </Link>{' '}— {p.status}
+              {p.rejectReason && <span className="text-gray-500"> · feedback: {p.rejectReason}</span>}
             </li>
           ))}
         </ul>

@@ -379,13 +379,13 @@ Hours are Astana time. Realistic start: scaffold lands ~14:35.
 - [x] `layout.tsx` header: role switcher (Business / Student + team picker) + nav; route stubs for all pages → push
 - [x] `src/lib/store/index.ts` (zustand + persist + seed loader + `resetDemo`), `src/lib/catalog.ts` (`getCatalog`, `matchTasks`)
 **H2 15:00–16:00**
-- [ ] `/business/new` wizard: draft (+industry) → questions (≥3, sorted by gain, show "why: +N") → card editor (all fields editable, per-field ✓ confirm, source badges, **"not stated" markers**, vagueness flags inline, Discover suggestions as accept-able chips) + live `RatingPanel` with **Next best actions** (click scrolls/focuses the field) + **PositionPreview** + **LevelUpToast** on crossing 40/70/90 + **ScoreHistory** → **Tech docs tab** (generate → edit → confirm) → publish (mock `api-client` until A's endpoints land)
+- [x] `/business/new` wizard: draft (+industry) → questions (≥3, sorted by gain, show "why: +N") → card editor (all fields editable, per-field ✓ confirm, source badges, **"not stated" markers**, vagueness flags inline, Discover suggestions as accept-able chips) + live `RatingPanel` with **Next best actions** (click scrolls/focuses the field) + **PositionPreview** + **LevelUpToast** on crossing 40/70/90 + **ScoreHistory** → **Tech docs tab** (generate → edit → confirm) → publish (mock `api-client` until A's endpoints land)
 **H3 16:00–16:40**
-- [ ] `/catalog` (rating sort, topic + level filters, badges, draft flag) + `/catalog/[id]` project page (card + technical documentation + rating breakdown + proposal form)
-- [ ] `/student` (team profile summary, points, "Projects you can take" from `matchTasks`, **team Leaderboard** — points only from confirmed milestones) + `/student/profile` (edit name, about, interests, skills, tech); proposal form **completeness check** (valid URL, required fields, future deadline)
-- [ ] `/business/tasks` + `/business/tasks/[id]`: **ProposalCompare** side-by-side, accept (several allowed) / reject **with optional reason**, add/confirm milestone, points
+- [x] `/catalog` (rating sort, topic + level filters, badges, draft flag) + `/catalog/[id]` project page (card + technical documentation + rating breakdown + proposal form)
+- [x] `/student` (team profile summary, points, "Projects you can take" from `matchTasks`, **team Leaderboard** — points only from confirmed milestones) + `/student/profile` (edit name, about, interests, skills, tech); proposal form **completeness check** (valid URL, required fields, future deadline)
+- [x] `/business/tasks` + `/business/tasks/[id]`: **ProposalCompare** side-by-side, accept (several allowed) / reject **with optional reason**, add/confirm milestone, points
 **H4 16:40–17:00**
-- [ ] `/business/discover`: sources (seed + live from `/api/sources`), `PrivacyPanel`, meetings list, "Analyze" → `AgentTrace` + `InsightCard`s → "Use as draft" (`/business/new?insight=<id>`: draft prefilled, `suggestedFields` shown as **unconfirmed suggestions** on context/need/data — points only after accept + confirm)
+- [x] `/business/discover`: sources (seed + live from `/api/sources`), `PrivacyPanel`, meetings list, "Analyze" → `AgentTrace` + `InsightCard`s → "Use as draft" (`/business/new?insight=<id>`: draft prefilled, `suggestedFields` shown as **unconfirmed suggestions** on context/need/data — points only after accept + confirm)
 **H5 17:00–17:45**
 - [ ] Run the golden path end-to-end in replay mode; fix bugs; screenshots for B
 

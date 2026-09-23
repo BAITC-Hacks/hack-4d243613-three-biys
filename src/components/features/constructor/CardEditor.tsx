@@ -1,10 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import type { CardField, TechSpec } from '@/lib/types';
-import { rateCard } from '@/lib/rating';
+import { useRef, useState } from 'react';
+import type { CardField, Level, TechSpec } from '@/lib/types';
+import { positionPreview, rateCard } from '@/lib/rating';
+import { LEVELS } from '@/lib/catalog';
 import { useStore } from '@/lib/store';
-import { RatingPanel, ScoreHistory, SuggestionChip, TechSpecView } from '@/components/domain';
+import {
+  LevelUpToast, PositionPreview, RatingPanel, ScoreHistory, SuggestionChip, TechSpecView,
+} from '@/components/domain';
 import { techSpec as generateTechSpec } from '@/lib/api-client';
 
 const FIELDS: { key: CardField; label: string }[] = [
@@ -35,9 +38,26 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
   const [tab, setTab] = useState<'card' | 'tech'>('card');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ from: Level; to: Level } | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const cards = useStore((s) => s.cards);
   if (!card) return <div>Card not found.</div>;
 
   const rating = rateCard(card);
+  const preview = positionPreview(card, cards.filter((c) => c.status === 'published'));
+
+  // Level-up moment: compare level before/after the confirm (40 / 70 / 90 thresholds).
+  const confirm = (key: CardField, value: boolean) => {
+    const from = rating.level;
+    confirmField(card.id, key, value);
+    const next = useStore.getState().cards.find((c) => c.id === card.id);
+    const to = next ? rateCard(next).level : from;
+    if (LEVELS.indexOf(to) > LEVELS.indexOf(from)) {
+      setToast({ from, to });
+      clearTimeout(toastTimer.current);
+      toastTimer.current = setTimeout(() => setToast(null), 3500);
+    }
+  };
 
   const generate = async () => {
     setBusy(true); setError(null);
@@ -74,13 +94,13 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
               {card.fieldSource[key] && (
                 <span className="rounded bg-gray-100 px-1.5 text-xs text-gray-600">from {card.fieldSource[key]}</span>
               )}
-              {!card.fields[key] && <span className="text-xs text-amber-700">missing</span>}
+              {!card.fields[key] && <span className="text-xs text-amber-700">not stated</span>}
               <label className="ml-auto flex items-center gap-1 text-xs">
                 <input
                   type="checkbox"
                   disabled={!card.fields[key]}
                   checked={!!card.confirmed[key]}
-                  onChange={(e) => confirmField(card.id, key, e.target.checked)}
+                  onChange={(e) => confirm(key, e.target.checked)}
                 />
                 confirmed
               </label>
@@ -97,6 +117,11 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
               value={card.fields[key] ?? ''}
               onChange={(e) => updateFields(card.id, { [key]: e.target.value || null })}
             />
+            {rating.vagueness.filter((v) => v.field === key).map((v) => (
+              <div key={v.phrase} className="text-xs text-amber-800">
+                Vague: “{v.phrase}” — {v.ask}
+              </div>
+            ))}
           </div>
         ))}
 
@@ -147,6 +172,8 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
       </div>
 
       <aside className="space-y-4">
+        {toast && <div className="fixed right-4 top-4 z-50"><LevelUpToast from={toast.from} to={toast.to} /></div>}
+        <PositionPreview preview={preview} />
         <RatingPanel
           rating={rating}
           onAction={(field) => { setTab('card'); setTimeout(() => document.getElementById(`field-${field}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })); }}
