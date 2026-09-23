@@ -80,6 +80,26 @@ Real screens get more air than the mockups: content width up to `max-w-6xl` (115
 
 `src/components/domain/collector.tsx` exports `CollectorDownload({ href?, version?, sizeLabel?, serverUrl? })`. Without `href` the button reads "Скоро для Windows". For A: publish the Windows build (for example a zip in `public/downloads/` or an external link) and pass its URL. For C: place it on `/business/discover` and the landing.
 
+## Collector app (Windows window, B)
+
+Files: `collector/renderer/index.html`, `styles.css`, `renderer.js`. Plain HTML, CSS and JS without a build step: `collector/src/main.ts` loads the page with `loadFile`. The window is 520x640 and stays in the tray. It talks only to `window.collector` from `collector/src/preload.ts` (A).
+
+- Preview without Electron: open `collector/renderer/index.html` in a browser. Without `window.collector` it runs in sample mode (banner on top, nothing is sent).
+- Real app on Windows: `cd collector && npm install && npm start`.
+
+Screens. Keep it simple: one main action per screen, 44px hit targets, one short helper line per control.
+1. **Sign in:** server address, access token, team. Buttons: Test connection, Sign in. Errors: bad address, server unreachable, token rejected.
+2. **Consent** (first sign in on this computer): "Sent to the server" and "Never leaves this computer" side by side, the 5+ people rule, a required checkbox, Continue.
+3. **Collect** (home): big status block (LED, Collecting or Paused, today's counter), Activity tracker card, Meeting notes card (Start or Stop recording, REC timer, audio meters), Telegram card marked "soon".
+4. **Transcript:** live meeting text, Copy, Clear.
+5. **Privacy:** what left this computer (counts by category, never window titles), consent date, Withdraw consent, Request deletion.
+6. **Settings:** connection form, autostart note, About, Sign out.
+7. **Sign out:** confirm dialog. Collection stops, the token is removed from this computer, back to Sign in.
+
+The header shows the status on every screen: "Connected · host · team", "Offline, N queued" or "Paused". Tabs use the brutal style (the active tab is lime with a hard shadow).
+
+Status: the single-window version (Collect, Transcript, Connection) was committed at 15:46. B is adding Sign in, Consent, tabs and Sign out, due about 16:10. Until then please do not edit `collector/renderer/*`; report bugs to Islam.
+
 ## Illustrations
 
 Coming in `src/components/illustrations/` (inline SVG, light animations, reduced-motion safe): HeroPulse, BridgeBuild, RadarScan, step icons (StepDraft, StepQuestions, StepCard, StepRating, StepPublish), level icons, empty states (EmptyCatalog, EmptyProposals, EmptyTasks), AiThinking loader, PublishedStamp, LevelUpBurst, PrivacyShield, CollectorLaptop, MilestoneFlag, TeamAvatar, BusinessAvatar, ErrorBridge, GridBackground.
