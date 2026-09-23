@@ -341,7 +341,7 @@ Hours are Astana time. Realistic start: scaffold lands ~14:35.
 ### A — lead: AI, server, rating, seed, Collector logic, deploy (Mac)
 **H1 → 14:40**
 - [x] PLAN.md → push
-- [ ] Scaffold: Next.js app, all web deps, `types.ts`, `schemas.ts`, stubs for every area, `collector/` skeleton (Electron main + empty `renderer/` for B) with its deps, `.env.example`, README skeleton → push
+- [x] Scaffold: Next.js app, all web deps, `types.ts`, `schemas.ts`, stubs for every area, `collector/` skeleton (Electron main + empty `renderer/` for B) with its deps, `.env.example`, README skeleton → push
 **H2 14:40–15:40**
 - [ ] `src/lib/llm/*`: provider switch + fallback, zod + 1 repair retry, `DEMO_MODE` record/replay (`fixtures/replay/<endpoint>-<hash>.json`, replay falls back to latest fixture per endpoint), trace
 - [ ] `/api/ai/clarify`, `/api/ai/card` + prompts; `src/lib/api-client.ts` real calls

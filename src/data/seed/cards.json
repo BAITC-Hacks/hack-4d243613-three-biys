@@ -1,0 +1,38 @@
+[
+  {
+    "id": "card-1",
+    "businessName": "QazCargo",
+    "industry": "Logistics",
+    "topic": "Automation",
+    "skillsNeeded": ["Python", "integrations"],
+    "draftText": "Our sales team wastes time moving orders from Excel to the CRM. We want to automate it.",
+    "fields": {
+      "title": "Automate order transfer from Excel to CRM",
+      "context": "Sales managers receive orders as Excel files from dealers and re-type them into the CRM by hand.",
+      "need": "Remove manual re-typing of orders into the CRM.",
+      "users": "6 sales managers",
+      "data": "Sample Excel exports (anonymized) and CRM API docs",
+      "constraints": "Deadline 6 weeks; CRM has a REST API; no access to production data",
+      "expectedResult": "A script or service that imports orders from Excel into the CRM without manual entry.",
+      "successCriteria": "Manual entry time cut by 80%; zero duplicate orders.",
+      "contact": "Head of sales, weekly 30-min call, questions via chat"
+    },
+    "confirmed": {
+      "title": true, "context": true, "need": true, "users": true, "data": true,
+      "constraints": true, "expectedResult": true, "successCriteria": true, "contact": true
+    },
+    "fieldSource": {
+      "title": "draft", "context": "answer", "need": "draft", "users": "answer", "data": "answer",
+      "constraints": "answer", "expectedResult": "answer", "successCriteria": "manual", "contact": "manual"
+    },
+    "techSpec": null,
+    "techSpecConfirmed": false,
+    "status": "published",
+    "origin": { "kind": "manual" },
+    "history": [{ "ts": "2026-09-15T10:00:00.000Z", "total": 100, "level": "priority", "note": "published" }],
+    "suggestions": {},
+    "createdAt": "2026-09-15T09:00:00.000Z",
+    "updatedAt": "2026-09-15T10:00:00.000Z",
+    "publishedAt": "2026-09-15T10:00:00.000Z"
+  }
+]

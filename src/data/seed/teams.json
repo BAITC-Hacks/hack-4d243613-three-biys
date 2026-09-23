@@ -1,0 +1,10 @@
+[
+  {
+    "id": "team-datacraft",
+    "name": "DataCraft",
+    "about": "Student team building data pipelines and integrations.",
+    "interests": ["Automation", "Data"],
+    "skills": ["Python", "integrations", "SQL"],
+    "tech": ["Python", "pandas", "FastAPI"]
+  }
+]

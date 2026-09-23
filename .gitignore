@@ -5,3 +5,32 @@
 
 # Track spec (kept local)
 HackAlem AI_ кейс по геймификации практических заданий.md
+
+# dependencies
+node_modules/
+/.pnp
+.pnp.*
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+/build
+next-env.d.ts
+*.tsbuildinfo
+
+# local server store (Collector data)
+.data/
+
+# collector build output
+collector/dist/
+collector/out/
+collector/release/
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+.vercel

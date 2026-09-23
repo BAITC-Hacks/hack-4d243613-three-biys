@@ -1,0 +1,20 @@
+{
+  "name": "taskforge-collector",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TaskForge Collector — Windows tray app that sends anonymized activity events, meeting transcripts and role-mapped chat messages to the TaskForge server.",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "npm run build && electron .",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "electron": "^39.0.0",
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "get-windows": "^9.2.0"
+  }
+}

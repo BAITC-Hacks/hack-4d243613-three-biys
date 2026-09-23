@@ -1,0 +1,13 @@
+[
+  {
+    "id": "prop-1",
+    "taskId": "card-1",
+    "teamId": "team-datacraft",
+    "idea": "Python import script that maps Excel columns to CRM fields and deduplicates by order number.",
+    "plan": "Week 1: parse samples; week 2: CRM API client; week 3: dedupe + tests; week 4: pilot.",
+    "deadline": "2026-10-31",
+    "prototypeUrl": "https://example.com/prototype",
+    "status": "pending",
+    "createdAt": "2026-09-16T12:00:00.000Z"
+  }
+]
