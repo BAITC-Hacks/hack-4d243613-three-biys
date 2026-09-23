@@ -1,0 +1,15 @@
+{
+  "endpoint": "recommend",
+  "hash": "f0de3d9960",
+  "recordedAt": "2026-09-23T09:51:15.150Z",
+  "provider": "openai",
+  "model": "gpt-4.1-mini",
+  "system": "You write one short reason per task explaining why a published task may suit a student team, based ONLY on the team profile and the task summary given.\n\nRules:\n- One sentence (≤ 20 words) per task id, mentioning the concrete overlap (a skill, technology or interest). If there is no real overlap, omit the task.\n- Never invent skills, technologies or facts not present in the input. Never rank, score or pick a team — the catalog stays open and the business chooses.\n- Answer in the language of the task summaries.\n\nReturn ONLY a JSON object: { \"reasons\": { \"<taskId>\": \"<reason>\" } }\n",
+  "user": "{\n  \"team\": {\n    \"id\": \"team-datacraft\",\n    \"name\": \"DataCraft\",\n    \"about\": \"Student team building data pipelines and integrations between business systems.\",\n    \"interests\": [\n      \"Automation\",\n      \"Data\",\n      \"Integrations\"\n    ],\n    \"skills\": [\n      \"Python\",\n      \"integrations\",\n      \"SQL\",\n      \"data cleaning\"\n    ],\n    \"tech\": [\n      \"Python\",\n      \"pandas\",\n      \"FastAPI\",\n      \"PostgreSQL\"\n    ]\n  },\n  \"tasks\": [\n    {\n      \"id\": \"card-qazcargo-seed\",\n      \"title\": \"Morning route sheet for drivers\",\n      \"topic\": \"Automation\",\n      \"summary\": \"Send each driver the day route from an Excel table instead of calling\",\n      \"level\": \"working\"\n    },\n    {\n      \"id\": \"card-dala\",\n      \"title\": \"Evening stock count and next-day order suggestion for 3 stores\",\n      \"topic\": \"Forecasting\",\n      \"summary\": \"Collect evening counts and suggest an order from 12 months of 1C sales CSV\",\n      \"level\": \"ready\"\n    },\n    {\n      \"id\": \"card-medline\",\n      \"title\": \"Appointment reminders with confirmation and slot release\",\n      \"topic\": \"Chatbots\",\n      \"summary\": \"WhatsApp/SMS reminders from a Google Sheets appointment book\",\n      \"level\": \"priority\"\n    }\n  ]\n}",
+  "output": {
+    "reasons": {
+      "card-qazcargo-seed": "The task involves automation and handling Excel data, matching the team's automation and data skills.",
+      "card-medline": "The task requires integration with Google Sheets and messaging platforms, aligning with the team's integration expertise."
+    }
+  }
+}

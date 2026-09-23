@@ -128,6 +128,8 @@ Every response is the envelope `{ ok: true, data, trace } | { ok: false, error: 
 
 ## Test scenarios
 
+Automated: `npm test` (unit) and `scripts/smoke-replay.sh [baseUrl]` (golden path over the API; passes with no key in replay mode and against the hosted URL).
+
 | # | Scenario | Expected |
 |---|---|---|
 | 1 | Empty card | rating 0, level draft, 7 next actions, top gain +20 (`npm test`) |
