@@ -33,7 +33,10 @@ export async function discover(req: DiscoverRequest, trace: AgentStep[]): Promis
   });
   const input = {
     period: req.period,
-    meetings: snap.meetings.map((m) => ({ id: m.id, date: m.date, team: m.team, title: m.title, transcript: m.transcript })),
+    // live = captured by the Windows Collector; history = earlier recorded meetings. Live first so the model reads them first.
+    meetings: [...snap.meetings]
+      .sort((a, b) => (a.origin === b.origin ? 0 : a.origin === 'live' ? -1 : 1))
+      .map((m) => ({ id: m.id, source: m.origin === 'live' ? 'live' : 'history', date: m.date, team: m.team, title: m.title, transcript: m.transcript })),
     aggregates: snap.aggregates.map((a) => ({
       id: aggregateId(a), date: weekStart(a.week), team: a.team, week: a.week, contributors: a.contributors,
       hoursByCategory: a.hoursByCategory, transfers: a.transfers, topSwitches: a.topSwitches,
