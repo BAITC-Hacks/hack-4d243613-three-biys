@@ -9,7 +9,7 @@ import { Fragment, useId, useState, type ReactNode } from 'react';
 import clsx from 'clsx';
 import { Check, FileText, Sparkles } from 'lucide-react';
 import { buttonClasses } from '@/components/ui/button';
-import { AI_BANNER_TEXT, CONSENT_LABEL, LEGAL_DEFAULTS, type ParsedDoc } from '@/content/legal';
+import { LEGAL_DEFAULTS, type ParsedDoc } from '@/content/legal';
 
 /** Renders **bold** and {{placeholders}}. Unknown placeholders become an empty highlighted field. */
 function Inline({ text, values }: { text: string; values: Record<string, string> }) {
@@ -27,7 +27,7 @@ function Inline({ text, values }: { text: string; values: Record<string, string>
           ) : (
             <span
               key={i}
-              title={`Будет заполнено: ${ph[1]}`}
+              title={`To be filled in: ${ph[1]}`}
               className="inline-block min-w-24 border-b-2 border-dashed border-[#a16207] bg-[#fef9c3] px-1 align-baseline text-transparent select-none"
             >
               {ph[1]}
@@ -56,8 +56,8 @@ export function LegalDocument({
   const toc = doc.blocks.flatMap((b) => (b.type === 'h2' ? [b] : []));
   return (
     <article className={clsx('mx-auto grid w-full max-w-6xl gap-8 md:grid-cols-[240px_1fr]', className)}>
-      <nav aria-label="Содержание" className="md:sticky md:top-6 md:max-h-[calc(100vh-3rem)] md:self-start md:overflow-y-auto">
-        <p className="text-xs font-extrabold tracking-[0.12em] text-muted uppercase">Содержание</p>
+      <nav aria-label="Contents" className="md:sticky md:top-6 md:max-h-[calc(100vh-3rem)] md:self-start md:overflow-y-auto">
+        <p className="text-xs font-extrabold tracking-[0.12em] text-muted uppercase">Contents</p>
         <ol className="mt-3 grid gap-0.5 border-l-2 border-border">
           {toc.map((h) => (
             <li key={h.id}>
@@ -71,10 +71,10 @@ export function LegalDocument({
       <div className="min-w-0 rounded-card border-2 border-border bg-surface p-6 shadow-card sm:p-10">
         <p className="flex flex-wrap items-center gap-2 text-xs font-extrabold tracking-[0.12em] text-muted uppercase">
           <FileText aria-hidden="true" className="size-4" />
-          {doc.meta.version ? `Версия ${doc.meta.version}` : null}
+          {doc.meta.version ? `Version ${doc.meta.version}` : null}
           {doc.meta.updated ? ` · ${doc.meta.updated}` : null}
           {doc.meta.status === 'draft' ? (
-            <span className="border-2 border-border bg-[#fde047] px-1.5 py-0.5 text-foreground">Проект документа</span>
+            <span className="border-2 border-border bg-[#fde047] px-1.5 py-0.5 text-foreground">Draft document</span>
           ) : null}
         </p>
         <div className="mt-4 grid max-w-[70ch] gap-4 text-[15px] leading-relaxed">
@@ -197,7 +197,7 @@ export function ConsentCheckbox({
         className="cursor-pointer text-sm leading-5 [&_a]:font-semibold [&_a]:underline [&_a]:decoration-accent [&_a]:decoration-2 [&_a]:underline-offset-2"
       >
         {children}
-        {required ? <span className="text-muted"> (обязательно)</span> : null}
+        {required ? <span className="text-muted"> (required)</span> : null}
       </label>
     </div>
   );
@@ -247,46 +247,50 @@ export function ConsentGate({
           }}
         >
           <h2 id="consent-title" className="text-2xl font-extrabold text-balance">
-            Прежде чем начать
+            Before you start
           </h2>
           <p className="text-sm text-muted">
-            Көпір соединяет задачи бизнеса со студенческими командами. Нам нужно ваше согласие на правила платформы и
-            обработку данных, которые вы укажете.
+            Көпір connects business tasks with student teams. We need your consent to the platform rules and to the
+            processing of the data you provide.
+          </p>
+          <p className="flex items-center gap-2 text-xs text-muted">
+            <FileText aria-hidden="true" className="size-4 shrink-0" />
+            Legal documents are in Russian.
           </p>
           <ConsentCheckbox checked={terms} onChange={setTerms} required>
-            Я принимаю{' '}
+            I accept the{' '}
             <a href={termsHref} target="_blank" rel="noreferrer">
-              Пользовательское соглашение
+              Terms of Use
             </a>
           </ConsentCheckbox>
           <ConsentCheckbox checked={privacy} onChange={setPrivacy} required>
-            {CONSENT_LABEL}.{' '}
+            I consent to the processing of my personal data.{' '}
             <a href={consentHref} target="_blank" rel="noreferrer">
-              Текст согласия
+              Consent text
             </a>{' '}
-            и{' '}
+            and{' '}
             <a href={privacyHref} target="_blank" rel="noreferrer">
-              Политика
+              Privacy Policy
             </a>
           </ConsentCheckbox>
           <ConsentCheckbox checked={news} onChange={setNews}>
-            Сообщать мне о новых задачах в каталоге
+            Notify me about new tasks in the catalog
           </ConsentCheckbox>
           <button
             type="submit"
             disabled={!ready}
             className={buttonClasses({ variant: 'primary', size: 'lg', className: 'mt-2 w-full' })}
           >
-            Принять и продолжить
+            Accept and continue
           </button>
-          <p className="text-xs text-muted">Согласие можно отозвать в любой момент. Демонстрационная версия, HackAlem AI 2026.</p>
+          <p className="text-xs text-muted">You can withdraw your consent at any time. Demo version, HackAlem AI 2026.</p>
         </form>
       </div>
     </div>
   );
 }
 
-/** AI transparency banner (text from ai-notice.md). Show it next to every AI result until a person confirms it. */
+/** AI transparency banner (English summary of ai-notice.md). Show it next to every AI result until a person confirms it. */
 export function AiNoticeBanner({ href = '/legal/ai-notice', className }: { href?: string; className?: string }) {
   return (
     <p
@@ -295,9 +299,9 @@ export function AiNoticeBanner({ href = '/legal/ai-notice', className }: { href?
     >
       <Sparkles aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
       <span>
-        {AI_BANNER_TEXT}{' '}
+        Prepared with AI. Review and confirm before publishing.{' '}
         <a href={href} target="_blank" rel="noreferrer" className="font-semibold underline decoration-2 underline-offset-2">
-          Как мы используем ИИ
+          How we use AI
         </a>
       </span>
     </p>
@@ -307,7 +311,7 @@ export function AiNoticeBanner({ href = '/legal/ai-notice', className }: { href?
 /** Footer row with links to the legal documents. */
 export function LegalLinks({ docs, className }: { docs: Pick<ParsedDoc, 'slug' | 'title'>[]; className?: string }) {
   return (
-    <nav aria-label="Юридические документы" className={clsx('flex flex-wrap gap-x-5 gap-y-2 text-sm', className)}>
+    <nav aria-label="Legal documents" className={clsx('flex flex-wrap gap-x-5 gap-y-2 text-sm', className)}>
       {docs.map((d) => (
         <a
           key={d.slug}

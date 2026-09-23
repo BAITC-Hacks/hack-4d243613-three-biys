@@ -1,7 +1,7 @@
 'use client';
 // Form controls (owner: B, design): Field, Input, Textarea, Select.
 // Field links its label, hint and error to the control inside it through context:
-// <Field label="Название" hint="Коротко, до 80 символов" error={errors.title}><Input value={title} onChange={...} /></Field>
+// <Field label="Title" hint="Short, up to 80 characters" error={errors.title}><Input value={title} onChange={...} /></Field>
 import { createContext, useContext, useId } from 'react';
 import type { AriaAttributes, ComponentProps, ReactNode } from 'react';
 import clsx from 'clsx';
@@ -104,7 +104,7 @@ export type SelectOption = { value: string; label: string; disabled?: boolean };
 export type SelectProps = ComponentProps<'select'> & {
   /** Options as data. <option> children work too and come after these. */
   options?: readonly SelectOption[];
-  /** First option with value "", e.g. "Выберите отрасль". */
+  /** First option with value "", e.g. "Choose an industry". */
   placeholder?: string;
 };
 

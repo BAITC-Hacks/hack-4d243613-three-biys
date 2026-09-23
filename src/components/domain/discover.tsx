@@ -41,23 +41,18 @@ const CHEVRON = 'size-3.5 shrink-0 transition-transform duration-150 motion-redu
 
 /* ------------------------------------------------------------------ helpers */
 
-/** Russian plural: plural(5, 'шаг', 'шага', 'шагов') → 'шагов'. */
-function plural(n: number, one: string, few: string, many: string): string {
-  const a = Math.abs(Math.trunc(n)) % 100;
-  const b = a % 10;
-  if (a > 10 && a < 20) return many;
-  if (b === 1) return one;
-  if (b >= 2 && b <= 4) return few;
-  return many;
+/** English plural: plural(1, 'step', 'steps') → 'step', plural(5, 'step', 'steps') → 'steps'. */
+function plural(n: number, one: string, many: string): string {
+  return Math.abs(n) === 1 ? one : many;
 }
 
-const NUMBER = new Intl.NumberFormat('ru-RU');
-const SECONDS = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 });
+const NUMBER = new Intl.NumberFormat('en-GB');
+const SECONDS = new Intl.NumberFormat('en-GB', { maximumFractionDigits: 1 });
 // Calendar days are formatted in UTC, so a date-only value never shifts with the viewer's time zone.
-const DAY_SHORT = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-const DAY_LONG = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const DAY_SHORT = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+const DAY_LONG = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 // Moments use the viewer's time zone, so they are rendered only once the client clock is known (useClock).
-const MOMENT = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const MOMENT = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 function num(n: number): string {
   return NUMBER.format(Number.isFinite(n) ? n : 0);
@@ -68,17 +63,16 @@ function isoDay(value: string | undefined): string | null {
   return /^\d{4}-\d{2}-\d{2}/.exec(value?.trim() ?? '')?.[0] ?? null;
 }
 
-/** "2026-08-25" → "25 авг." (short) or "25 августа 2026" (long). */
+/** "2026-08-25" → "25 Aug" (short) or "25 August 2026" (long). */
 function formatDay(day: string, long = false): string {
   const [y, m, d] = day.split('-').map(Number);
   const ts = Date.UTC(y, m - 1, d);
-  // Only the long form ends with the year suffix " г."; the short month "авг." must keep its "г.".
-  return long ? DAY_LONG.format(ts).replace(/\s+г\.$/, '') : DAY_SHORT.format(ts);
+  return (long ? DAY_LONG : DAY_SHORT).format(ts);
 }
 
-/** 840 → "840 мс", 14210 → "14,2 с". */
+/** 840 → "840 ms", 14210 → "14.2 s". */
 function formatDuration(ms: number): string {
-  return ms < 1000 ? `${Math.round(ms)} мс` : `${SECONDS.format(ms / 1000)} с`;
+  return ms < 1000 ? `${Math.round(ms)} ms` : `${SECONDS.format(ms / 1000)} s`;
 }
 
 /** Duration string for <time dateTime>, e.g. "PT1.250S". */
@@ -86,13 +80,13 @@ function isoDuration(ms: number): string {
   return `PT${(ms / 1000).toFixed(3)}S`;
 }
 
-/** "только что", "5 мин назад", "3 ч назад"; null after a day (the caller shows the moment instead). */
+/** "just now", "5 min ago", "3 h ago"; null after a day (the caller shows the moment instead). */
 function ago(ts: number, now: number): string | null {
   const minutes = Math.floor(Math.max(0, now - ts) / 60_000);
-  if (minutes < 1) return 'только что';
-  if (minutes < 60) return `${minutes} мин назад`;
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes} min ago`;
   const hours = Math.floor(minutes / 60);
-  return hours < 24 ? `${hours} ч назад` : null;
+  return hours < 24 ? `${hours} h ago` : null;
 }
 
 /** Pretty JSON for the trace panel. Strings that hold JSON are parsed first; plain text stays as is. */
@@ -143,11 +137,11 @@ function useClock(): number | null {
 /* ------------------------------------------------------------------ EvidenceChip */
 
 const SOURCE: Record<Evidence['sourceType'], { label: string; Icon: LucideIcon }> = {
-  meeting: { label: 'Встреча', Icon: Mic },
-  activity: { label: 'Активность', Icon: Activity },
-  chat: { label: 'Чат', Icon: MessageSquare },
+  meeting: { label: 'Meeting', Icon: Mic },
+  activity: { label: 'Activity', Icon: Activity },
+  chat: { label: 'Chat', Icon: MessageSquare },
 };
-const UNKNOWN_SOURCE = { label: 'Источник', Icon: FileText };
+const UNKNOWN_SOURCE = { label: 'Source', Icon: FileText };
 
 /** Activity evidence cites a weekly team aggregate as "Team:2026-W38"; the team is worth showing. */
 function activityTeam(sourceId: string): string | null {
@@ -163,7 +157,7 @@ export function EvidenceChip({ evidence, className }: { evidence: Evidence; clas
   const team = evidence.sourceType === 'activity' ? activityTeam(evidence.sourceId ?? '') : null;
   const day = isoDay(evidence.date);
   const where = [label, team, day ? formatDay(day, true) : evidence.date].filter(Boolean).join(', ');
-  const what = [quote && `«${quote}»`, metric].filter(Boolean).join('; ');
+  const what = [quote && `“${quote}”`, metric].filter(Boolean).join('; ');
 
   return (
     <figure
@@ -186,7 +180,7 @@ export function EvidenceChip({ evidence, className }: { evidence: Evidence; clas
           </>
         )}
       </figcaption>
-      {quote && <blockquote className="mt-1 line-clamp-2 text-sm leading-snug text-foreground">«{quote}»</blockquote>}
+      {quote && <blockquote className="mt-1 line-clamp-2 text-sm leading-snug text-foreground">“{quote}”</blockquote>}
       {metric && (
         <p className="mt-1 line-clamp-2 font-mono text-[13px] leading-snug tabular-nums text-foreground">{metric}</p>
       )}
@@ -198,9 +192,9 @@ export function EvidenceChip({ evidence, className }: { evidence: Evidence; clas
 /* ------------------------------------------------------------------ InsightCard */
 
 const IMPACT: Record<Insight['impact'], { label: string; bars: number; pill: string; bar: string }> = {
-  low: { label: 'низкое', bars: 1, pill: 'bg-surface text-foreground', bar: 'bg-foreground' },
-  medium: { label: 'среднее', bars: 2, pill: 'bg-surface text-foreground', bar: 'bg-foreground' },
-  high: { label: 'высокое', bars: 3, pill: 'bg-primary text-primary-foreground', bar: 'bg-accent' },
+  low: { label: 'low', bars: 1, pill: 'bg-surface text-foreground', bar: 'bg-foreground' },
+  medium: { label: 'medium', bars: 2, pill: 'bg-surface text-foreground', bar: 'bg-foreground' },
+  high: { label: 'high', bars: 3, pill: 'bg-primary text-primary-foreground', bar: 'bg-accent' },
 };
 const BAR_HEIGHTS = ['h-1.5', 'h-2.5', 'h-3.5'];
 
@@ -214,15 +208,15 @@ function ImpactPill({ impact }: { impact: Insight['impact'] }) {
           <span key={height} className={clsx('w-1', height, i < meta.bars ? meta.bar : 'bg-current opacity-25')} />
         ))}
       </span>
-      Влияние: {meta.label}
+      Impact: {meta.label}
     </span>
   );
 }
 
 const SUGGESTED_FIELD: Record<keyof Insight['suggestedFields'], string> = {
-  context: 'Контекст',
-  need: 'Потребность',
-  data: 'Данные и материалы',
+  context: 'Context',
+  need: 'Need',
+  data: 'Data & materials',
 };
 
 /** "automation/integration" may wrap after a slash instead of in the middle of a word. */
@@ -258,12 +252,12 @@ function EvidenceList({ items, offset = 0 }: { items: Evidence[]; offset?: numbe
 }
 
 /** A problem found in the sources, with the evidence behind it and the action that turns it into a draft. */
-export function InsightCard({ insight, onUse, useLabel = 'Взять в черновик', evidenceLimit = 3, className }: {
+export function InsightCard({ insight, onUse, useLabel = 'Start a draft', evidenceLimit = 3, className }: {
   insight: Insight;
   onUse?: (insight: Insight) => void;
   /** Text of the action button. */
   useLabel?: string;
-  /** Evidence shown before "Показать еще N". */
+  /** Evidence shown before "Show N more". */
   evidenceLimit?: number;
   className?: string;
 }) {
@@ -276,8 +270,8 @@ export function InsightCard({ insight, onUse, useLabel = 'Взять в черн
   const quotes = evidence.filter((e) => e.quote?.trim()).length;
   const metrics = evidence.filter((e) => e.metric?.trim()).length;
   const kinds = [
-    quotes > 0 ? `${quotes} ${plural(quotes, 'цитата', 'цитаты', 'цитат')}` : null,
-    metrics > 0 ? `${metrics} ${plural(metrics, 'метрика', 'метрики', 'метрик')}` : null,
+    quotes > 0 ? `${quotes} ${plural(quotes, 'quote', 'quotes')}` : null,
+    metrics > 0 ? `${metrics} ${plural(metrics, 'metric', 'metrics')}` : null,
   ].filter(Boolean);
   const frequency = Math.max(0, Math.round(insight.frequency ?? 0));
   const suggested = (Object.keys(SUGGESTED_FIELD) as (keyof Insight['suggestedFields'])[])
@@ -289,7 +283,7 @@ export function InsightCard({ insight, onUse, useLabel = 'Взять в черн
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className={clsx(CAPTION, 'inline-flex min-w-0 items-center gap-1.5 text-muted')}>
             <Users aria-hidden="true" className="size-3.5 shrink-0 text-foreground" strokeWidth={2.25} />
-            <span className="sr-only">Команда: </span>
+            <span className="sr-only">Team: </span>
             <span className="truncate">{insight.affectedTeam}</span>
           </p>
           <ImpactPill impact={insight.impact} />
@@ -300,14 +294,14 @@ export function InsightCard({ insight, onUse, useLabel = 'Взять в черн
 
       <dl className="grid grid-cols-2 border-y border-hairline">
         <div className="min-w-0 px-4 py-3 sm:px-5">
-          <dt className={clsx(CAPTION, 'text-muted')}>Частота</dt>
+          <dt className={clsx(CAPTION, 'text-muted')}>Frequency</dt>
           <dd className="mt-1 text-sm text-foreground">
             <span className="text-2xl font-extrabold leading-none tabular-nums">{num(frequency)}</span>{' '}
-            {plural(frequency, 'подтверждение', 'подтверждения', 'подтверждений')}
+            {plural(frequency, 'occurrence', 'occurrences')}
           </dd>
         </div>
         <div className="min-w-0 border-l border-hairline px-4 py-3 sm:px-5">
-          <dt className={clsx(CAPTION, 'text-muted')}>Тип решения</dt>
+          <dt className={clsx(CAPTION, 'text-muted')}>Solution type</dt>
           <dd className="mt-1 flex items-start gap-1.5 text-sm font-semibold leading-snug text-foreground">
             <Wrench aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" strokeWidth={2.25} />
             <span className="min-w-0 break-words">{breakAfterSlashes(insight.suggestedSolutionType ?? '')}</span>
@@ -318,20 +312,20 @@ export function InsightCard({ insight, onUse, useLabel = 'Взять в черн
       <section aria-labelledby={evidenceId} className="p-4 sm:p-5">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <h4 id={evidenceId} className={clsx(CAPTION, 'text-foreground')}>
-            Доказательства <span className="tabular-nums">({evidence.length})</span>
+            Evidence <span className="tabular-nums">({evidence.length})</span>
           </h4>
           {evidence.length > 0 && (
             <p
               className="inline-flex items-center gap-1 text-xs text-muted"
-              title="Каждая цитата найдена в стенограмме дословно, каждое число есть в недельных агрегатах"
+              title="Every quote is found word for word in the transcript, every number is in the weekly aggregates"
             >
               <Check aria-hidden="true" className="size-3.5 shrink-0 text-success" strokeWidth={3} />
-              {kinds.length > 0 ? `${kinds.join(' · ')}, проверено кодом` : 'Проверено кодом'}
+              {kinds.length > 0 ? `${kinds.join(' · ')}, verified by code` : 'Verified by code'}
             </p>
           )}
         </div>
         {evidence.length === 0 ? (
-          <p className="text-sm text-muted">Проверенных доказательств нет</p>
+          <p className="text-sm text-muted">No verified evidence</p>
         ) : (
           <>
             <EvidenceList items={shown} />
@@ -339,8 +333,8 @@ export function InsightCard({ insight, onUse, useLabel = 'Взять в черн
               <details className="group/more mt-2">
                 <summary className={clsx(SUMMARY, 'inline-flex items-center gap-1 py-1 text-xs font-bold text-foreground')}>
                   <ChevronRight aria-hidden="true" className={clsx(CHEVRON, 'group-open/more:rotate-90')} strokeWidth={2.5} />
-                  <span className="group-open/more:hidden">Показать еще {rest.length}</span>
-                  <span className="hidden group-open/more:inline">Свернуть</span>
+                  <span className="group-open/more:hidden">Show {rest.length} more</span>
+                  <span className="hidden group-open/more:inline">Show less</span>
                 </summary>
                 <div className="mt-2">
                   <EvidenceList items={rest} offset={shown.length} />
@@ -355,7 +349,7 @@ export function InsightCard({ insight, onUse, useLabel = 'Взять в черн
         <p className={clsx('mx-4 mb-4 flex items-start gap-2 bg-accent-soft px-3 py-2 text-xs leading-snug sm:mx-5 sm:mb-5', LIME_INK)}>
           <Sparkles aria-hidden="true" className="mt-px size-3.5 shrink-0" strokeWidth={2.25} />
           <span>
-            <span className="font-bold">Предложения для полей: </span>
+            <span className="font-bold">Field suggestions: </span>
             {suggested.map((key) => SUGGESTED_FIELD[key]).join(', ')}
           </span>
         </p>
@@ -455,15 +449,15 @@ export function PrivacyPanel({ privacy, live, className }: {
   const hasEvent = Number.isFinite(eventTs);
   const trackerLive = now !== null && hasEvent && now - eventTs <= LIVE_WINDOW_MS;
   const trackerConnected = devices > 0 || hasEvent;
-  let trackerStatus = 'не подключен';
-  if (trackerLive) trackerStatus = 'на связи';
-  else if (trackerConnected) trackerStatus = now === null ? 'подключен' : 'нет новых событий';
+  let trackerStatus = 'not connected';
+  if (trackerLive) trackerStatus = 'online';
+  else if (trackerConnected) trackerStatus = now === null ? 'connected' : 'no new events';
   const trackerDetails: ReactNode[] = [];
-  if (devices > 0) trackerDetails.push(`${num(devices)} ${plural(devices, 'устройство', 'устройства', 'устройств')}`);
+  if (devices > 0) trackerDetails.push(`${num(devices)} ${plural(devices, 'device', 'devices')}`);
   if (eventAt && hasEvent && now !== null) {
     trackerDetails.push(
       <>
-        последнее событие{' '}
+        last event{' '}
         <time dateTime={eventAt} title={MOMENT.format(eventTs)}>{ago(eventTs, now) ?? MOMENT.format(eventTs)}</time>
       </>,
     );
@@ -476,10 +470,11 @@ export function PrivacyPanel({ privacy, live, className }: {
   const meetingDetails: ReactNode[] = [
     meetingDay ? (
       <>
-        последняя запись <time dateTime={meetingDay}>{meetingToday ? 'сегодня' : formatDay(meetingDay, true)}</time>
+        last recording {meetingToday ? '' : 'on '}
+        <time dateTime={meetingDay}>{meetingToday ? 'today' : formatDay(meetingDay, true)}</time>
       </>
     ) : (
-      'живых записей пока нет'
+      'no live recordings yet'
     ),
   ];
 
@@ -496,8 +491,8 @@ export function PrivacyPanel({ privacy, live, className }: {
           <ShieldCheck className="size-5" strokeWidth={2.25} />
         </span>
         <div className="min-w-0">
-          <h3 id={titleId} className="text-lg font-extrabold leading-tight text-foreground">Приватность</h3>
-          <p className="mt-1 text-sm leading-snug text-foreground/80">Мы анализируем, как течет работа, а не кто работает</p>
+          <h3 id={titleId} className="text-lg font-extrabold leading-tight text-foreground">Privacy</h3>
+          <p className="mt-1 text-sm leading-snug text-foreground/80">We analyze how work flows, not who does it</p>
         </div>
       </header>
 
@@ -505,47 +500,47 @@ export function PrivacyPanel({ privacy, live, className }: {
         <PrivacyStat
           hero
           className="col-span-2 @xl:col-span-4 @4xl:col-span-1"
-          label="Людей опознано"
+          label="People identified"
           value={num(privacy.individualsIdentified ?? 0)}
-          hint="в отчетах только команды по неделям"
+          hint="reports show teams only, by week"
         />
         <PrivacyStat
-          label="Сырых событий"
+          label="Raw events"
           value={num(privacy.rawEvents)}
-          hint="тип события и категория приложения, без заголовков окон и текста"
+          hint="event type and app category, no window titles or text"
         />
         <PrivacyStat
-          label="Порог анонимности k"
+          label="Anonymity threshold k"
           value={num(k)}
-          hint={`паттерн виден, только если за ним не меньше ${k} человек`}
+          hint={`a pattern is shown only if at least ${k} people are behind it`}
         />
-        <PrivacyStat label="Скрыто паттернов" value={num(privacy.suppressedPatterns)} hint={`за ними меньше ${k} человек`} />
+        <PrivacyStat label="Patterns hidden" value={num(privacy.suppressedPatterns)} hint={`fewer than ${k} people behind them`} />
         <PrivacyStat
-          label="Команд в отчете"
+          label="Teams in report"
           value={num(privacy.teamsReported)}
-          hint={`скрыто целиком: ${num(privacy.teamsSuppressed)}`}
+          hint={`fully hidden: ${num(privacy.teamsSuppressed)}`}
         />
       </dl>
 
       <section aria-labelledby={sourcesId} className="border-t-2 border-border px-4 pt-3 pb-1.5 sm:px-5">
-        <h4 id={sourcesId} className={clsx(CAPTION, 'text-muted')}>Источники сейчас</h4>
+        <h4 id={sourcesId} className={clsx(CAPTION, 'text-muted')}>Source status</h4>
         <ul className="divide-y divide-hairline">
           <SourceRow
             Icon={Activity}
-            name="Трекер активности"
+            name="Activity tracker"
             active={trackerLive}
             status={trackerStatus}
             details={trackerDetails}
           />
-          <SourceRow Icon={Mic} name="Заметки встреч" active={meetingToday} details={meetingDetails} />
+          <SourceRow Icon={Mic} name="Meeting notes" active={meetingToday} details={meetingDetails} />
           {messageAt && hasMessage && now !== null && (
             <SourceRow
               Icon={MessageSquare}
-              name="Чаты"
+              name="Chats"
               active={chatLive}
               details={[
                 <>
-                  последнее сообщение{' '}
+                  last message{' '}
                   <time dateTime={messageAt} title={MOMENT.format(messageTs)}>
                     {ago(messageTs, now) ?? MOMENT.format(messageTs)}
                   </time>
@@ -564,14 +559,14 @@ export function PrivacyPanel({ privacy, live, className }: {
 type StepTone = 'plain' | 'model' | 'ok' | 'fail';
 
 const STEP_KIND: Record<AgentStep['kind'], { label: string; Icon: LucideIcon }> = {
-  thought: { label: 'Рассуждение', Icon: Brain },
-  tool_call: { label: 'Вызов инструмента', Icon: Wrench },
-  tool_result: { label: 'Результат инструмента', Icon: CornerDownRight },
-  llm_call: { label: 'Запрос к модели', Icon: Sparkles },
-  validation: { label: 'Проверка', Icon: ShieldCheck },
-  error: { label: 'Ошибка', Icon: TriangleAlert },
+  thought: { label: 'Reasoning', Icon: Brain },
+  tool_call: { label: 'Tool call', Icon: Wrench },
+  tool_result: { label: 'Tool result', Icon: CornerDownRight },
+  llm_call: { label: 'Model call', Icon: Sparkles },
+  validation: { label: 'Validation', Icon: ShieldCheck },
+  error: { label: 'Error', Icon: TriangleAlert },
 };
-const UNKNOWN_KIND = { label: 'Шаг', Icon: Brain };
+const UNKNOWN_KIND = { label: 'Step', Icon: Brain };
 
 const NODE_TONE: Record<StepTone, string> = {
   plain: 'border-border bg-surface text-foreground',
@@ -581,9 +576,9 @@ const NODE_TONE: Record<StepTone, string> = {
 };
 
 const PROVIDER: Record<NonNullable<AgentStep['provider']>, { label: string; title: string }> = {
-  openai: { label: 'OpenAI', title: 'Живой запрос к OpenAI' },
-  nvidia: { label: 'NVIDIA', title: 'Живой запрос к NVIDIA, резервному провайдеру' },
-  replay: { label: 'Запись', title: 'Сохраненный ответ модели (режим replay): модель заново не вызывалась' },
+  openai: { label: 'OpenAI', title: 'Live request to OpenAI' },
+  nvidia: { label: 'NVIDIA', title: 'Live request to NVIDIA, the fallback provider' },
+  replay: { label: 'Replay', title: 'Saved model response (replay mode): the model was not called again' },
 };
 
 function stepTone(step: AgentStep): StepTone {
@@ -594,15 +589,15 @@ function stepTone(step: AgentStep): StepTone {
 
 interface TraceSection { key: string; title: string; body: string }
 
-/** What the "Как работает ИИ" view shows for a step: prompt, input, output and any extra detail. */
+/** What the "How the AI works" view shows for a step: prompt, input, output and any extra detail. */
 function traceSections(step: AgentStep): TraceSection[] {
   const sections: TraceSection[] = [];
   if (typeof step.prompt === 'string' && step.prompt.trim()) {
-    sections.push({ key: 'prompt', title: 'Промпт', body: step.prompt.trim() });
+    sections.push({ key: 'prompt', title: 'Prompt', body: step.prompt.trim() });
   }
-  if (step.input !== undefined) sections.push({ key: 'input', title: 'Вход', body: pretty(step.input) });
-  if (step.output !== undefined) sections.push({ key: 'output', title: 'Выход', body: pretty(step.output) });
-  if (step.detail !== undefined) sections.push({ key: 'detail', title: 'Детали', body: pretty(step.detail) });
+  if (step.input !== undefined) sections.push({ key: 'input', title: 'Input', body: pretty(step.input) });
+  if (step.output !== undefined) sections.push({ key: 'output', title: 'Output', body: pretty(step.output) });
+  if (step.detail !== undefined) sections.push({ key: 'detail', title: 'Details', body: pretty(step.detail) });
   return sections;
 }
 
@@ -636,7 +631,7 @@ function TraceStep({ step, last }: { step: AgentStep; last: boolean }) {
     ? step.durationMs
     : null;
   const contents = sections.map((s) => s.title.toLowerCase());
-  if (issues.length > 0) contents.push(validation?.ok ? 'замечания' : 'ошибки');
+  if (issues.length > 0) contents.push(validation?.ok ? 'warnings' : 'errors');
 
   return (
     <li className="relative flex gap-3 pb-5 last:pb-0">
@@ -652,7 +647,7 @@ function TraceStep({ step, last }: { step: AgentStep; last: boolean }) {
           {duration !== null && (
             <time
               dateTime={isoDuration(duration)}
-              title={`${num(Math.round(duration))} мс`}
+              title={`${num(Math.round(duration))} ms`}
               className="ml-auto text-xs font-semibold tabular-nums text-muted"
             >
               {formatDuration(duration)}
@@ -671,13 +666,13 @@ function TraceStep({ step, last }: { step: AgentStep; last: boolean }) {
               <CircleX aria-hidden="true" className="size-3.5 shrink-0 text-danger" strokeWidth={2.5} />
             )}
             <span className={clsx('font-semibold', validation.ok ? 'text-foreground' : 'text-danger')}>
-              {validation.ok ? 'Проверка пройдена' : 'Проверка не пройдена'}
+              {validation.ok ? 'Validation passed' : 'Validation failed'}
             </span>
             {validation.repaired && (
-              <span className={clsx(CAPTION, 'bg-accent-soft px-1.5', LIME_INK)}>исправлено повторным запросом</span>
+              <span className={clsx(CAPTION, 'bg-accent-soft px-1.5', LIME_INK)}>repaired on retry</span>
             )}
             {issues.length > 0 && (
-              <span className="text-muted">{validation.ok ? 'замечаний' : 'ошибок'}: {issues.length}</span>
+              <span className="text-muted">{validation.ok ? 'warnings' : 'errors'}: {issues.length}</span>
             )}
           </p>
         )}
@@ -691,7 +686,7 @@ function TraceStep({ step, last }: { step: AgentStep; last: boolean }) {
               )}
             >
               <ChevronRight aria-hidden="true" className={clsx(CHEVRON, 'group-open/ai:rotate-90')} strokeWidth={2.5} />
-              <span className="shrink-0">Как работает ИИ</span>
+              <span className="shrink-0">How the AI works</span>
               <span className="min-w-0 truncate font-normal text-foreground/70">{contents.join(', ')}</span>
             </summary>
             <div className="mt-2 space-y-3 border-l-2 border-border pl-3">
@@ -718,7 +713,7 @@ function TraceStep({ step, last }: { step: AgentStep; last: boolean }) {
               {issues.length > 0 && (
                 <div className="min-w-0">
                   <p className={clsx(CAPTION, validation?.ok ? 'text-muted' : 'text-danger')}>
-                    {validation?.ok ? 'Замечания проверки' : 'Ошибки проверки'}
+                    {validation?.ok ? 'Validation warnings' : 'Validation errors'}
                   </p>
                   <ul className="mt-1 space-y-1">
                     {issues.map((issue, i) => (
@@ -740,9 +735,9 @@ function TraceStep({ step, last }: { step: AgentStep; last: boolean }) {
 
 /**
  * Timeline of what the AI did: tool calls, model calls, validation and errors. Every step with a prompt,
- * input, output, detail or validation notes opens a "Как работает ИИ" view with the raw data.
+ * input, output, detail or validation notes opens a "How the AI works" view with the raw data.
  */
-export function AgentTrace({ steps, title = 'Ход работы ИИ', bare = false, className }: {
+export function AgentTrace({ steps, title = 'What the AI did', bare = false, className }: {
   steps: AgentStep[];
   /** Heading above the timeline; pass null when the caller already shows one. */
   title?: string | null;
@@ -760,15 +755,15 @@ export function AgentTrace({ steps, title = 'Ход работы ИИ', bare = f
   const errors = list.filter((s) => s.kind === 'error').length;
   const replay = list.some((s) => s.provider === 'replay');
   const facts = [
-    `${list.length} ${plural(list.length, 'шаг', 'шага', 'шагов')}`,
+    `${list.length} ${plural(list.length, 'step', 'steps')}`,
     total > 0 ? formatDuration(total) : null,
-    checks.length > 0 ? `проверок пройдено: ${passed} из ${checks.length}` : null,
+    checks.length > 0 ? `${passed} of ${checks.length} ${plural(checks.length, 'check', 'checks')} passed` : null,
   ].filter(Boolean);
 
   return (
     <section
       aria-labelledby={title ? titleId : undefined}
-      aria-label={title ? undefined : 'Ход работы ИИ'}
+      aria-label={title ? undefined : 'What the AI did'}
       className={clsx(!bare && PANEL, !bare && 'p-4 sm:p-5', 'min-w-0', className)}
     >
       <header className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-hairline pb-3">
@@ -777,7 +772,7 @@ export function AgentTrace({ steps, title = 'Ход работы ИИ', bare = f
         {errors > 0 && (
           <p className="inline-flex items-center gap-1 text-xs font-semibold text-danger">
             <TriangleAlert aria-hidden="true" className="size-3.5 shrink-0" strokeWidth={2.5} />
-            ошибок: {errors}
+            {errors} {plural(errors, 'error', 'errors')}
           </p>
         )}
         {replay && (
@@ -785,11 +780,11 @@ export function AgentTrace({ steps, title = 'Ход работы ИИ', bare = f
             title={PROVIDER.replay.title}
             className={clsx(CAPTION, 'ml-auto border border-dashed border-border px-1.5 py-0.5 text-foreground')}
           >
-            Режим записи
+            Replay mode
           </span>
         )}
       </header>
-      <ol aria-label="Шаги работы ИИ" className="min-w-0">
+      <ol aria-label="AI steps" className="min-w-0">
         {list.map((step, i) => (
           <TraceStep key={`${i}:${step.id}`} step={step} last={i === list.length - 1} />
         ))}
@@ -804,7 +799,7 @@ export function AgentTrace({ steps, title = 'Ход работы ИИ', bare = f
  * Evidence-based text proposed for a card field. It earns no points until the business accepts it
  * (the text replaces the field) and then confirms the field.
  */
-export function SuggestionChip({ text, source, onAccept, acceptLabel = 'Принять', className }: {
+export function SuggestionChip({ text, source, onAccept, acceptLabel = 'Accept', className }: {
   text: string;
   source: string;
   onAccept?: () => void;
@@ -818,7 +813,7 @@ export function SuggestionChip({ text, source, onAccept, acceptLabel = 'Прин
         <div className="min-w-0 flex-1">
           <p className={clsx(CAPTION, 'flex min-w-0 items-center gap-1.5 text-muted')}>
             <Sparkles aria-hidden="true" className="size-3.5 shrink-0 text-foreground" strokeWidth={2.25} />
-            <span className="shrink-0 text-foreground">Предложение</span>
+            <span className="shrink-0 text-foreground">Suggestion</span>
             {source && (
               <>
                 <span aria-hidden="true">·</span>
@@ -827,7 +822,7 @@ export function SuggestionChip({ text, source, onAccept, acceptLabel = 'Прин
             )}
           </p>
           <p id={textId} className="mt-1.5 text-sm leading-relaxed text-foreground">{text}</p>
-          {onAccept && <p className="mt-1 text-xs text-muted">Текст заменит поле. Баллы начислятся после подтверждения</p>}
+          {onAccept && <p className="mt-1 text-xs text-muted">Replaces the field text. Points count once you confirm the field</p>}
         </div>
         {onAccept && (
           <button type="button" onClick={onAccept} aria-describedby={textId} className={clsx(BTN_SMALL, 'self-start')}>

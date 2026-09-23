@@ -34,28 +34,23 @@ const BTN_DANGER = 'border-transparent bg-danger text-white hover:bg-danger/90';
 const CONTROL = 'block w-full min-w-0 rounded-control border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted transition-[border-color,box-shadow] duration-150 motion-reduce:transition-none focus-visible:outline-hidden focus-visible:border-accent-strong focus-visible:ring-3 focus-visible:ring-accent/35';
 
 const LEVEL_META: Record<Level, { label: string; pill: string; dot: string; stroke: string }> = {
-  draft: { label: 'Черновик', pill: 'bg-surface-2 text-zinc-600', dot: 'bg-level-draft', stroke: 'stroke-level-draft' },
-  working: { label: 'Рабочая', pill: 'bg-amber-100 text-amber-800', dot: 'bg-level-working', stroke: 'stroke-level-working' },
-  ready: { label: 'Готовая', pill: `bg-accent-soft ${LIME_INK}`, dot: 'bg-accent-strong', stroke: 'stroke-level-ready' },
-  priority: { label: 'Приоритетная', pill: 'bg-primary text-primary-foreground', dot: 'bg-accent', stroke: 'stroke-level-priority' },
+  draft: { label: 'Draft', pill: 'bg-surface-2 text-zinc-600', dot: 'bg-level-draft', stroke: 'stroke-level-draft' },
+  working: { label: 'Working', pill: 'bg-amber-100 text-amber-800', dot: 'bg-level-working', stroke: 'stroke-level-working' },
+  ready: { label: 'Ready', pill: `bg-accent-soft ${LIME_INK}`, dot: 'bg-accent-strong', stroke: 'stroke-level-ready' },
+  priority: { label: 'Priority', pill: 'bg-primary text-primary-foreground', dot: 'bg-accent', stroke: 'stroke-level-priority' },
 };
 
 const STATUS_META: Record<Proposal['status'], { label: string; pill: string; Icon: LucideIcon }> = {
-  pending: { label: 'На рассмотрении', pill: 'bg-surface-2 text-zinc-600', Icon: Clock },
-  accepted: { label: 'Принята', pill: `bg-accent-soft ${LIME_INK}`, Icon: Check },
-  rejected: { label: 'Отклонена', pill: 'bg-red-50 text-red-700', Icon: X },
+  pending: { label: 'Under review', pill: 'bg-surface-2 text-zinc-600', Icon: Clock },
+  accepted: { label: 'Accepted', pill: `bg-accent-soft ${LIME_INK}`, Icon: Check },
+  rejected: { label: 'Rejected', pill: 'bg-red-50 text-red-700', Icon: X },
 };
 
 /* ------------------------------------------------------------------ helpers */
 
-/** Russian plural: plural(5, 'балл', 'балла', 'баллов') → 'баллов'. */
-function plural(n: number, one: string, few: string, many: string): string {
-  const a = Math.abs(Math.trunc(n)) % 100;
-  const b = a % 10;
-  if (a > 10 && a < 20) return many;
-  if (b === 1) return one;
-  if (b >= 2 && b <= 4) return few;
-  return many;
+/** English plural: plural(1, 'point', 'points') → 'point', plural(5, 'point', 'points') → 'points'. */
+function plural(n: number, one: string, many: string): string {
+  return Math.abs(n) === 1 ? one : many;
 }
 
 /** Trimmed, non-empty, case-insensitively unique; keeps the first spelling. */
@@ -85,14 +80,15 @@ function firstText(...values: (string | null | undefined)[]): string | null {
   return null;
 }
 
-// Date-only values ("2026-11-20") are formatted in UTC so the day never shifts with the viewer's time zone.
-const DATE_FMT = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+// Date-only values ("2026-11-20" → "20 November 2026") are formatted in UTC so the day never shifts with the
+// viewer's time zone.
+const DATE_FMT = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 
 function formatDate(value: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value.trim());
   if (!m) return value;
   const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
-  return Number.isNaN(d.getTime()) ? value : DATE_FMT.format(d).replace(/\s*г\.$/, '');
+  return Number.isNaN(d.getTime()) ? value : DATE_FMT.format(d);
 }
 
 /** Only http(s) links become clickable; anything else (javascript:, typos) is shown as plain text. */
@@ -133,7 +129,7 @@ function LevelPill({ level }: { level: Level }) {
   return (
     <span className={clsx('inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium', meta.pill)}>
       <span aria-hidden="true" className={clsx('size-1.5 shrink-0 rounded-full', meta.dot)} />
-      <span className="sr-only">Уровень: </span>
+      <span className="sr-only">Level: </span>
       {meta.label}
     </span>
   );
@@ -148,7 +144,7 @@ function ScoreRing({ total, level, size = 44 }: { total: number; level: Level; s
   return (
     <span
       role="img"
-      aria-label={`Рейтинг ${value} из 100`}
+      aria-label={`Rating ${value} of 100`}
       className="relative inline-grid shrink-0 place-items-center"
       style={{ width: size, height: size }}
     >
@@ -189,14 +185,14 @@ function ChipList({ items, label, max, matches }: {
           >
             {hit && <Check aria-hidden="true" className="size-3 shrink-0" strokeWidth={2.5} />}
             <span className="truncate">{item}</span>
-            {hit && <span className="sr-only"> (нужен в задаче)</span>}
+            {hit && <span className="sr-only"> (needed for the task)</span>}
           </li>
         );
       })}
       {hidden.length > 0 && (
         <li title={hidden.join(', ')} className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs leading-5 text-foreground">
           <span aria-hidden="true">+{hidden.length}</span>
-          <span className="sr-only">и еще {hidden.length}: {hidden.join(', ')}</span>
+          <span className="sr-only">and {hidden.length} more: {hidden.join(', ')}</span>
         </li>
       )}
     </ul>
@@ -216,7 +212,7 @@ function StatusPill({ status }: { status: Proposal['status'] }) {
 
 function PlanSteps({ plan }: { plan: string }) {
   const steps = planSteps(plan);
-  if (steps.length === 0) return <span className="text-muted">Не указан</span>;
+  if (steps.length === 0) return <span className="text-muted">Not specified</span>;
   if (steps.length === 1) return <p className="whitespace-pre-line">{plan.trim()}</p>;
   return (
     <ol className="space-y-1.5">
@@ -236,7 +232,7 @@ function PlanSteps({ plan }: { plan: string }) {
 }
 
 function Deadline({ value }: { value: string }) {
-  if (!value?.trim()) return <span className="text-muted">Не указан</span>;
+  if (!value?.trim()) return <span className="text-muted">Not specified</span>;
   return (
     <span className="inline-flex items-center gap-1.5">
       <CalendarDays aria-hidden="true" className="size-4 shrink-0 text-muted" />
@@ -250,7 +246,7 @@ function PrototypeLink({ url }: { url: string }) {
   if (!parsed) {
     return url?.trim()
       ? <span className="break-all text-muted">{url}</span>
-      : <span className="text-muted">Нет ссылки</span>;
+      : <span className="text-muted">No link</span>;
   }
   return (
     <a
@@ -265,7 +261,7 @@ function PrototypeLink({ url }: { url: string }) {
     >
       <span className="truncate">{shortUrl(parsed)}</span>
       <ExternalLink aria-hidden="true" className="size-3.5 shrink-0" />
-      <span className="sr-only"> (откроется в новой вкладке)</span>
+      <span className="sr-only"> (opens in a new tab)</span>
     </a>
   );
 }
@@ -285,7 +281,7 @@ function PointsBadge({ points }: { points: number }) {
   const earned = points > 0;
   return (
     <span
-      title="Баллы начисляются только за этапы, подтвержденные бизнесом"
+      title="Points are awarded only for milestones confirmed by the business"
       className={clsx(
         'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-sm font-medium',
         earned ? `bg-accent-soft ${LIME_INK}` : 'bg-surface-2 text-zinc-600',
@@ -293,7 +289,7 @@ function PointsBadge({ points }: { points: number }) {
     >
       <Trophy aria-hidden="true" className="size-4 shrink-0" />
       <span className="font-display font-bold tabular-nums">{points}</span>
-      {plural(points, 'балл', 'балла', 'баллов')}
+      {plural(points, 'point', 'points')}
     </span>
   );
 }
@@ -304,7 +300,7 @@ function PointsBadge({ points }: { points: number }) {
  * Catalog tile. When the page wraps the whole tile in a link (as the catalog does), pass neither
  * `onOpen` nor interactive `children`: a button inside a link is invalid HTML.
  */
-export function ProjectCard({ card, rating, proposalsCount, onOpen, openLabel = 'Подробнее', children, className }: {
+export function ProjectCard({ card, rating, proposalsCount, onOpen, openLabel = 'Details', children, className }: {
   card: TaskCard;
   rating: Rating;
   /** Shown in the footer when provided. */
@@ -316,7 +312,7 @@ export function ProjectCard({ card, rating, proposalsCount, onOpen, openLabel = 
   children?: ReactNode;
   className?: string;
 }) {
-  const title = firstText(card.fields.title) ?? 'Без названия';
+  const title = firstText(card.fields.title) ?? 'Untitled';
   const excerpt = firstText(card.fields.need, card.fields.context, card.techSpec?.summary);
   const meta = uniq([card.industry, card.topic]);
   const skills = uniq(card.skillsNeeded?.length ? card.skillsNeeded : card.techSpec?.suggestedStack);
@@ -361,11 +357,11 @@ export function ProjectCard({ card, rating, proposalsCount, onOpen, openLabel = 
       {isDraft && (
         <p className="flex items-start gap-1.5 bg-surface-2 px-2.5 py-1.5 text-xs text-zinc-600">
           <CircleAlert aria-hidden="true" className="mt-px size-3.5 shrink-0" />
-          <span>Нужно уточнение: описание пока неполное, но заявки принимаются</span>
+          <span>Needs clarification: the description is incomplete, but proposals are open</span>
         </p>
       )}
 
-      {skills.length > 0 && <ChipList items={skills} label="Нужные навыки" max={5} />}
+      {skills.length > 0 && <ChipList items={skills} label="Skills needed" max={5} />}
 
       {hasFooter && (
         <footer className="mt-auto flex items-center justify-between gap-3 border-t border-hairline pt-3">
@@ -374,14 +370,14 @@ export function ProjectCard({ card, rating, proposalsCount, onOpen, openLabel = 
               <span className="inline-flex items-center gap-1.5">
                 <MessageSquare aria-hidden="true" className="size-3.5" />
                 {proposalsCount > 0
-                  ? `${proposalsCount} ${plural(proposalsCount, 'заявка', 'заявки', 'заявок')}`
-                  : 'Заявок пока нет'}
+                  ? `${proposalsCount} ${plural(proposalsCount, 'proposal', 'proposals')}`
+                  : 'No proposals yet'}
               </span>
             )}
             {card.techSpec && (
               <span className="inline-flex items-center gap-1.5">
                 <FileText aria-hidden="true" className="size-3.5" />
-                Есть техдокументация
+                Tech docs available
               </span>
             )}
           </div>
@@ -398,16 +394,16 @@ type SpecListKey = Exclude<keyof TechSpec, 'summary' | 'openQuestions'>;
 type SpecListStyle = 'bullets' | 'numbered' | 'checks' | 'chips';
 
 const SPEC_SECTIONS: { key: SpecListKey; title: string; style: SpecListStyle }[] = [
-  { key: 'scope', title: 'Объем', style: 'bullets' },
-  { key: 'dataInputs', title: 'Данные', style: 'bullets' },
-  { key: 'functionalRequirements', title: 'Функциональные требования', style: 'numbered' },
-  { key: 'nonFunctional', title: 'Нефункциональные', style: 'bullets' },
-  { key: 'acceptanceCriteria', title: 'Критерии приемки', style: 'checks' },
-  { key: 'suggestedStack', title: 'Рекомендуемый стек', style: 'chips' },
+  { key: 'scope', title: 'Scope', style: 'bullets' },
+  { key: 'dataInputs', title: 'Data inputs', style: 'bullets' },
+  { key: 'functionalRequirements', title: 'Functional requirements', style: 'numbered' },
+  { key: 'nonFunctional', title: 'Non-functional requirements', style: 'bullets' },
+  { key: 'acceptanceCriteria', title: 'Acceptance criteria', style: 'checks' },
+  { key: 'suggestedStack', title: 'Suggested stack', style: 'chips' },
 ];
 
 function NotStated() {
-  return <p className="text-sm text-muted">Не указано</p>;
+  return <p className="text-sm text-muted">Not specified</p>;
 }
 
 function SpecSection({ title, children }: { title: string; children: ReactNode }) {
@@ -424,8 +420,8 @@ function SpecList({ items, style }: { items: string[]; style: SpecListStyle }) {
   if (style === 'chips') {
     return (
       <>
-        <ChipList items={uniq(items)} label="Рекомендуемый стек" />
-        <p className="mt-2 text-xs text-muted">Это рекомендация: команда может предложить свой стек.</p>
+        <ChipList items={uniq(items)} label="Suggested stack" />
+        <p className="mt-2 text-xs text-muted">This is a suggestion: the team can propose its own stack.</p>
       </>
     );
   }
@@ -458,7 +454,7 @@ export function TechSpecView({ spec, className }: { spec: TechSpec; className?: 
 
   return (
     <article className={clsx(SURFACE, '@container w-full px-5 py-2 shadow-card sm:px-6', className)}>
-      <SpecSection title="Кратко">
+      <SpecSection title="Summary">
         {summary ? <p className="text-[15px] leading-relaxed text-foreground">{summary}</p> : <NotStated />}
       </SpecSection>
 
@@ -472,10 +468,10 @@ export function TechSpecView({ spec, className }: { spec: TechSpec; className?: 
         <section aria-labelledby={questionsId} className="mb-4 mt-2 rounded-control border border-amber-300 bg-amber-50 p-4">
           <h3 id={questionsId} className="flex items-center gap-2 text-sm font-semibold text-amber-900">
             <CircleQuestionMark aria-hidden="true" className="size-4 shrink-0 text-amber-700" />
-            Открытые вопросы
+            Open questions
             <span className="rounded-full bg-amber-100 px-1.5 text-xs font-medium tabular-nums text-amber-800">{questions.length}</span>
           </h3>
-          <p className="mt-1 text-xs text-amber-800">Бизнес пока не ответил на них. Их стоит уточнить до старта работы.</p>
+          <p className="mt-1 text-xs text-amber-800">The business has not answered these yet. Clarify them before work starts.</p>
           <ul className="mt-3 space-y-1.5 text-sm leading-relaxed text-amber-950">
             {questions.map((q, i) => (
               <li key={i} className="flex gap-2.5">
@@ -515,15 +511,15 @@ export function ProposalCard({ proposal, team, onAccept, onReject, children, cla
   const defaultActions = proposal.status === 'pending' && (onAccept || onReject) ? (
     <>
       {onAccept && (
-        <button type="button" onClick={onAccept} aria-label={`Принять заявку команды ${name}`} className={clsx(BTN, BTN_PAD, BTN_PRIMARY, FOCUS_RING)}>
+        <button type="button" onClick={onAccept} aria-label={`Accept proposal from ${name}`} className={clsx(BTN, BTN_PAD, BTN_PRIMARY, FOCUS_RING)}>
           <Check aria-hidden="true" />
-          Принять
+          Accept
         </button>
       )}
       {onReject && (
-        <button type="button" onClick={onReject} aria-label={`Отклонить заявку команды ${name}`} className={clsx(BTN, BTN_PAD, BTN_SECONDARY, FOCUS_RING)}>
+        <button type="button" onClick={onReject} aria-label={`Reject proposal from ${name}`} className={clsx(BTN, BTN_PAD, BTN_SECONDARY, FOCUS_RING)}>
           <X aria-hidden="true" />
-          Отклонить
+          Reject
         </button>
       )}
     </>
@@ -548,23 +544,23 @@ export function ProposalCard({ proposal, team, onAccept, onReject, children, cla
 
       {/* Deadline and prototype share a row when there is room and stack in narrow cards, so the link stays readable. */}
       <dl className="flex flex-wrap gap-x-4 gap-y-3">
-        <Field label="Идея" className="min-w-0 basis-full">
+        <Field label="Idea" className="min-w-0 basis-full">
           <p className="whitespace-pre-line break-words">{proposal.idea}</p>
         </Field>
-        <Field label="План" className="min-w-0 basis-full">
+        <Field label="Plan" className="min-w-0 basis-full">
           <PlanSteps plan={proposal.plan} />
         </Field>
-        <Field label="Срок" className="min-w-[min(9rem,100%)] flex-1">
+        <Field label="Deadline" className="min-w-[min(9rem,100%)] flex-1">
           <Deadline value={proposal.deadline} />
         </Field>
-        <Field label="Прототип" className="min-w-[min(12rem,100%)] flex-[2]">
+        <Field label="Prototype" className="min-w-[min(12rem,100%)] flex-[2]">
           <PrototypeLink url={proposal.prototypeUrl} />
         </Field>
       </dl>
 
       {proposal.status === 'rejected' && proposal.rejectReason?.trim() ? (
         <p className="bg-surface-2 px-3 py-2 text-sm text-foreground/80">
-          <span className="font-medium text-foreground">Причина отказа: </span>
+          <span className="font-medium text-foreground">Rejection reason: </span>
           {proposal.rejectReason}
         </p>
       ) : null}
@@ -579,13 +575,13 @@ export function ProposalCard({ proposal, team, onAccept, onReject, children, cla
 /* ------------------------------------------------------------------ ProposalCompare */
 
 const COMPARE_ROWS: { label: string; Icon: LucideIcon }[] = [
-  { label: 'Команда', Icon: Users },
-  { label: 'Идея', Icon: Lightbulb },
-  { label: 'План', Icon: ListChecks },
-  { label: 'Срок', Icon: CalendarDays },
-  { label: 'Прототип', Icon: ExternalLink },
-  { label: 'Навыки команды', Icon: Wrench },
-  { label: 'Решение', Icon: CircleCheck },
+  { label: 'Team', Icon: Users },
+  { label: 'Idea', Icon: Lightbulb },
+  { label: 'Plan', Icon: ListChecks },
+  { label: 'Deadline', Icon: CalendarDays },
+  { label: 'Prototype', Icon: ExternalLink },
+  { label: 'Team skills', Icon: Wrench },
+  { label: 'Decision', Icon: CircleCheck },
 ];
 
 const DIMMED = 'opacity-60 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none';
@@ -631,7 +627,7 @@ function DecisionCell({ proposal, teamName, onAccept, onReject }: {
     return (
       <p ref={resultRef} tabIndex={-1} className={clsx('flex items-center gap-1.5 text-sm font-semibold focus:outline-hidden', LIME_INK)}>
         <CircleCheck aria-hidden="true" className="size-4 shrink-0" />
-        Команда выбрана
+        Team selected
       </p>
     );
   }
@@ -641,14 +637,14 @@ function DecisionCell({ proposal, teamName, onAccept, onReject }: {
       <p ref={resultRef} tabIndex={-1} className="text-sm leading-relaxed text-muted focus:outline-hidden">
         {text ? (
           <>
-            <span className="font-medium text-foreground">Причина: </span>
+            <span className="font-medium text-foreground">Reason: </span>
             {text}
           </>
-        ) : 'Отклонена без комментария'}
+        ) : 'Rejected without a comment'}
       </p>
     );
   }
-  if (!onAccept && !onReject) return <p className="text-sm text-muted">Ждет решения бизнеса</p>;
+  if (!onAccept && !onReject) return <p className="text-sm text-muted">Awaiting the business decision</p>;
 
   const cancel = () => {
     restoreFocus.current = true;
@@ -676,7 +672,7 @@ function DecisionCell({ proposal, teamName, onAccept, onReject }: {
         }}
       >
         <label htmlFor={fieldId} className="block text-xs font-medium text-foreground">
-          Причина для команды <span className="font-normal text-muted">(необязательно)</span>
+          Reason for the team <span className="font-normal text-muted">(optional)</span>
         </label>
         <textarea
           id={fieldId}
@@ -684,16 +680,16 @@ function DecisionCell({ proposal, teamName, onAccept, onReject }: {
           rows={3}
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          placeholder="Что стоит улучшить в заявке"
+          placeholder="What could the team improve?"
           className={clsx(CONTROL, 'resize-y')}
         />
         <div className="flex flex-wrap gap-2">
           <button type="submit" className={clsx(BTN, BTN_PAD, BTN_DANGER, FOCUS_RING)}>
             <X aria-hidden="true" />
-            Отклонить заявку
+            Reject proposal
           </button>
           <button type="button" onClick={cancel} className={clsx(BTN, BTN_PAD, BTN_GHOST, FOCUS_RING)}>
-            Отмена
+            Cancel
           </button>
         </div>
       </form>
@@ -709,11 +705,11 @@ function DecisionCell({ proposal, teamName, onAccept, onReject }: {
             focusResult.current = true;
             onAccept(proposal.id);
           }}
-          aria-label={`Принять заявку команды ${teamName}`}
+          aria-label={`Accept proposal from ${teamName}`}
           className={clsx(BTN, BTN_PAD, BTN_PRIMARY, FOCUS_RING)}
         >
           <Check aria-hidden="true" />
-          Принять
+          Accept
         </button>
       )}
       {onReject && (
@@ -721,11 +717,11 @@ function DecisionCell({ proposal, teamName, onAccept, onReject }: {
           ref={rejectRef}
           type="button"
           onClick={() => setRejecting(true)}
-          aria-label={`Отклонить заявку команды ${teamName}`}
+          aria-label={`Reject proposal from ${teamName}`}
           className={clsx(BTN, BTN_PAD, BTN_SECONDARY, FOCUS_RING)}
         >
           <X aria-hidden="true" />
-          Отклонить
+          Reject
         </button>
       )}
     </div>
@@ -744,7 +740,7 @@ function CompareColumn({ proposal, team, need, onAccept, onReject }: {
 
   return (
     <section
-      aria-label={`Заявка команды ${name}`}
+      aria-label={`Proposal from ${name}`}
       className={clsx(
         SURFACE, 'group row-span-7 grid min-w-0 snap-start grid-rows-subgrid',
         proposal.status === 'accepted' ? 'shadow-accent ring-2 ring-accent' : 'shadow-card',
@@ -755,30 +751,30 @@ function CompareColumn({ proposal, team, need, onAccept, onReject }: {
         <StatusPill status={proposal.status} />
       </header>
       <dl className={cell}>
-        <CompareTerm>Идея</CompareTerm>
+        <CompareTerm>Idea</CompareTerm>
         <dd className="whitespace-pre-line text-sm leading-relaxed text-foreground">{proposal.idea}</dd>
       </dl>
       <dl className={cell}>
-        <CompareTerm>План</CompareTerm>
+        <CompareTerm>Plan</CompareTerm>
         <dd className="text-sm leading-relaxed text-foreground"><PlanSteps plan={proposal.plan} /></dd>
       </dl>
       <dl className={cell}>
-        <CompareTerm>Срок</CompareTerm>
+        <CompareTerm>Deadline</CompareTerm>
         <dd className="text-sm text-foreground"><Deadline value={proposal.deadline} /></dd>
       </dl>
       <dl className={cell}>
-        <CompareTerm>Прототип</CompareTerm>
+        <CompareTerm>Prototype</CompareTerm>
         <dd className="min-w-0 text-sm"><PrototypeLink url={proposal.prototypeUrl} /></dd>
       </dl>
       <dl className={cell}>
-        <CompareTerm>Навыки команды</CompareTerm>
+        <CompareTerm>Team skills</CompareTerm>
         <dd>
           {skills.length > 0
-            ? <ChipList items={skills} label={`Навыки команды ${name}`} matches={need} />
-            : <span className="text-sm text-muted">Не указаны</span>}
+            ? <ChipList items={skills} label={`Skills of ${name}`} matches={need} />
+            : <span className="text-sm text-muted">Not specified</span>}
           {need && (
             <p className="mt-2 text-xs text-muted">
-              Совпадает с задачей: <span className="font-semibold tabular-nums text-foreground">{matched} из {need.size}</span>
+              Matches the task: <span className="font-semibold tabular-nums text-foreground">{matched} of {need.size}</span>
             </p>
           )}
         </dd>
@@ -792,7 +788,7 @@ function CompareColumn({ proposal, team, need, onAccept, onReject }: {
 
 /**
  * Side-by-side comparison. Columns keep the given order: nothing is ranked or picked automatically,
- * the business accepts one, several or none. "Отклонить" opens an inline optional reason field and
+ * the business accepts one, several or none. "Reject" opens an inline optional reason field and
  * calls `onReject(id, reason)` with a string (empty when left blank).
  */
 export function ProposalCompare({ proposals, teams, onAccept, onReject, skillsNeeded, className }: {
@@ -800,7 +796,7 @@ export function ProposalCompare({ proposals, teams, onAccept, onReject, skillsNe
   teams: TeamProfile[];
   onAccept?: AcceptHandler;
   onReject?: RejectHandler;
-  /** The task's skills; matching team skills are highlighted with a "N из M" count. */
+  /** The task's skills; matching team skills are highlighted with a "N of M" count. */
   skillsNeeded?: string[];
   className?: string;
 }) {
@@ -812,7 +808,7 @@ export function ProposalCompare({ proposals, teams, onAccept, onReject, skillsNe
   return (
     <div
       role="region"
-      aria-label="Сравнение заявок"
+      aria-label="Proposal comparison"
       tabIndex={0}
       // Padding leaves room for the hard shadows and rings inside the scroll box; the negative margin keeps alignment.
       // `relative` makes this the containing block of the sr-only spans, so they are clipped here and never widen the page.
@@ -869,9 +865,9 @@ export function TeamCard({ team, points, className, children }: {
   children?: ReactNode;
 }) {
   const groups: [string, string[]][] = [
-    ['Интересы', uniq(team.interests)],
-    ['Навыки', uniq(team.skills)],
-    ['Технологии', uniq(team.tech)],
+    ['Interests', uniq(team.interests)],
+    ['Skills', uniq(team.skills)],
+    ['Tech', uniq(team.tech)],
   ];
   const about = firstText(team.about);
 
@@ -895,7 +891,7 @@ export function TeamCard({ team, points, className, children }: {
             <dd>
               {items.length > 0
                 ? <ChipList items={items} label={label} />
-                : <span className="text-xs text-muted">Не указано</span>}
+                : <span className="text-xs text-muted">Not specified</span>}
             </dd>
           </div>
         ))}
@@ -928,7 +924,7 @@ function RankBadge({ rank }: { rank: number | null }) {
     return (
       <span className="relative grid size-7 place-items-center">
         <span aria-hidden="true" className="size-7 border border-dashed border-foreground/30" />
-        <span className="sr-only">Пока без баллов</span>
+        <span className="sr-only">No points yet</span>
       </span>
     );
   }
@@ -941,7 +937,7 @@ function RankBadge({ rank }: { rank: number | null }) {
         rank > 3 && 'text-muted',
       )}
     >
-      <span className="sr-only">Место </span>
+      <span className="sr-only">Rank </span>
       {rank}
     </span>
   );
@@ -958,7 +954,7 @@ export function Leaderboard({ teams, points, currentTeamId, className }: {
   if (teams.length === 0) {
     return (
       <p className={clsx('border border-dashed border-border px-4 py-6 text-center text-sm text-muted', className)}>
-        Команд пока нет
+        No teams yet
       </p>
     );
   }
@@ -967,7 +963,7 @@ export function Leaderboard({ teams, points, currentTeamId, className }: {
 
   return (
     <ol
-      aria-label="Рейтинг команд"
+      aria-label="Team leaderboard"
       className={clsx(SURFACE, 'divide-y divide-hairline overflow-hidden shadow-card', className)}
     >
       {rows.map(({ team, points: pts, rank }) => {
@@ -991,12 +987,12 @@ export function Leaderboard({ teams, points, currentTeamId, className }: {
                 <span className={clsx('truncate text-foreground', podium ? 'font-semibold' : 'text-sm')}>{team.name}</span>
                 {leader && (
                   <span className={clsx('shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-semibold leading-none', LIME_INK)}>
-                    Лидер
+                    Leader
                   </span>
                 )}
                 {mine && (
                   <span className="shrink-0 rounded-full border border-border bg-surface px-2 py-0.5 text-[11px] font-medium leading-none text-foreground">
-                    Ваша команда
+                    Your team
                   </span>
                 )}
               </div>
@@ -1006,7 +1002,7 @@ export function Leaderboard({ teams, points, currentTeamId, className }: {
             </div>
             <p className="whitespace-nowrap text-right">
               <span className={clsx('font-display font-bold tabular-nums text-foreground', podium ? 'text-lg' : 'text-sm')}>{pts}</span>
-              <span className="ml-1 text-xs text-muted">{plural(pts, 'балл', 'балла', 'баллов')}</span>
+              <span className="ml-1 text-xs text-muted">{plural(pts, 'point', 'points')}</span>
             </p>
           </li>
         );

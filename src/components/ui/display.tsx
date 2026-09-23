@@ -126,7 +126,7 @@ export type StatProps = {
   className?: string;
 };
 
-/** Key number with a caption, e.g. <Stat label="Рейтинг" value="72" hint="из 100" />. */
+/** Key number with a caption, e.g. <Stat label="Rating" value="72" hint="of 100" />. */
 export function Stat({ label, value, hint, className }: StatProps) {
   return (
     <dl className={clsx('flex min-w-0 flex-col gap-1', className)}>

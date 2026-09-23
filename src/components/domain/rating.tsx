@@ -13,7 +13,7 @@ import { levelFor } from '@/lib/rating';
 export type RatingLocale = 'ru' | 'en';
 
 /** Language of the whole rating UI. One switch for every component below; each also takes a `locale` prop. */
-const DEFAULT_LOCALE: RatingLocale = 'ru';
+const DEFAULT_LOCALE: RatingLocale = 'en';
 
 const LEVELS: Level[] = ['draft', 'working', 'ready', 'priority'];
 
@@ -147,8 +147,8 @@ const EN: Dict = {
   breakdownNote: 'Computed by code from open rules, no AI. Points only for filled and confirmed fields.',
   checks: (passed, total) => `Checks: ${passed} of ${total}`,
   passed: 'Passed:',
-  failed: 'Not passed:',
-  raise: 'How to raise the rating',
+  failed: 'Failed:',
+  raise: 'How to raise the score',
   gain: (points) => `+${points} ${points === 1 ? 'pt' : 'pts'}`,
   more: (count) => `Show ${count} more`,
   less: 'Show less',
@@ -248,23 +248,51 @@ function localize(text: string, locale: RatingLocale): string {
   return text;
 }
 
-const RU_NOTE = new Map<string, string>([
-  ['created', 'Карточка создана'],
-  ['card created from draft', 'Карточка создана из черновика'],
-  ['published', 'Опубликована в каталоге'],
-]);
-const RU_FIELD_BY_KEY = new Map<string, string>(Object.entries(RU.fields));
+interface NoteCopy {
+  exact: Map<string, string>;
+  /** Field names by CardField key ("successCriteria"). */
+  fieldByKey: Map<string, string>;
+  /** Field names by lowercase English label ("expected result"), the shape seed notes use. */
+  fieldByLabel: Map<string, string>;
+  confirmed: string;
+  unconfirmed: string;
+}
 
-/** History notes come from the store ("confirmed successCriteria") or seed data; known shapes are translated. */
+const NOTE_COPY: Record<RatingLocale, NoteCopy> = {
+  ru: {
+    exact: new Map([
+      ['created', 'Карточка создана'],
+      ['card created from draft', 'Карточка создана из черновика'],
+      ['published', 'Опубликована в каталоге'],
+    ]),
+    fieldByKey: new Map(Object.entries(RU.fields)),
+    fieldByLabel: RU_FIELD,
+    confirmed: 'Подтверждено',
+    unconfirmed: 'Снято подтверждение',
+  },
+  en: {
+    exact: new Map([
+      ['created', 'Card created'],
+      ['card created from draft', 'Card created from draft'],
+      ['published', 'Published to the catalog'],
+    ]),
+    fieldByKey: new Map(Object.entries(EN.fields)),
+    fieldByLabel: new Map(Object.values(EN.fields).map((label): [string, string] => [label.toLowerCase(), label])),
+    confirmed: 'Confirmed',
+    unconfirmed: 'Unconfirmed',
+  },
+};
+
+/** History notes come from the store ("confirmed successCriteria") or seed data; known shapes become readable text. */
 function localizeNote(note: string, locale: RatingLocale): string {
-  if (locale !== 'ru') return note;
-  const exact = RU_NOTE.get(note);
+  const copy = NOTE_COPY[locale];
+  const exact = copy.exact.get(note);
   if (exact) return exact;
   const match = /^(un)?confirmed (.+)$/.exec(note);
   if (!match) return note;
-  const fields = match[2].split(/,\s*/).map((f) => RU_FIELD_BY_KEY.get(f) ?? RU_FIELD.get(f.toLowerCase()));
+  const fields = match[2].split(/,\s*/).map((f) => copy.fieldByKey.get(f) ?? copy.fieldByLabel.get(f.toLowerCase()));
   if (fields.some((f) => !f)) return note;
-  return `${match[1] ? 'Снято подтверждение' : 'Подтверждено'}: ${fields.join(', ')}`;
+  return `${match[1] ? copy.unconfirmed : copy.confirmed}: ${fields.join(', ')}`;
 }
 
 function componentLabel(component: RatingComponent, locale: RatingLocale): string {

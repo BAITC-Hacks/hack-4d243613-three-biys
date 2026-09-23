@@ -1,6 +1,6 @@
 'use client';
 // Tabs (owner: B, design): controlled segmented tabs. The caller keeps the state and renders the content:
-// <Tabs items={[{ id: 'card', label: 'Карточка' }, { id: 'proposals', label: 'Предложения', count: 3 }]} value={tab} onChange={setTab} />
+// <Tabs items={[{ id: 'card', label: 'Card' }, { id: 'proposals', label: 'Proposals', count: 3 }]} value={tab} onChange={setTab} />
 // Keyboard: Left/Right arrows move and select, Home/End jump to the first/last tab.
 import type { KeyboardEvent, ReactNode } from 'react';
 import clsx from 'clsx';
@@ -17,7 +17,7 @@ export type TabsProps<T extends string = string> = {
   items: readonly TabItem<T>[];
   value: T;
   onChange: (id: T) => void;
-  /** Accessible name of the tab list, e.g. "Разделы задачи". */
+  /** Accessible name of the tab list, e.g. "Task sections". */
   'aria-label'?: string;
   /** Stretch the tabs to the container width. */
   fullWidth?: boolean;

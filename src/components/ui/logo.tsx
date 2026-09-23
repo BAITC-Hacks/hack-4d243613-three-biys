@@ -1,4 +1,4 @@
-// Brand logo "КӨПІР" (owner: B, design). Approved 23.09 14:50: concept "Техно",
+// Brand logo "КӨПІР" (owner: B, design). Approved 23.09 14:50: concept "Techno",
 // Tektur 800 uppercase + lime indicator square with a soft glow.
 // Usage: <Logo /> in the header; <Logo size="lg" /> on the landing; <Logo onDark /> on graphite backgrounds.
 import clsx from 'clsx';

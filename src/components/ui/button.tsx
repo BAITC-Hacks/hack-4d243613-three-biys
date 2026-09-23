@@ -41,7 +41,7 @@ export type ButtonClassOptions = {
 
 /**
  * Button look as a class string, for elements that are not <button>, e.g. a Next.js Link:
- * <Link href="/catalog" className={buttonClasses({ variant: 'secondary' })}>Каталог</Link>
+ * <Link href="/catalog" className={buttonClasses({ variant: 'secondary' })}>Catalog</Link>
  */
 export function buttonClasses({
   variant = 'primary',
@@ -96,7 +96,7 @@ export type IconButtonProps = Omit<ButtonProps, 'aria-label'> & {
   label: string;
 };
 
-/** Square icon-only button, ghost by default: <IconButton label="Удалить"><Trash2 /></IconButton>. */
+/** Square icon-only button, ghost by default: <IconButton label="Delete"><Trash2 /></IconButton>. */
 export function IconButton({
   label,
   variant = 'ghost',

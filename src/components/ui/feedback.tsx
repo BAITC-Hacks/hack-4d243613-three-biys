@@ -22,7 +22,7 @@ export type ProgressBarProps = {
   max?: number;
   tone?: ProgressTone;
   size?: 'sm' | 'md';
-  /** Accessible name, e.g. "Готовность задачи". */
+  /** Accessible name, e.g. "Task readiness". */
   label?: string;
   className?: string;
 };
@@ -63,7 +63,7 @@ export type SpinnerProps = {
   className?: string;
 };
 
-export function Spinner({ size = 'md', label = 'Загрузка', className }: SpinnerProps) {
+export function Spinner({ size = 'md', label = 'Loading', className }: SpinnerProps) {
   const icon = (
     <svg
       viewBox="0 0 24 24"
