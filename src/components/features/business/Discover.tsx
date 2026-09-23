@@ -44,7 +44,7 @@ export function Discover() {
         {sourcesError && <p className="text-sm text-amber-700">{sourcesError}</p>}
         {sources && (
           <>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted">
               {sources.meetings.length} meetings · {sources.aggregates.length} team-week aggregates · {sources.chats.length} chat messages
             </p>
             <PrivacyPanel privacy={sources.privacy} live={sources.live} />
@@ -65,7 +65,7 @@ export function Discover() {
 
       <section className="space-y-3">
         <button disabled={busy} onClick={analyze}
-          className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50">
+          className="rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50">
           {busy ? 'Analyzing…' : 'Analyze last 4 weeks'}
         </button>
         {error && <div className="rounded bg-red-50 p-3 text-sm text-red-700">{error}</div>}

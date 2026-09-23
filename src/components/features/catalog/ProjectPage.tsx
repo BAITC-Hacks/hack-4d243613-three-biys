@@ -28,19 +28,19 @@ export function ProjectPage({ id }: { id: string }) {
             <h1 className="text-2xl font-bold">{card.fields.title}</h1>
             <LevelBadge level={rating.level} />
           </div>
-          <p className="text-sm text-gray-600">{card.businessName} · {card.industry} · {card.topic}</p>
+          <p className="text-sm text-muted">{card.businessName} · {card.industry} · {card.topic}</p>
         </div>
         <section className="space-y-3">
           {FIELD_LABELS.map(([k, label]) => (
             <div key={k}>
               <h3 className="font-medium">{label}</h3>
-              <p className="text-sm">{card.fields[k] ?? <span className="text-gray-400">Not provided</span>}</p>
+              <p className="text-sm">{card.fields[k] ?? <span className="text-muted">Not provided</span>}</p>
             </div>
           ))}
         </section>
         <section className="space-y-2">
           <h2 className="text-xl font-semibold">Technical documentation</h2>
-          {card.techSpec ? <TechSpecView spec={card.techSpec} /> : <p className="text-sm text-gray-500">Not provided yet.</p>}
+          {card.techSpec ? <TechSpecView spec={card.techSpec} /> : <p className="text-sm text-muted">Not provided yet.</p>}
         </section>
         <ProposalForm taskId={card.id} />
       </div>
@@ -56,13 +56,13 @@ function ProposalForm({ taskId }: { taskId: string }) {
   const [form, setForm] = useState({ idea: '', plan: '', deadline: '', prototypeUrl: '' });
 
   if (role !== 'student' || !team) {
-    return <p className="text-sm text-gray-500">Switch to Student to submit a proposal.</p>;
+    return <p className="text-sm text-muted">Switch to Student to submit a proposal.</p>;
   }
   if (existing) {
     return (
-      <div className="rounded bg-blue-50 p-3 text-sm">
+      <div className="rounded bg-accent-soft p-3 text-sm">
         {team.name} already submitted a proposal — status: <b>{existing.status}</b>
-        {existing.rejectReason && <div className="mt-1 text-gray-700">Feedback: {existing.rejectReason}</div>}
+        {existing.rejectReason && <div className="mt-1 text-muted">Feedback: {existing.rejectReason}</div>}
       </div>
     );
   }
@@ -70,24 +70,24 @@ function ProposalForm({ taskId }: { taskId: string }) {
   const checks = proposalChecks(form);
   const valid = checks.every((c) => c.ok);
   return (
-    <section className="space-y-2 rounded border p-4">
+    <section className="space-y-2 rounded border border-border p-4">
       <h2 className="text-xl font-semibold">Submit a proposal as {team.name}</h2>
-      <textarea className="h-20 w-full rounded border p-2 text-sm" placeholder="Idea"
+      <textarea className="h-20 w-full rounded border border-border p-2 text-sm" placeholder="Idea"
         value={form.idea} onChange={(e) => setForm({ ...form, idea: e.target.value })} />
-      <textarea className="h-24 w-full rounded border p-2 text-sm" placeholder="Plan"
+      <textarea className="h-24 w-full rounded border border-border p-2 text-sm" placeholder="Plan"
         value={form.plan} onChange={(e) => setForm({ ...form, plan: e.target.value })} />
       <div className="flex flex-wrap gap-2 text-sm">
-        <input type="date" className="rounded border px-2 py-1"
+        <input type="date" className="rounded border border-border px-2 py-1"
           value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} />
-        <input className="flex-1 rounded border px-2 py-1" placeholder="Prototype link"
+        <input className="flex-1 rounded border border-border px-2 py-1" placeholder="Prototype link"
           value={form.prototypeUrl} onChange={(e) => setForm({ ...form, prototypeUrl: e.target.value })} />
       </div>
       <ul className="text-xs">
         {checks.map((c) => (
-          <li key={c.label} className={c.ok ? 'text-green-700' : 'text-gray-500'}>{c.ok ? '✓' : '○'} {c.label}</li>
+          <li key={c.label} className={c.ok ? 'text-[#365314]' : 'text-muted'}>{c.ok ? '✓' : '○'} {c.label}</li>
         ))}
       </ul>
-      <button disabled={!valid} className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+      <button disabled={!valid} className="rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"
         onClick={() => submitProposal({ taskId, teamId: team.id, ...form })}>
         Submit proposal
       </button>

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useStore, type Role } from '@/lib/store';
 import { useHydrated } from './useHydrated';
+import { Logo } from '@/components/ui/logo';
 
 const NAV: Record<Role, { href: string; label: string }[]> = {
   business: [
@@ -31,9 +32,9 @@ export function AppHeader() {
   };
 
   return (
-    <header className="border-b">
+    <header className="border-b border-border">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3">
-        <Link href="/" className="text-lg font-bold">TaskForge</Link>
+        <Link href="/" aria-label="Көпір — home"><Logo /></Link>
         {hydrated && (
           <>
             <nav className="flex flex-wrap gap-3 text-sm">
@@ -41,19 +42,19 @@ export function AppHeader() {
                 <Link
                   key={n.href}
                   href={n.href}
-                  className={pathname === n.href ? 'font-semibold underline' : 'text-gray-600'}
+                  className={pathname === n.href ? 'font-semibold underline' : 'text-muted'}
                 >
                   {n.label}
                 </Link>
               ))}
             </nav>
             <div className="ml-auto flex items-center gap-2 text-sm">
-              <div className="flex rounded border">
+              <div className="flex rounded border border-border">
                 {(['business', 'student'] as Role[]).map((r) => (
                   <button
                     key={r}
                     onClick={() => switchRole(r)}
-                    className={`px-3 py-1 capitalize ${role === r ? 'bg-gray-900 text-white' : ''}`}
+                    className={`px-3 py-1 capitalize ${role === r ? 'bg-primary text-primary-foreground' : ''}`}
                   >
                     {r}
                   </button>
@@ -61,7 +62,7 @@ export function AppHeader() {
               </div>
               {role === 'student' && (
                 <select
-                  className="rounded border px-2 py-1"
+                  className="rounded border border-border px-2 py-1"
                   value={currentTeamId}
                   onChange={(e) => setTeam(e.target.value)}
                 >
@@ -69,7 +70,7 @@ export function AppHeader() {
                 </select>
               )}
               <button
-                className="text-xs text-gray-500 underline"
+                className="text-xs text-muted underline"
                 onClick={() => { if (confirm('Reset demo data?')) resetDemo(); }}
               >
                 Reset demo

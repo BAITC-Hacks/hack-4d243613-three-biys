@@ -88,7 +88,7 @@ function Wizard({ insight }: { insight?: Insight }) {
     <div className="space-y-6">
       <ol className="flex gap-4 text-sm">
         {(['draft', 'questions', 'card'] as Step[]).map((s, i) => (
-          <li key={s} className={s === step ? 'font-semibold' : 'text-gray-500'}>
+          <li key={s} className={s === step ? 'font-semibold' : 'text-muted'}>
             {i + 1}. {s === 'draft' ? 'Draft' : s === 'questions' ? 'AI questions' : 'Card & publish'}
           </li>
         ))}
@@ -100,7 +100,7 @@ function Wizard({ insight }: { insight?: Insight }) {
         <section className="space-y-3">
           <h1 className="text-2xl font-bold">Describe your need</h1>
           <textarea
-            className="h-40 w-full rounded border p-3"
+            className="h-40 w-full rounded border border-border p-3"
             placeholder="In a few sentences: what hurts and what you want to change"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -110,16 +110,16 @@ function Wizard({ insight }: { insight?: Insight }) {
           ))}
           <div className="flex gap-3">
             <label className="text-sm">Industry
-              <input className="ml-2 rounded border px-2 py-1" value={industry} onChange={(e) => setIndustry(e.target.value)} />
+              <input className="ml-2 rounded border border-border px-2 py-1" value={industry} onChange={(e) => setIndustry(e.target.value)} />
             </label>
             <label className="text-sm">Topic
-              <input className="ml-2 rounded border px-2 py-1" value={topic} onChange={(e) => setTopic(e.target.value)} />
+              <input className="ml-2 rounded border border-border px-2 py-1" value={topic} onChange={(e) => setTopic(e.target.value)} />
             </label>
           </div>
           <button
             disabled={busy || !draft.trim()}
             onClick={runClarify}
-            className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+            className="rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"
           >
             {busy ? 'Analyzing…' : 'Clarify with AI'}
           </button>
@@ -130,28 +130,28 @@ function Wizard({ insight }: { insight?: Insight }) {
         <section className="space-y-4">
           <h1 className="text-2xl font-bold">AI found gaps in your draft</h1>
           {trace.length > 0 && (
-            <details className="rounded border p-3 text-sm">
-              <summary className="cursor-pointer text-gray-600">How the AI works</summary>
+            <details className="rounded border border-border p-3 text-sm">
+              <summary className="cursor-pointer text-muted">How the AI works</summary>
               <div className="mt-2"><AgentTrace steps={trace} /></div>
             </details>
           )}
           {questions.map((q) => (
             <div key={q.id} className="space-y-1">
               <div className="font-medium">{q.question}</div>
-              <div className="text-xs text-gray-500">Why: {q.why} · <b>+{q.gain}</b> to {q.field as CardField}</div>
+              <div className="text-xs text-muted">Why: {q.why} · <b>+{q.gain}</b> to {q.field as CardField}</div>
               <textarea
-                className="h-20 w-full rounded border p-2"
+                className="h-20 w-full rounded border border-border p-2"
                 value={answers[q.id] ?? ''}
                 onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
               />
             </div>
           ))}
           <div className="flex gap-2">
-            <button className="rounded border px-4 py-2" onClick={() => setStep('draft')}>Back</button>
+            <button className="rounded border border-border px-4 py-2" onClick={() => setStep('draft')}>Back</button>
             <button
               disabled={busy}
               onClick={runCard}
-              className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+              className="rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"
             >
               {busy ? 'Building card…' : 'Build card'}
             </button>

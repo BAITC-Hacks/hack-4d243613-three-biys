@@ -73,12 +73,12 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
   return (
     <div className="grid gap-6 md:grid-cols-[1fr_320px]">
       <div className="space-y-4">
-        <div className="flex gap-2 border-b">
+        <div className="flex gap-2 border-b border-border">
           {(['card', 'tech'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-3 py-2 ${tab === t ? 'border-b-2 border-blue-600 font-semibold' : 'text-gray-500'}`}
+              className={`px-3 py-2 ${tab === t ? 'border-b-2 border-accent font-semibold' : 'text-muted'}`}
             >
               {t === 'card' ? 'Task card' : 'Tech docs'}
             </button>
@@ -92,7 +92,7 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
             <div className="flex items-center gap-2 text-sm">
               <span className="font-medium">{label}</span>
               {card.fieldSource[key] && (
-                <span className="rounded bg-gray-100 px-1.5 text-xs text-gray-600">from {card.fieldSource[key]}</span>
+                <span className="rounded bg-surface-2 px-1.5 text-xs text-muted">from {card.fieldSource[key]}</span>
               )}
               {!card.fields[key] && <span className="text-xs text-amber-700">not stated</span>}
               <label className="ml-auto flex items-center gap-1 text-xs">
@@ -113,7 +113,7 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
               />
             )}
             <textarea
-              className="h-20 w-full rounded border p-2 text-sm"
+              className="h-20 w-full rounded border border-border p-2 text-sm"
               value={card.fields[key] ?? ''}
               onChange={(e) => updateFields(card.id, { [key]: e.target.value || null })}
             />
@@ -130,7 +130,7 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
             <button
               disabled={busy}
               onClick={generate}
-              className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+              className="rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"
             >
               {busy ? 'Generating…' : card.techSpec ? 'Regenerate tech docs' : 'Generate tech docs'}
             </button>
@@ -138,15 +138,15 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
               <>
                 <label className="block text-sm font-medium">Summary
                   <textarea
-                    className="mt-1 h-20 w-full rounded border p-2 font-normal"
+                    className="mt-1 h-20 w-full rounded border border-border p-2 font-normal"
                     value={card.techSpec.summary}
                     onChange={(e) => editSpec({ summary: e.target.value })}
                   />
                 </label>
                 {LIST_KEYS.map(({ key, label }) => (
-                  <label key={key} className="block text-sm font-medium">{label} <span className="text-xs text-gray-500">(one per line)</span>
+                  <label key={key} className="block text-sm font-medium">{label} <span className="text-xs text-muted">(one per line)</span>
                     <textarea
-                      className="mt-1 h-24 w-full rounded border p-2 font-normal"
+                      className="mt-1 h-24 w-full rounded border border-border p-2 font-normal"
                       value={card.techSpec![key].join('\n')}
                       onChange={(e) => editSpec({ [key]: e.target.value.split('\n') })}
                     />
@@ -162,7 +162,7 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
                   I reviewed and confirm the technical documentation
                 </label>
                 <details>
-                  <summary className="cursor-pointer text-sm text-gray-600">Preview as students see it</summary>
+                  <summary className="cursor-pointer text-sm text-muted">Preview as students see it</summary>
                   <TechSpecView spec={card.techSpec} />
                 </details>
               </>
@@ -180,18 +180,18 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
         />
         {card.history.length > 1 && <ScoreHistory history={card.history} />}
         {card.status === 'published' ? (
-          <div className="rounded bg-green-50 p-3 text-sm text-green-800">Published to the catalog</div>
+          <div className="rounded bg-accent-soft p-3 text-sm text-[#365314]">Published to the catalog</div>
         ) : (
           <>
             <button
               disabled={!card.fields.title}
               onClick={() => { publish(card.id); onPublished?.(); }}
-              className="w-full rounded bg-green-600 px-4 py-2 text-white disabled:opacity-50"
+              className="w-full rounded bg-accent px-4 py-2 font-semibold text-accent-foreground disabled:opacity-50"
             >
               Publish to catalog
             </button>
             {!card.techSpecConfirmed && (
-              <p className="text-xs text-gray-500">Tip: confirm tech docs so students can start faster.</p>
+              <p className="text-xs text-muted">Tip: confirm tech docs so students can start faster.</p>
             )}
           </>
         )}

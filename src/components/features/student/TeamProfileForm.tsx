@@ -33,8 +33,8 @@ function Form({ team }: { team: TeamProfile }) {
 
   const field = (key: keyof typeof form, label: string, hint?: string) => (
     <label className="block space-y-1 text-sm">
-      <span className="font-medium">{label}</span>{hint && <span className="text-xs text-gray-500"> {hint}</span>}
-      <input className="w-full rounded border px-2 py-1" value={form[key]}
+      <span className="font-medium">{label}</span>{hint && <span className="text-xs text-muted"> {hint}</span>}
+      <input className="w-full rounded border border-border px-2 py-1" value={form[key]}
         onChange={(e) => { setForm({ ...form, [key]: e.target.value }); setSaved(false); }} />
     </label>
   );
@@ -42,18 +42,18 @@ function Form({ team }: { team: TeamProfile }) {
   return (
     <div className="max-w-xl space-y-4">
       <h1 className="text-2xl font-bold">Team profile</h1>
-      <p className="text-xs text-gray-500">Team-level info only — no personal or sensitive attributes.</p>
+      <p className="text-xs text-muted">Team-level info only — no personal or sensitive attributes.</p>
       {field('name', 'Team name')}
       <label className="block space-y-1 text-sm">
         <span className="font-medium">About</span>
-        <textarea className="h-20 w-full rounded border p-2" value={form.about}
+        <textarea className="h-20 w-full rounded border border-border p-2" value={form.about}
           onChange={(e) => { setForm({ ...form, about: e.target.value }); setSaved(false); }} />
       </label>
       {field('interests', 'Interests', '(comma-separated)')}
       {field('skills', 'Skills', '(comma-separated)')}
       {field('tech', 'Tech', '(comma-separated)')}
-      <button onClick={save} className="rounded bg-blue-600 px-4 py-2 text-white">Save</button>
-      {saved && <span className="ml-3 text-sm text-green-700">Saved</span>}
+      <button onClick={save} className="rounded bg-primary px-4 py-2 text-primary-foreground">Save</button>
+      {saved && <span className="ml-3 text-sm text-[#365314]">Saved</span>}
     </div>
   );
 }

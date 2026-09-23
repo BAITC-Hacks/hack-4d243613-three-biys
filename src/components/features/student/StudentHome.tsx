@@ -18,8 +18,8 @@ function Matches({ team, matches, cards }: { team: TeamProfile; matches: Match[]
         return (
           <Link key={m.taskId} href={`/catalog/${m.taskId}`} className="space-y-2">
             <ProjectCard card={card} rating={rateCard(card)} />
-            <ul className="text-xs text-green-800">{m.reasons.map((r) => <li key={r}>✓ {r}</li>)}</ul>
-            {ai[m.taskId] && <p className="text-xs text-gray-600">AI: {ai[m.taskId]}</p>}
+            <ul className="text-xs text-[#365314]">{m.reasons.map((r) => <li key={r}>✓ {r}</li>)}</ul>
+            {ai[m.taskId] && <p className="text-xs text-muted">AI: {ai[m.taskId]}</p>}
           </Link>
         );
       })}
@@ -41,34 +41,34 @@ export function StudentHome() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1"><TeamCard team={team} points={teamPoints[team.id] ?? 0} /></div>
-        <Link href="/student/profile" className="rounded border px-3 py-1 text-sm">Edit profile</Link>
+        <Link href="/student/profile" className="rounded border border-border px-3 py-1 text-sm">Edit profile</Link>
       </div>
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">Projects you can take</h2>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted">
           Suggestions only — the full <Link href="/catalog" className="underline">catalog</Link> is always open to you.
         </p>
-        {matches.length === 0 && <p className="text-sm text-gray-500">No matches yet — add interests or skills to your profile.</p>}
+        {matches.length === 0 && <p className="text-sm text-muted">No matches yet — add interests or skills to your profile.</p>}
         <Matches team={team} matches={matches} cards={cards} />
       </section>
 
       <section className="space-y-2">
         <h2 className="text-xl font-semibold">Leaderboard</h2>
-        <p className="text-xs text-gray-500">Points come only from milestones confirmed by the business — never for applying.</p>
+        <p className="text-xs text-muted">Points come only from milestones confirmed by the business — never for applying.</p>
         <Leaderboard teams={teams} points={teamPoints} />
       </section>
 
       <section className="space-y-2">
         <h2 className="text-xl font-semibold">Our proposals</h2>
-        {mine.length === 0 && <p className="text-sm text-gray-500">None yet.</p>}
+        {mine.length === 0 && <p className="text-sm text-muted">None yet.</p>}
         <ul className="space-y-1 text-sm">
           {mine.map((p) => (
             <li key={p.id}>
               <Link href={`/catalog/${p.taskId}`} className="underline">
                 {cards.find((c) => c.id === p.taskId)?.fields.title ?? p.taskId}
               </Link>{' '}— {p.status}
-              {p.rejectReason && <span className="text-gray-500"> · feedback: {p.rejectReason}</span>}
+              {p.rejectReason && <span className="text-muted"> · feedback: {p.rejectReason}</span>}
             </li>
           ))}
         </ul>

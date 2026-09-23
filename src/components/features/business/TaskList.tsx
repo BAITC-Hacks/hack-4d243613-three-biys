@@ -15,11 +15,11 @@ export function TaskList() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">My tasks</h1>
-        <Link href="/business/new" className="rounded bg-blue-600 px-4 py-2 text-sm text-white">New task</Link>
+        <Link href="/business/new" className="rounded bg-primary px-4 py-2 text-sm text-primary-foreground">New task</Link>
       </div>
-      {cards.length === 0 && <p className="text-gray-500">No tasks yet — start in the Constructor or Discover.</p>}
+      {cards.length === 0 && <p className="text-muted">No tasks yet — start in the Constructor or Discover.</p>}
       <table className="w-full text-sm">
-        <thead className="text-left text-gray-500">
+        <thead className="text-left text-muted">
           <tr><th className="py-2">Task</th><th>Status</th><th>Rating</th><th>Proposals</th></tr>
         </thead>
         <tbody>
