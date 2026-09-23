@@ -1,10 +1,10 @@
-# Көпір (working name TaskForge) · Three Biys · HackAlem AI, track "AI Sana: gamification of practical tasks"
+# Көпір · Three Biys · HackAlem AI, track "AI Sana: gamification of practical tasks"
 
-TaskForge helps a business turn a rough description of a need into a complete, rated task card, publishes it to an open catalog ranked by readiness, lets student teams submit proposals, and lets the business choose manually. A Windows companion app (the Collector) gathers anonymized work signals so the business can discover *which* problems are worth giving to students.
+Көпір helps a business turn a rough description of a need into a complete, rated task card, publishes it to an open catalog ranked by readiness, lets student teams submit proposals, and lets the business choose manually. A Windows companion app (the Collector) gathers anonymized work signals so the business can discover *which* problems are worth giving to students.
 
 > Status: working demo. Hosted at **https://taskforge-app-chi.vercel.app**.
 
-## For judges — how to check TaskForge
+## For judges — how to check Көпір
 
 ### 1. Web app (no install)
 Open **https://taskforge-app-chi.vercel.app** and use the role switcher in the header (Business / Student).
