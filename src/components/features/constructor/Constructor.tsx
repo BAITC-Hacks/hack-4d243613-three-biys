@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { AgentStep, CardField, Insight, TaskCard } from '@/lib/types';
-import { AgentTrace, AiNoticeBanner } from '@/components/domain';
+import { AgentTrace, AiInterview, AiNoticeBanner, type InterviewAnswer } from '@/components/domain';
 import { useStore } from '@/lib/store';
 import { useHydrated } from '../useHydrated';
 import { clarify, buildCard } from '@/lib/api-client';
@@ -12,6 +12,7 @@ import { rateCard } from '@/lib/rating';
 import { CardEditor } from './CardEditor';
 import { Button, Input, Textarea } from '@/components/ui';
 import { VoiceInterviewPanel } from './VoiceInterviewPanel';
+import { useVoiceSession } from './useVoiceSession';
 
 type ClarifyQuestion = ClarifyResponse['questions'][number];
 
@@ -47,30 +48,58 @@ function Wizard({ insight }: { insight?: Insight }) {
   const [topic, setTopic] = useState('Automation');
   const [questions, setQuestions] = useState<ClarifyQuestion[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [scoreBefore, setScoreBefore] = useState<number>();
+  const [interviewOpen, setInterviewOpen] = useState(false);
 
   const [cardId, setCardId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [trace, setTrace] = useState<AgentStep[]>([]);
+  const voice = useVoiceSession(draft, questions);
 
   const runClarify = async () => {
     setBusy(true); setError(null);
+    setQuestions([]);
+    setInterviewOpen(true); // the pop-up shows the "thinking" avatar while questions load
     const res = await clarify({ draftText: draft, industry });
     setBusy(false);
-    if (!res.ok) return setError(res.error.message);
+    if (!res.ok) {
+      setInterviewOpen(false);
+      return setError(res.error.message);
+    }
     setTrace(res.trace);
+    // What the draft is worth once its extracted text is confirmed — the start of the interview's rating strip.
+    const allConfirmed = Object.fromEntries(Object.keys(res.data.extracted).map((k) => [k, true]));
+    setScoreBefore(rateCard({ fields: res.data.extracted, confirmed: allConfirmed }).total);
     setQuestions([...res.data.questions].sort((a, b) => b.gain - a.gain));
     setStep('questions');
   };
 
-  const runCard = async () => {
-    setBusy(true); setError(null);
-    const res = await buildCard({
-      draftText: draft,
-      answers: questions
-        .filter((q) => answers[q.id]?.trim())
-        .map((q) => ({ questionId: q.id, field: q.field, question: q.question, answer: answers[q.id].trim() })),
+  // Typed answers from the form or the pop-up, plus anything said in the voice interview.
+  const collectAnswers = (typed: Record<string, string>) => {
+    const list = questions.flatMap((q) => {
+      const answer = typed[q.id]?.trim() || voice.byField[q.field]?.trim();
+      return answer ? [{ questionId: q.id, field: q.field, question: q.question, answer }] : [];
     });
+    for (const [field, answer] of Object.entries(voice.byField) as [CardField, string][]) {
+      if (answer?.trim() && !list.some((a) => a.field === field)) {
+        list.push({ questionId: `voice-${field}`, field, question: `${field} (voice interview)`, answer: answer.trim() });
+      }
+    }
+    return list;
+  };
+
+  const finishInterview = (fromPopup: InterviewAnswer<CardField>[]) => {
+    const typed = { ...answers, ...Object.fromEntries(fromPopup.map((a) => [a.questionId, a.answer])) };
+    setAnswers(typed);
+    setInterviewOpen(false);
+    void runCard(typed);
+  };
+
+  const runCard = async (typed: Record<string, string> = answers) => {
+    setBusy(true); setError(null);
+    voice.stop();
+    const res = await buildCard({ draftText: draft, answers: collectAnswers(typed) });
     setBusy(false);
     if (!res.ok) return setError(res.error.message);
     const id = createCard({
@@ -129,7 +158,11 @@ function Wizard({ insight }: { insight?: Insight }) {
 
       {step === 'questions' && (
         <section className="space-y-4">
-          <h1 className="text-2xl font-extrabold">AI found gaps in your draft</h1>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h1 className="text-2xl font-extrabold">AI found gaps in your draft</h1>
+            <Button onClick={() => setInterviewOpen(true)}>Open AI interview</Button>
+          </div>
+          <p className="text-sm text-muted">Prefer a form? Answer the questions below instead.</p>
           <AiNoticeBanner />
           <VoiceInterviewPanel
             draftText={draft}
@@ -158,9 +191,7 @@ function Wizard({ insight }: { insight?: Insight }) {
           ))}
           <div className="flex gap-2">
             <Button variant="secondary" onClick={() => setStep('draft')}>Back</Button>
-            <Button loading={busy}
-              onClick={runCard}
-            >
+            <Button loading={busy} onClick={() => runCard()}>
               {busy ? 'Building card…' : 'Build card'}
             </Button>
           </div>
@@ -170,6 +201,22 @@ function Wizard({ insight }: { insight?: Insight }) {
       {step === 'card' && cardId && (
         <CardEditor cardId={cardId} onPublished={() => router.push(`/business/tasks/${cardId}`)} />
       )}
+
+      <AiInterview<CardField>
+        open={interviewOpen}
+        questions={questions}
+        loading={busy && questions.length === 0}
+        scoreBefore={scoreBefore}
+        voice={voice.available ? {
+          status: voice.status,
+          error: voice.error,
+          onStart: () => void voice.start(),
+          onStop: voice.stop,
+          answered: Object.keys(voice.byField),
+        } : undefined}
+        onClose={() => { voice.stop(); setInterviewOpen(false); }}
+        onFinish={finishInterview}
+      />
     </div>
   );
 }
