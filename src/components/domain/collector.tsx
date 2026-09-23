@@ -14,7 +14,7 @@ export function CollectorDownload({
   serverUrl,
   className,
 }: {
-  /** Download URL of the Windows build (.zip or .exe). Without it the button shows "Coming soon". */
+  /** Download URL of the Windows build (.zip or .exe). Without it the block explains how to run it from the repository. */
   href?: string;
   version?: string;
   sizeLabel?: string;
@@ -77,26 +77,33 @@ export function CollectorDownload({
               )}
             </>
           ) : (
-            <span
-              aria-disabled="true"
-              className={buttonClasses({ variant: 'secondary', size: 'lg', className: 'w-full' })}
-            >
-              <MonitorSmartphone aria-hidden="true" /> Coming soon for Windows
-            </span>
+            <p className="flex min-h-12 items-center justify-center gap-2 border-2 border-border bg-accent-soft px-3 text-sm font-bold">
+              <MonitorSmartphone aria-hidden="true" className="size-5" /> Runs on Windows today
+            </p>
           )}
           {version || sizeLabel ? (
             <p className="text-center text-xs text-muted tabular-nums">
               {[version && `Version ${version}`, sizeLabel].filter(Boolean).join(' · ')}
             </p>
           ) : null}
-          <ol className="grid gap-1.5 border-2 border-border bg-surface-2 p-3 text-xs">
-            <li>1. Download and unzip the archive.</li>
-            <li>2. Run КӨПІР Collector.</li>
-            <li>
-              3. Paste the server address{serverUrl ? <b className="font-semibold break-all"> {serverUrl}</b> : null} and
-              the token, then turn on the toggles you need.
-            </li>
-          </ol>
+          {href ? (
+            <ol className="grid gap-1.5 border-2 border-border bg-surface-2 p-3 text-xs">
+              <li>1. Download and unzip the archive.</li>
+              <li>2. Run КӨПІР Collector.</li>
+              <li>
+                3. Paste the server address{serverUrl ? <b className="font-semibold break-all"> {serverUrl}</b> : null} and
+                the token, then turn on the toggles you need.
+              </li>
+            </ol>
+          ) : (
+            <ol className="grid gap-1.5 border-2 border-border bg-surface-2 p-3 text-xs">
+              <li>1. Install Node.js 20 or newer.</li>
+              <li>
+                2. In the project folder, double-click <code className="bg-surface px-1 font-semibold">run-collector.bat</code>.
+              </li>
+              <li>3. Sign in: the demo server and demo token are already filled in.</li>
+            </ol>
+          )}
         </div>
       </div>
       <p className="flex items-start gap-2 border-t-2 border-border px-5 py-3 text-xs text-muted sm:px-6">
