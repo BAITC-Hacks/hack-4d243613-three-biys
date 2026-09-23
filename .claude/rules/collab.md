@@ -7,6 +7,6 @@
 - **Dependencies are added only by role A** unless PLAN.md says otherwise. Don't touch the lockfile otherwise.
 - Prefer creating a new file over appending to a shared one.
 - **README:** owned by role C, except the "Third-party components" table, which anyone may append a row to.
-- **Git:** small commits; `git pull --rebase` before every push; push after every finished task. Resolve conflicts in your own files; for conflicts in other roles' files, stop and tell the user.
+- **Git:** no `Co-Authored-By` or other AI attribution trailers in commit messages; small commits; `git pull --rebase` before every push; push after every finished task. Resolve conflicts in your own files; for conflicts in other roles' files, stop and tell the user.
 - `main` must always install and start. Never push something that breaks install, startup or typecheck.
 - In PLAN.md, only tick checkboxes in your own role's section.
