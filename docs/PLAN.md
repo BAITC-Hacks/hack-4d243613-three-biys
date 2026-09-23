@@ -88,7 +88,7 @@ Levels: 0–39 **draft** (visible, flagged) · 40–69 **working** (proposals + 
 - **Web:** TypeScript + Next.js (App Router) + Tailwind; **OpenAI SDK** for both LLM providers; **zod** for all AI and ingest I/O; **zustand + localStorage** for business-flow data (cards, proposals, teams), seeded from JSON.
 - **Server store for Collector data** (`src/lib/server/storage.ts`): **Upstash Redis** when `UPSTASH_REDIS_REST_URL` is set (Vercel deploy), else **JSON files in `.data/`** (local / experts, zero setup). Seed history is always merged in.
 - **Collector:** **Electron + TypeScript** in `collector/` (own `package.json`), `get-windows` for the foreground app (fallback: PowerShell script calling user32 `GetForegroundWindow`), Electron clipboard polling, `desktopCapturer` + `audio: 'loopback'` for system audio (Windows). (Telegram: roadmap only.)
-- **Deploy:** Vercel CLI (`npx vercel deploy --prod`).
+- **Deploy:** Vercel CLI (`npm run deploy`, run by A after each checkpoint). Production URL: https://taskforge-roan.vercel.app
 - **Models** (one constant `src/lib/llm/models.ts`; verify IDs at scaffold): OpenAI `gpt-4.1-mini` (JSON tasks), `gpt-4.1` for discover if needed, `gpt-4o-transcribe` (fallback `whisper-1`) for audio; NVIDIA `meta/llama-3.3-70b-instruct` at `https://integrate.api.nvidia.com/v1` as text fallback. `DEMO_MODE=live|record|replay`; no key → replay.
 
 Why: one language across web + desktop; file-based routes = few shared files; no DB needed for the core; Collector is a separate package so it never conflicts with the web app.
@@ -294,7 +294,7 @@ export type ApiResult<T> =
 | `POST /api/ingest/meeting-end` | `{ meetingId: string }` | `{ meeting: MeetingNote }` |
 | `POST /api/ingest/messages` *(roadmap — not built)* | `{ source: 'telegram'; channel: string; messages: { id: string; date: string; role: string; text: string }[] }` | `{ accepted: number }` |
 | `GET /api/sources` | — (no token) | `SourcesSnapshot` (seed + live, aggregated with k=5) |
-| `GET /api/health` | — | `{ ok: true; mode: 'live'\|'replay'; storage: 'redis'\|'file' }` (Collector "Test connection") |
+| `GET /api/health` | — | `{ ok: true; mode: 'live'\|'replay'; storage: 'redis'|'file'|'memory' }` (Collector "Test connection") |
 
 **Collector settings (A, stored in Electron `userData/settings.json`, never committed):** `{ serverUrl: string; ingestToken: string; team: string; trackerEnabled: boolean; meetingEnabled: boolean }` — no names or window titles are ever sent.
 
@@ -351,11 +351,11 @@ Hours are Astana time. Realistic start: scaffold lands ~14:35.
 **H3 15:40–16:40**
 - [x] `src/lib/server/storage.ts` (redis | file), `/api/ingest/*`, `/api/sources`, `/api/health`, transcription via OpenAI
 - [x] `src/lib/discover/aggregate.ts` (k=5) + seed `meetings.json` (8 over 4 weeks), `activity-events.json` (~2,000, one team below k) — no chats
-- [ ] `/api/ai/techspec`; first Vercel deploy (env: `OPENAI_API_KEY`, `INGEST_TOKEN`, Upstash keys)
-- [ ] Collector tracker (`collector/src/tracker.ts`, `categories.ts`): foreground app every 2 s (`get-windows`; PowerShell fallback), category mapping, clipboard `copy` → `transfer` within 60 s, 30 s batches → `/api/ingest/events`, autostart, pause; IPC status to renderer → B tests on Windows
+- [x] `/api/ai/techspec`; first Vercel deploy (env: `OPENAI_API_KEY`, `INGEST_TOKEN`, Upstash keys)
+- [x] Collector tracker (`collector/src/tracker.ts`, `categories.ts`): foreground app every 2 s (`get-windows`; PowerShell fallback), category mapping, clipboard `copy` → `transfer` within 60 s, 30 s batches → `/api/ingest/events`, autostart, pause; IPC status to renderer → B tests on Windows
 **H4 16:40–17:00**
-- [ ] `/api/ai/discover` (single validated call + `src/lib/ai/evidence.ts`, drop unsupported; each insight also returns `suggestedFields` for context/need/data built only from evidence); record golden-path fixtures
-- [ ] Collector meeting notes (`collector/src/meeting.ts`): loopback + mic, 30 s chunks → `/api/ingest/meeting-audio`, Stop → `meeting-end`. (Telegram: cut.)
+- [x] `/api/ai/discover` (single validated call + `src/lib/ai/evidence.ts`, drop unsupported; each insight also returns `suggestedFields` for context/need/data built only from evidence); record golden-path fixtures
+- [x] Collector meeting notes (`collector/src/meeting.ts`): loopback + mic, 30 s chunks → `/api/ingest/meeting-audio`, Stop → `meeting-end`. (Telegram: cut.)
 **H5 17:00–17:45**
 - [ ] Replay-only run of the golden path; final deploy; technical README sections (install, run, env, architecture, rating formula, catalog rules, AI prompts/I-O/error handling, Collector) → B for editing
 

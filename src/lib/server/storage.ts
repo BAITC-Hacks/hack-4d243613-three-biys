@@ -3,11 +3,16 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
-export type StorageKind = 'redis' | 'file';
+export type StorageKind = 'redis' | 'file' | 'memory';
 
+// redis on Vercel when Upstash is configured; JSON files in .data/ locally; memory (per-instance, ephemeral) when
+// running serverless without Upstash — good enough for a demo, but the README says to set Upstash for persistence.
 export function storageKind(): StorageKind {
-  return process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN ? 'redis' : 'file';
+  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) return 'redis';
+  return process.env.VERCEL ? 'memory' : 'file';
 }
+
+const memory = new Map<string, unknown>();
 
 const DATA_DIR = path.join(process.cwd(), '.data');
 
@@ -30,7 +35,9 @@ async function redis() {
 }
 
 export async function getJson<T>(key: string, fallback: T): Promise<T> {
-  if (storageKind() === 'redis') {
+  const kind = storageKind();
+  if (kind === 'memory') return (memory.has(key) ? memory.get(key) : fallback) as T;
+  if (kind === 'redis') {
     const v = await (await redis()).get<T>(`taskforge:${key}`);
     return v ?? fallback;
   }
@@ -38,7 +45,9 @@ export async function getJson<T>(key: string, fallback: T): Promise<T> {
 }
 
 export async function setJson<T>(key: string, value: T): Promise<void> {
-  if (storageKind() === 'redis') {
+  const kind = storageKind();
+  if (kind === 'memory') { memory.set(key, value); return; }
+  if (kind === 'redis') {
     await (await redis()).set(`taskforge:${key}`, value);
     return;
   }

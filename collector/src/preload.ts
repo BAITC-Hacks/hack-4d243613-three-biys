@@ -5,6 +5,9 @@ const api = {
   getStatus: () => ipcRenderer.invoke('collector:getStatus'),
   setToggle: (name: 'tracker' | 'meeting', on: boolean) => ipcRenderer.invoke('collector:setToggle', name, on),
   saveSettings: (s: Record<string, unknown>) => ipcRenderer.invoke('collector:saveSettings', s),
+  startMeeting: (title: string) => ipcRenderer.invoke('collector:startMeeting', title) as Promise<string>,
+  stopMeeting: () => ipcRenderer.invoke('collector:stopMeeting'),
+  pushAudioChunk: (bytes: ArrayBuffer, mime?: string) => ipcRenderer.invoke('collector:pushAudioChunk', bytes, mime),
   onStatus: (cb: (status: unknown) => void) => {
     const listener = (_e: unknown, status: unknown) => cb(status);
     ipcRenderer.on('collector:status', listener);
