@@ -11,6 +11,7 @@ import type { ClarifyResponse } from '@/lib/schemas';
 import { rateCard } from '@/lib/rating';
 import { CardEditor } from './CardEditor';
 import { Button, Input, Textarea } from '@/components/ui';
+import { VoiceInterviewPanel } from './VoiceInterviewPanel';
 
 type ClarifyQuestion = ClarifyResponse['questions'][number];
 
@@ -129,6 +130,14 @@ function Wizard({ insight }: { insight?: Insight }) {
         <section className="space-y-4">
           <h1 className="text-2xl font-extrabold">AI found gaps in your draft</h1>
           <AiNoticeBanner />
+          <VoiceInterviewPanel
+            draftText={draft}
+            questions={questions}
+            onAnswer={(field, answer) => {
+              const q = questions.find((x) => x.field === field);
+              if (q) setAnswers((a) => ({ ...a, [q.id]: answer }));
+            }}
+          />
           {trace.length > 0 && (
             <details className="rounded-control border-2 border-border p-3 text-sm">
               <summary className="cursor-pointer text-muted">How the AI works</summary>
