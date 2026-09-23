@@ -46,16 +46,19 @@ cp .env.example .env.local   # fill in keys, or leave empty for replay mode
 npm run dev        # http://localhost:3000
 npm run build && npm start   # production build
 npm run typecheck  # tsc --noEmit
-npm test           # vitest smoke tests
+npm test           # vitest: rating engine + evidence verification
+npx tsx scripts/check-seed.ts   # validates seed JSON against the contracts and prints each card's rating
 ```
 
 ### Modes
 
 | Situation | What to set |
 |---|---|
-| Hosted demo | _TODO: Vercel URL_ |
-| Your own key | `OPENAI_API_KEY=...` (or `NVIDIA_API_KEY=...` with `LLM_PROVIDER=nvidia`) |
+| Hosted demo | **https://taskforge-roan.vercel.app** (live OpenAI; Collector data in memory unless Upstash is configured) |
+| Your own key | `OPENAI_API_KEY=...` in `.env.local` (or `NVIDIA_API_KEY=...` with `LLM_PROVIDER=nvidia`) |
 | No key at all | leave keys empty → `DEMO_MODE=replay` is used automatically; the main scenario runs from `fixtures/replay/` |
+
+`DEMO_MODE=record` calls the provider and saves every validated response as a fixture; `replay` never calls a provider and falls back to the latest fixture of an endpoint when the exact input differs (so a different draft still gets a coherent, clearly labelled replay answer).
 
 ## Environment variables
 
@@ -63,43 +66,102 @@ All variables are listed with comments in [`.env.example`](.env.example). Keys a
 
 ## How to verify the main scenario
 
-_TODO (A/C): step-by-step golden path (see `docs/PLAN.md` §10)._
+Works identically on the hosted URL, with your own key, or with no key (replay). Company in the demo: **QazCargo** (synthetic logistics SME).
+
+1. **Business → New task.** Paste the weak draft: *"Our sales team wastes time moving orders from Excel to the CRM. We want to automate it."* Vagueness flag appears on "automate it". Click **Clarify**.
+2. At least 3 questions appear, sorted by rating gain ("+20 data & materials", …). Answer them (any text; suggested answers in `docs/DEMO.md`). Click **Build card**.
+3. The card shows every field with its source badge (draft / answer) and **"not stated"** for fields you did not cover. Confirm fields one by one — the rating panel recalculates after each confirm, shows the breakdown, the checks (✓/✗ with rule text), **Next best actions** and the **catalog position preview** ("#N of M → #K if you add measurable success criteria").
+4. Add *"Cut manual entry time by 80%, zero duplicate orders"* as success criteria and a contact ("Head of sales, weekly 30-min call") → confirm → rating rises into **ready** (≈ 88) with a level-up toast.
+5. **Tech docs** tab → **Generate** → edit a line → **Confirm** → **Publish**. **Catalog** now lists the task at the position given by its rating; a draft-level seed task is still visible with its flag.
+6. Switch role to **Student** (team *DataCraft*) → **Projects you can take** shows the task with a reason → open it → read the technical documentation → **Submit proposal** (idea, plan, deadline, prototype link; the form checks completeness).
+7. Switch to **Business → My tasks** → compare proposals side by side → **Accept** DataCraft, **Reject** the seeded one with a reason → add milestone "Import script prototype" → **Confirm** → DataCraft gets points → **Leaderboard** on the student side.
+8. *(Boost story)* **Business → Discover** → **Analyze** → insights with verbatim evidence (meeting quotes + "142 Spreadsheet→CRM transfers, 6 contributors") → **Use as draft** → accept the suggested "Data & materials" text → confirm → +20 points.
+
+API-level check (no browser):
+
+```bash
+curl -s localhost:3000/api/health
+curl -s -X POST localhost:3000/api/ai/clarify -H 'content-type: application/json' \
+  -d '{"draftText":"Our sales team wastes time moving orders from Excel to the CRM. We want to automate it."}'
+```
 
 ## Rating formula
 
-_TODO (A): copied from `src/lib/rating/index.ts` once implemented._ Points are given only for fields that are filled **and confirmed** by the business; the rating is recalculated after every confirmed edit.
+Implemented in `src/lib/rating/index.ts` (pure, deterministic code — no AI; tests in `tests/rating.test.ts`). Points are given **only for fields that are filled AND confirmed** by the business; the rating is recalculated after every confirmed edit.
 
-| Component | Max |
-|---|---|
-| Context & need | 20 |
-| Data & materials | 20 |
-| Expected result | 15 |
-| Success criteria (measurable) | 15 |
-| Constraints | 10 |
-| Users | 10 |
-| Business contact & format | 10 |
+| Component | Max | Base (filled + confirmed) | Quality check (also needs confirm) |
+|---|---|---|---|
+| Context & need | 20 | context 8 + need 8 | context ≥ 12 words (+2); need contains a change verb such as automate/reduce/replace (+2) |
+| Data & materials | 20 | 14 | names concrete sources: files, systems, samples, API, access (+6) |
+| Expected result | 15 | 10 | names a deliverable: script, service, dashboard, bot, report… (+5) |
+| Success criteria | 15 | 7 | measurable: a number, %, time or threshold (+8) |
+| Constraints | 10 | 6 | deadline, technology or access limits (+4) |
+| Users | 10 | 7 | role and/or count (+3) |
+| Business contact & format | 10 | 6 | contact role and consultation format (+4) |
 
-Levels: 0–39 draft · 40–69 working · 70–89 ready · 90–100 priority. A low rating never hides a task or blocks proposals.
+`total = Σ points (max 100)`. Levels: **0–39 draft** (visible, flagged) · **40–69 working** (proposals + recommendations allowed) · **70–89 ready** (boosted position) · **90–100 priority** (highlighted). A low rating never hides a task or blocks proposals.
+
+The engine also returns, for the UI: `checks` per component (label, passed, points, rule text), `nextActions` (missing items sorted by gain, e.g. "+15 Include a number, %, time or threshold"), `vagueness` flags (code rules for "ASAP", "etc.", "some data", "improve efficiency", "automate it", "better/faster"), `positionPreview` (current catalog rank and the rank after the top next action) and a `history` of totals on the card.
 
 ## Catalog rules
 
-_TODO (A/C)._
+`getCatalog` (`src/lib/catalog.ts`) shows **only published** cards; **every** published task is visible to every team. One ordering rule, `catalogSortKey` in `src/lib/rating`: `rating + boost` descending, where boost = +20 for priority, +10 for ready, 0 otherwise; ties → newer first. Filters: topic and level. Draft-level tasks stay in the catalog with a "needs clarification" flag.
+
+**Recommendations** (`matchTasks`): rule-based overlap of the team's interests/skills/tech with the task's topic and `skillsNeeded`, only for tasks at level ≥ working, with a reason per match ("Your team knows Python · task needs Python"). Recommendations never restrict the catalog. **Proposals** are unlimited; the business accepts one, several or none — manually. Nothing assigns a team automatically. **Points** for teams come only from milestones the business confirms.
 
 ## AI feature: prompts, input/output format, invalid-response handling
 
-_TODO (A): prompts live in `src/prompts/*.md`; every response is validated with zod (`src/lib/schemas.ts`); one repair retry, then a structured error. The AI never adds facts the user did not state (missing → `null`)._
+All model calls go through one wrapper, `src/lib/llm/index.ts`. Prompts are files in `src/prompts/*.md`. Model IDs live only in `src/lib/llm/models.ts` (verified against the provider list on 23 Sep 2026: `gpt-4.1-mini` for clarify/card/techspec, `gpt-4.1` for discover, `gpt-4o-transcribe` → `whisper-1` for audio; NVIDIA fallback `meta/llama-3.3-70b-instruct`).
+
+| Endpoint | Input (JSON) | Output `data` (JSON, zod-validated) |
+|---|---|---|
+| `POST /api/ai/clarify` | `{ draftText, industry?, fields? }` | `{ extracted: CardFields (null = not stated), questions[≥3]: { id, field, question, why, gain } }` — `gain` is filled by the rating engine, not the model, and questions are sorted by it |
+| `POST /api/ai/card` | `{ draftText, answers: [{ questionId, field, question, answer }] }` | `{ fields: CardFields, fieldSource: { field: 'draft' \| 'answer' } }` |
+| `POST /api/ai/techspec` | `{ fields: CardFields }` | `{ techSpec: { summary, scope[], dataInputs[], functionalRequirements[], nonFunctional[], acceptanceCriteria[], suggestedStack[], openQuestions[] }, skillsNeeded[] }` |
+| `POST /api/ai/discover` | `{ period: { from, to } }` | `{ insights: [{ title, problem, affectedTeam, frequency, impact, suggestedSolutionType, evidence[], draftText, suggestedFields }], dropped }` |
+
+Every response is the envelope `{ ok: true, data, trace } | { ok: false, error: { code, message }, trace }` where `trace` lists every step (`llm_call` with prompt, input, output; `validation` with errors; `error`) — the UI shows it in the "How the AI works" panel.
+
+**No invented facts.** The prompts require `null` for anything the user did not state; the server additionally drops any clarify extraction whose words are not found in the draft, empties card fields whose answer was "-" / "no" / "don't know", and in Discover keeps a quote only if it is a **verbatim substring** of the cited meeting transcript and a metric only if its numbers exist in the cited weekly aggregate (`src/lib/ai/evidence.ts`, tests in `tests/evidence.test.ts`). Insights without verifiable evidence are dropped and counted in `dropped`; suggested field texts are kept only when grounded in the cited evidence.
+
+**Invalid responses.** Non-JSON or schema-invalid output → one repair retry with the zod errors sent back → if still invalid, `error.code = 'LLM_INVALID'`. Rate limit / auth / network → the other provider → the replay fixture → `error.code = 'LLM_UNAVAILABLE'`. Bad request bodies → `'BAD_INPUT'` with the field errors. The browser talks to the API only through `src/lib/api-client.ts`; API keys never reach the browser.
 
 ## Test scenarios
 
-_TODO (A/C)._
+| # | Scenario | Expected |
+|---|---|---|
+| 1 | Empty card | rating 0, level draft, 7 next actions, top gain +20 (`npm test`) |
+| 2 | All fields filled, none confirmed | rating 0; every next action starts with "Confirm" |
+| 3 | Full card confirmed | ≥ 90, priority |
+| 4 | Success criteria without a number | component loses 8 points, hint "Include a number, %, time or threshold" |
+| 5 | Draft with "ASAP" / "automate it" | vagueness flags with a concrete ask |
+| 6 | Confirm a field | rating recalculated, history entry added, position preview updates |
+| 7 | Clarify on the weak QazCargo draft | ≥ 3 questions, first is data (+20); nothing extracted that the draft does not say |
+| 8 | Card with an answer "-" | that field is `null`, no source badge |
+| 9 | Discover on the seed period | insight "orders re-typed from Excel into the CRM" with meeting quotes that are verbatim + metric "142 Spreadsheet→CRM transfers, 6 contributors"; fabricated quotes are dropped (`tests/evidence.test.ts`) |
+| 10 | No API key, `DEMO_MODE=replay` | all four AI endpoints answer from fixtures; `/api/health` reports `mode: replay` |
+| 11 | Ingest with a wrong token | `401 UNAUTHORIZED`; with the right token `{ accepted: n }` and `/api/sources.live.devices` increases |
+| 12 | Catalog | published only, sorted by rating with ready/priority boost; draft-level task visible with flag; filters by topic and level |
+| 13 | Proposals | unlimited per task; accept several / reject with reason; team points appear only after a confirmed milestone |
 
 ## Windows Collector
 
-_TODO (A/B): what it collects, what it never collects, how to run (`cd collector && npm install && npm start`)._
+`collector/` is a separate Electron app (own `package.json`) that a business installs **opt-in**. It sends anonymized work signals to `/api/ingest/*` with `Authorization: Bearer INGEST_TOKEN`.
+
+```bash
+cd collector && npm install && npm start     # builds TypeScript and launches the tray app (Windows)
+```
+In the window: server URL (e.g. `https://taskforge-roan.vercel.app`), ingest token, team name; toggles **Activity tracker** and **Meeting notes**; "Test connection" calls `/api/health`.
+
+**What it collects:** the *category* of the foreground app every 2 s (CRM / Spreadsheet / Email / Messenger / ERP / Docs / Browser / Meeting / Other), app switches, and copy→switch pairs counted as a *transfer* between categories; meeting audio (system loopback + mic) in 30 s chunks that are transcribed on the server and discarded.
+
+**What never leaves the machine:** window titles, document/clipboard content, URLs, names. The device id is a hash; the server hashes it again and the aggregator (`src/lib/discover/aggregate.ts`) drops it, reporting only team-week aggregates with **≥ 5 contributors** (`k = 5`). `/api/sources.privacy` shows raw events, individuals identified (always 0), suppressed patterns and suppressed teams.
+
+Serverless note: on Vercel, Collector data persists only if `UPSTASH_REDIS_REST_URL/TOKEN` are set; otherwise it lives in memory per instance (fine for a demo). Locally it is stored in `./.data/*.json`.
 
 ## Dependencies
 
-See `package.json` (web) and `collector/package.json` (Collector). Install with `npm install` in each directory.
+Web: `package.json` (`npm install`). Collector: `collector/package.json` (`cd collector && npm install`). Node 22 is used; Node ≥ 20 works.
 
 ## Third-party components
 
