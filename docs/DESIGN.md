@@ -50,15 +50,15 @@ Rules:
 ## Type
 
 - **Display: Tektur** (`font-display`): the logo, the rating number, big numbers and short section labels. Not for paragraphs.
-- **Body:** the team chooses next (candidates: Geologica, Onest, Inter, Golos Text). Until then, the system font.
+- **UI: Rubik** (`font-sans`, the default body font): headings 800, numbers 700-800, text 400-500.
 - Every font here is checked for the full Kazakh alphabet: Ә Ғ Қ Ң Ө Ұ Ү Һ І. Manrope, Space Grotesk, Unbounded, JetBrains Mono and Playfair Display lack these letters: do not use them.
 
 ## Shape
 
-**Direction approved: D "Brutal tech"** (14:55): hard 2px graphite borders, square corners, hard shadows without blur (4px 4px 0 graphite), lime top bar, Tektur for numbers and labels. Exact buttons, tabs and highlights are being finalized; tokens below will be switched to this direction in the next commit.
+**Direction approved: D "Brutal tech"** (15:05): square corners (radius 0), 2px graphite borders (`border-2 border-border`), hard shadows without blur (`shadow-card` 4px, `shadow-lift` 6px on hover with `-translate-x-0.5 -translate-y-0.5`), lime top bar. Headings and numbers: **Rubik 800**; body text: **Rubik 400-500** (`font-sans`, default). Logo stays **Tektur**. Primary button: graphite with a pulsing lime LED (`<span className="led" />`). Tabs: separate bordered boxes, active tab lime with hard shadow. Card hover: hard lift. Thin separators inside cards: `border-hairline`.
 
 
-- Radius: cards `rounded-card` (14px), controls `rounded-control` (10px). May shrink once the UI direction is chosen.
+- Radius: 0 everywhere (`rounded-card`, `rounded-control` resolve to 0).
 - Shadows: `shadow-card` for cards, `shadow-pop` for popovers and toasts.
 - No gradients and no emoji in the UI.
 

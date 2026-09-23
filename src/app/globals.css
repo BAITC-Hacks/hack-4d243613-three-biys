@@ -1,7 +1,8 @@
-@import url("https://fonts.googleapis.com/css2?family=Tektur:wght@700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Tektur:wght@700;800&family=Rubik:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 /* Theme tokens (owner: B, design). Palette "Graphite and lime", chosen 23.09 14:30.
+   Direction "Brutal tech", chosen 15:05: square corners, 2px graphite borders, hard shadows without blur.
    Graphite carries text and primary actions, lime marks progress, readiness and the rating.
    Lime is never used for body text on light backgrounds: contrast is too low. */
 :root {
@@ -10,7 +11,8 @@
   --muted: #71717a;
   --surface: #ffffff;
   --surface-2: #efefec;
-  --border: #e4e4e0;
+  --border: #18181b;
+  --hairline: #e4e4e0;
 
   --primary: #18181b;
   --primary-foreground: #ffffff;
@@ -27,11 +29,15 @@
   --danger: #dc2626;
   --success: #16a34a;
 
-  --radius: 14px;
-  --radius-sm: 10px;
+  --radius: 0px;
+  --radius-sm: 0px;
   --radius-pill: 999px;
-  --shadow-card: 0 1px 2px rgb(24 24 27 / 0.06), 0 8px 24px rgb(24 24 27 / 0.06);
-  --shadow-pop: 0 2px 4px rgb(24 24 27 / 0.08), 0 16px 40px rgb(24 24 27 / 0.12);
+  --border-width: 2px;
+  --shadow-card: 4px 4px 0 #18181b;
+  --shadow-lift: 6px 6px 0 #18181b;
+  --shadow-pop: 6px 6px 0 #18181b;
+  --shadow-accent: 4px 4px 0 #84cc16;
+  --glow-accent: 0 0 8px #84cc16;
 }
 
 @theme inline {
@@ -41,6 +47,7 @@
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-border: var(--border);
+  --color-hairline: var(--hairline);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-accent: var(--accent);
@@ -57,6 +64,11 @@
   --radius-control: var(--radius-sm);
   --shadow-card: var(--shadow-card);
   --shadow-pop: var(--shadow-pop);
+  --shadow-lift: var(--shadow-lift);
+  --shadow-accent: var(--shadow-accent);
+  --shadow-glow: var(--glow-accent);
+  /* UI font: Rubik (headings 800, numbers 700-800, text 400-500). Checked: full Kazakh alphabet. */
+  --font-sans: "Rubik", ui-sans-serif, system-ui, sans-serif;
   /* Display font of the logo: Tektur (checked: full Kazakh alphabet). Use for the logo, scores, big numbers. */
   --font-display: "Tektur", ui-sans-serif, system-ui, sans-serif;
 }
@@ -64,5 +76,21 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans);
+}
+
+/* Pulsing lime indicator used in the logo and the primary "LED" button. */
+@keyframes led-pulse {
+  50% { opacity: 0.4; box-shadow: 0 0 2px var(--accent); }
+}
+.led {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  background: var(--accent);
+  box-shadow: var(--glow-accent);
+  animation: led-pulse 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .led { animation: none; }
 }
