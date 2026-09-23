@@ -1,0 +1,922 @@
+/* КӨПІР Collector window (owner: B). Direction "Brutal tech" from docs/DESIGN.md: square corners, 2px graphite
+   borders, hard shadows without blur, lime only for live states and accents (never as text on light backgrounds).
+   Plain CSS: main.ts loads renderer/index.html straight from disk, there is no build step. */
+
+:root {
+  --bg: #fafaf7;
+  --surface: #ffffff;
+  --soft: #f0f0eb;
+  --ink: #18181b;
+  --muted: #52525b;
+  --faint: #a1a1aa;
+  --hairline: #e4e4e0;
+  --lime: #84cc16;
+  --lime-strong: #65a30d;
+  --lime-soft: #ecfccb;
+  --lime-ink: #365314;
+  --danger: #dc2626;
+  --danger-soft: #fef2f2;
+  --danger-ink: #991b1b;
+  --warn: #eab308;
+  --warn-soft: #fef9c3;
+  --warn-ink: #713f12;
+  --on-ink: #fafaf9;
+
+  --shadow: 4px 4px 0 var(--ink);
+  --shadow-sm: 3px 3px 0 var(--ink);
+
+  /* Rubik and Tektur come from Google Fonts (renderer.js adds the link); offline the window falls back to Segoe UI. */
+  --font-ui: "Rubik", "Segoe UI", system-ui, sans-serif;
+  --font-logo: "Tektur", "Rubik", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 14px/1.45 var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  /* Desktop window: only inputs and the transcript select text. */
+  user-select: none;
+  cursor: default;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+p,
+h2,
+h3,
+dl,
+dd {
+  margin: 0;
+}
+
+.vh {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus: graphite outline with a lime band between it and the element, readable on every surface. */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.btn:focus-visible,
+.switch:focus-visible,
+.input:focus-visible,
+.transcript:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--lime);
+}
+
+/* ---------- app shell: fixed header and footer, scrolling middle ---------- */
+
+.app {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100vh;
+}
+
+.main {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) transparent;
+  padding: 16px 16px 24px;
+}
+
+/* ---------- header ---------- */
+
+.top {
+  background: var(--surface);
+  border-top: 4px solid var(--lime);
+  border-bottom: 2px solid var(--ink);
+  padding: 10px 16px 8px;
+}
+
+.top__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.14em;
+  font: 800 22px/1 var(--font-logo);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.logo__led {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 0.08em;
+  background: var(--lime);
+  box-shadow: 0 0 0.4em var(--lime);
+}
+
+.brand__tag {
+  font: 700 10px/1 var(--font-ui);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border: 2px solid var(--ink);
+  padding: 3px 5px 2px 6px;
+}
+
+.btn--check {
+  min-width: 132px;
+}
+
+.conn {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid var(--hairline);
+  font-size: 12.5px;
+  line-height: 18px;
+}
+
+.conn .led {
+  margin-top: 5px;
+}
+
+.conn__title {
+  flex: none;
+  font-weight: 700;
+}
+
+.conn__detail {
+  min-width: 0;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.conn--flash {
+  animation: conn-flash 0.8s ease-out;
+}
+
+@keyframes conn-flash {
+  from {
+    background: var(--lime-soft);
+  }
+  to {
+    background: transparent;
+  }
+}
+
+/* ---------- LED indicator: 8px square, glow, 1.6 s pulse ---------- */
+
+.led {
+  display: inline-block;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: var(--lime);
+  box-shadow: 0 0 8px var(--lime);
+  animation: led-pulse 1.6s ease-in-out infinite;
+}
+
+.led--off {
+  background: var(--faint);
+  box-shadow: none;
+  animation: none;
+}
+
+.led--rec {
+  background: var(--danger);
+  box-shadow: 0 0 8px var(--danger);
+  animation-name: led-pulse-rec;
+}
+
+.led--warn {
+  background: var(--warn);
+  box-shadow: 0 0 6px var(--warn);
+  animation: none;
+}
+
+@keyframes led-pulse {
+  50% {
+    opacity: 0.4;
+    box-shadow: 0 0 2px var(--lime);
+  }
+}
+
+@keyframes led-pulse-rec {
+  50% {
+    opacity: 0.4;
+    box-shadow: 0 0 2px var(--danger);
+  }
+}
+
+/* ---------- sections and cards ---------- */
+
+.banner {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 18px;
+  padding: 10px 12px;
+  background: var(--warn-soft);
+  border: 2px solid var(--ink);
+  border-left: 8px solid var(--warn);
+  box-shadow: var(--shadow);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.banner strong {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.section + .section {
+  margin-top: 24px;
+}
+
+.section__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font: 800 12px/1 var(--font-ui);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.section__title::before {
+  content: "";
+  flex: none;
+  width: 10px;
+  height: 10px;
+  background: var(--ink);
+}
+
+.section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.section__head .section__title {
+  margin-bottom: 0;
+}
+
+.section__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.card {
+  position: relative;
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  box-shadow: var(--shadow);
+  padding: 14px;
+}
+
+.card + .card {
+  margin-top: 16px;
+}
+
+/* A switched-on source gets the lime top bar. */
+.card[data-on="true"] {
+  box-shadow: inset 0 4px 0 var(--lime), var(--shadow);
+}
+
+.card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.card__text {
+  min-width: 0;
+}
+
+.card__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font: 800 16px/1.2 var(--font-ui);
+}
+
+.card__desc {
+  margin-top: 5px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.card--soon {
+  background: var(--soft);
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.tag {
+  font: 800 10px/1 var(--font-ui);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 6px 3px;
+  background: var(--ink);
+  color: var(--lime);
+}
+
+.live {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 18px;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.live strong {
+  font-weight: 800;
+}
+
+.live strong:empty {
+  display: none;
+}
+
+.note {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.alert {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 2px solid var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger-ink);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.alert--warn {
+  border-color: var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+}
+
+/* ---------- counters ---------- */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: auto auto auto;
+  margin-top: 12px;
+  border: 2px solid var(--ink);
+}
+
+/* Subgrid keeps the values on one line even when a label wraps in a narrow window. */
+.stat {
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  align-content: start;
+  min-width: 0;
+  padding: 8px 10px 9px;
+}
+
+.stat + .stat {
+  border-left: 2px solid var(--ink);
+}
+
+.stat__label {
+  font: 700 10px/1.25 var(--font-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.stat__value {
+  margin-top: 5px;
+  font: 800 19px/1.1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat__value--muted {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.stat__sub {
+  margin-top: 3px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- big brutal switch ---------- */
+
+.switch {
+  position: relative;
+  flex: none;
+  width: 60px;
+  height: 32px;
+  padding: 0;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: var(--soft);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.switch__knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  background: var(--ink);
+  transition: transform 0.15s ease;
+}
+
+.switch[aria-checked="true"] {
+  background: var(--lime);
+}
+
+.switch[aria-checked="true"] .switch__knob {
+  transform: translateX(28px);
+}
+
+/* The knob of a switched-on source carries a small lime LED. */
+.switch[aria-checked="true"] .switch__knob::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  background: var(--lime);
+}
+
+.switch:hover:not(:disabled):not([aria-disabled="true"]) {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.switch:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.switch[aria-disabled="true"] {
+  cursor: progress;
+}
+
+.switch[aria-disabled="true"] .switch__knob {
+  opacity: 0.55;
+}
+
+.switch:disabled {
+  cursor: not-allowed;
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.switch:disabled .switch__knob {
+  background: var(--faint);
+}
+
+/* ---------- buttons ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 9px 14px;
+  font: 700 13px/1 var(--font-ui);
+  color: var(--ink);
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn:hover:not([aria-disabled="true"]) {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.btn:active:not([aria-disabled="true"]) {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.btn[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: none;
+}
+
+.btn--sm {
+  min-height: 32px;
+  padding: 7px 11px;
+  font-size: 12.5px;
+}
+
+.btn--xs {
+  min-height: 28px;
+  padding: 5px 9px;
+  font-size: 12px;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.btn--xs:hover:not([aria-disabled="true"]) {
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+/* Primary: graphite with a pulsing lime LED (DESIGN.md), lime hard shadow. */
+.btn--primary {
+  background: var(--ink);
+  color: var(--on-ink);
+  box-shadow: 3px 3px 0 var(--lime);
+}
+
+.btn--primary:hover:not([aria-disabled="true"]) {
+  box-shadow: 4px 4px 0 var(--lime);
+}
+
+.btn--primary:active:not([aria-disabled="true"]) {
+  box-shadow: 0 0 0 var(--lime);
+}
+
+.btn--accent {
+  background: var(--lime);
+}
+
+.btn--stop {
+  background: var(--surface);
+}
+
+.stop-icon {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  background: var(--danger);
+}
+
+.btn--meeting {
+  min-width: 158px;
+}
+
+.btn--attached {
+  min-height: 40px;
+  box-shadow: none;
+}
+
+.btn--attached:hover:not([aria-disabled="true"]),
+.btn--attached:active:not([aria-disabled="true"]) {
+  transform: none;
+  box-shadow: none;
+  background: var(--soft);
+}
+
+/* ---------- meeting controls ---------- */
+
+.meet {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.meet .input {
+  flex: 1;
+}
+
+.meters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  margin-top: 10px;
+}
+
+.meter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.meter__label {
+  flex: none;
+  font: 700 10px/1 var(--font-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.meter__bar {
+  flex: 1;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 2px;
+  height: 10px;
+}
+
+.meter__bar i {
+  background: var(--hairline);
+}
+
+.meter__bar i.on {
+  background: var(--lime);
+}
+
+.meter[data-off="true"] .meter__bar {
+  opacity: 0.35;
+}
+
+/* ---------- settings form ---------- */
+
+.form {
+  display: grid;
+  gap: 14px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field__label {
+  font: 700 11px/1 var(--font-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.field__msg {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.field__msg[data-kind="error"] {
+  color: var(--danger-ink);
+  font-weight: 600;
+}
+
+.field__msg[data-kind="warn"] {
+  color: var(--warn-ink);
+  font-weight: 600;
+}
+
+.input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  padding: 0 11px;
+  font: 500 14px var(--font-ui);
+  color: var(--ink);
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  user-select: text;
+}
+
+.input::placeholder {
+  color: var(--faint);
+}
+
+.input--mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.input:disabled {
+  background: var(--soft);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.input-group {
+  display: flex;
+}
+
+.input-group .input {
+  flex: 1;
+  border-right-width: 0;
+}
+
+.form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.form__status {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.form__status:empty {
+  display: none;
+}
+
+.form__status[data-kind="ok"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  background: var(--lime-soft);
+  color: var(--lime-ink);
+  border: 2px solid var(--lime-strong);
+}
+
+.form__status[data-kind="ok"]::before {
+  content: "";
+  flex: none;
+  width: 9px;
+  height: 5px;
+  margin-top: -3px;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+}
+
+.form__status[data-kind="error"] {
+  color: var(--danger-ink);
+}
+
+/* ---------- live transcript ---------- */
+
+.transcript {
+  height: 200px;
+  overflow-y: auto;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  box-shadow: var(--shadow);
+  font: 12.5px/1.55 var(--font-mono);
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) transparent;
+  user-select: text;
+  cursor: text;
+}
+
+.transcript__empty {
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.tgroup + .tgroup {
+  margin-top: 14px;
+}
+
+.tgroup__head {
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed var(--faint);
+  font: 700 10.5px/1.3 var(--font-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tline {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+}
+
+.tline + .tline {
+  margin-top: 4px;
+}
+
+.tline__at {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.tline__text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- footer ---------- */
+
+.privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 16px 10px;
+  background: var(--ink);
+  color: var(--on-ink);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.privacy__icon {
+  flex: none;
+  margin-top: 1px;
+  color: var(--lime);
+}
+
+/* ---------- narrow windows ---------- */
+
+@media (max-width: 400px) {
+  .main {
+    padding-inline: 12px;
+  }
+
+  .meet {
+    flex-wrap: wrap;
+  }
+
+  .btn--meeting {
+    flex: 1 0 100%;
+  }
+
+  .stat {
+    padding-inline: 8px;
+  }
+
+  .stat__value {
+    font-size: 17px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
