@@ -7,6 +7,7 @@ import { useStore } from '@/lib/store';
 import { useHydrated } from '../useHydrated';
 import { discover, getSources } from '@/lib/api-client';
 import { AgentTrace, InsightCard, PrivacyPanel } from '@/components/domain';
+import { Button } from '@/components/ui';
 
 export function Discover() {
   const hydrated = useHydrated();
@@ -64,10 +65,10 @@ export function Discover() {
       </section>
 
       <section className="space-y-3">
-        <button disabled={busy} onClick={analyze}
-          className="inline-flex items-center gap-2 rounded-control bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-50"><span className="led" />
+        <Button loading={busy} onClick={analyze}
+          >
           {busy ? 'Analyzing…' : 'Analyze last 4 weeks'}
-        </button>
+        </Button>
         {error && <div className="rounded-control bg-red-50 p-3 text-sm text-red-700">{error}</div>}
         {trace.length > 0 && <AgentTrace steps={trace} />}
         <div className="grid gap-4 md:grid-cols-2">

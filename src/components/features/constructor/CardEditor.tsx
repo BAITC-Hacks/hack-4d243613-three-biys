@@ -9,6 +9,7 @@ import {
   LevelUpToast, PositionPreview, RatingPanel, ScoreHistory, SuggestionChip, TechSpecView,
 } from '@/components/domain';
 import { techSpec as generateTechSpec } from '@/lib/api-client';
+import { Button, Tabs, Textarea } from '@/components/ui';
 
 const FIELDS: { key: CardField; label: string }[] = [
   { key: 'title', label: 'Title' },
@@ -73,17 +74,12 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
   return (
     <div className="grid gap-6 md:grid-cols-[1fr_320px]">
       <div className="space-y-4">
-        <div className="flex gap-2">
-          {(['card', 'tech'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`border-2 border-border px-3 py-2 font-semibold ${tab === t ? 'bg-accent shadow-card' : 'bg-surface text-muted'}`}
-            >
-              {t === 'card' ? 'Task card' : 'Tech docs'}
-            </button>
-          ))}
-        </div>
+        <Tabs
+          aria-label="Card sections"
+          items={[{ id: 'card', label: 'Task card' }, { id: 'tech', label: 'Tech docs' }]}
+          value={tab}
+          onChange={setTab}
+        />
 
         {error && <div className="rounded-control bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
@@ -112,8 +108,8 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
                 onAccept={() => acceptSuggestion(card.id, key)}
               />
             )}
-            <textarea
-              className="h-20 w-full rounded-control border-2 border-border bg-surface p-2 text-sm"
+            <Textarea
+              className="h-20"
               value={card.fields[key] ?? ''}
               onChange={(e) => updateFields(card.id, { [key]: e.target.value || null })}
             />
@@ -127,26 +123,22 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
 
         {tab === 'tech' && (
           <div className="space-y-4">
-            <button
-              disabled={busy}
-              onClick={generate}
-              className="inline-flex items-center gap-2 rounded-control bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-50"
-            ><span className="led" />
+            <Button loading={busy} onClick={generate}>
               {busy ? 'Generating…' : card.techSpec ? 'Regenerate tech docs' : 'Generate tech docs'}
-            </button>
+            </Button>
             {card.techSpec && (
               <>
                 <label className="block text-sm font-medium">Summary
-                  <textarea
-                    className="mt-1 h-20 w-full rounded-control border-2 border-border bg-surface p-2 font-normal"
+                  <Textarea
+                    className="mt-1 h-24 font-normal"
                     value={card.techSpec.summary}
                     onChange={(e) => editSpec({ summary: e.target.value })}
                   />
                 </label>
                 {LIST_KEYS.map(({ key, label }) => (
                   <label key={key} className="block text-sm font-medium">{label} <span className="text-xs text-muted">(one per line)</span>
-                    <textarea
-                      className="mt-1 h-24 w-full rounded-control border-2 border-border bg-surface p-2 font-normal"
+                    <Textarea
+                      className="mt-1 h-32 font-normal"
                       value={card.techSpec![key].join('\n')}
                       onChange={(e) => editSpec({ [key]: e.target.value.split('\n') })}
                     />
@@ -183,13 +175,15 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
           <div className="rounded-control bg-accent-soft p-3 text-sm text-[#365314]">Published to the catalog</div>
         ) : (
           <>
-            <button
+            <Button
+              variant="accent"
+              size="lg"
+              className="w-full"
               disabled={!card.fields.title}
               onClick={() => { publish(card.id); onPublished?.(); }}
-              className="w-full rounded-control border-2 border-border bg-accent px-4 py-2 font-semibold text-accent-foreground shadow-card disabled:opacity-50"
             >
               Publish to catalog
-            </button>
+            </Button>
             {!card.fields.title && (
               <p className="text-xs text-amber-800">
                 Add a title to publish.{' '}

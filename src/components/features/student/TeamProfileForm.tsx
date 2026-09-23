@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { TeamProfile } from '@/lib/types';
 import { useStore } from '@/lib/store';
 import { useHydrated } from '../useHydrated';
+import { Button, Input, Textarea } from '@/components/ui';
 
 export function TeamProfileForm() {
   const hydrated = useHydrated();
@@ -34,7 +35,7 @@ function Form({ team }: { team: TeamProfile }) {
   const field = (key: keyof typeof form, label: string, hint?: string) => (
     <label className="block space-y-1 text-sm">
       <span className="font-medium">{label}</span>{hint && <span className="text-xs text-muted"> {hint}</span>}
-      <input className="w-full rounded-control border-2 border-border bg-surface px-2 py-1" value={form[key]}
+      <Input  value={form[key]}
         onChange={(e) => { setForm({ ...form, [key]: e.target.value }); setSaved(false); }} />
     </label>
   );
@@ -46,13 +47,13 @@ function Form({ team }: { team: TeamProfile }) {
       {field('name', 'Team name')}
       <label className="block space-y-1 text-sm">
         <span className="font-medium">About</span>
-        <textarea className="h-20 w-full rounded-control border-2 border-border bg-surface p-2" value={form.about}
+        <Textarea className="h-20" value={form.about}
           onChange={(e) => { setForm({ ...form, about: e.target.value }); setSaved(false); }} />
       </label>
       {field('interests', 'Interests', '(comma-separated)')}
       {field('skills', 'Skills', '(comma-separated)')}
       {field('tech', 'Tech', '(comma-separated)')}
-      <button onClick={save} className="inline-flex items-center gap-2 rounded-control bg-primary px-4 py-2 font-semibold text-primary-foreground"><span className="led" />Save</button>
+      <Button onClick={save} >Save</Button>
       {saved && <span className="ml-3 text-sm text-[#365314]">Saved</span>}
     </div>
   );

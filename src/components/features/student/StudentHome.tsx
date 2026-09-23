@@ -8,6 +8,7 @@ import { useHydrated } from '../useHydrated';
 import { Leaderboard, ProjectCard, TeamCard } from '@/components/domain';
 import type { Match, TaskCard, TeamProfile } from '@/lib/types';
 import { useAiReasons } from './useAiReasons';
+import { buttonClasses } from '@/components/ui';
 
 function Matches({ team, matches, cards }: { team: TeamProfile; matches: Match[]; cards: TaskCard[] }) {
   const ai = useAiReasons(team, matches, cards);
@@ -41,7 +42,7 @@ export function StudentHome() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1"><TeamCard team={team} points={teamPoints[team.id] ?? 0} /></div>
-        <Link href="/student/profile" className="rounded-control border-2 border-border px-3 py-1 text-sm">Edit profile</Link>
+        <Link href="/student/profile" className={buttonClasses({ variant: 'secondary', size: 'sm' })}>Edit profile</Link>
       </div>
 
       <section className="space-y-3">

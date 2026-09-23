@@ -7,6 +7,7 @@ import { useStore } from '@/lib/store';
 import { getCatalog, LEVELS, topicsOf, type CatalogOptions } from '@/lib/catalog';
 import { useHydrated } from '../useHydrated';
 import { ProjectCard } from '@/components/domain';
+import { Select } from '@/components/ui';
 
 export function CatalogView() {
   const hydrated = useHydrated();
@@ -20,21 +21,21 @@ export function CatalogView() {
     <div className="space-y-4">
       <h1 className="text-2xl font-extrabold">Project catalog</h1>
       <div className="flex flex-wrap gap-3 text-sm">
-        <select className="rounded-control border-2 border-border bg-surface px-2 py-1" value={q.topic ?? ''}
+        <Select  value={q.topic ?? ''}
           onChange={(e) => setQ({ ...q, topic: e.target.value || undefined })}>
           <option value="">All topics</option>
           {topicsOf(cards).map((t) => <option key={t} value={t}>{t}</option>)}
-        </select>
-        <select className="rounded-control border-2 border-border bg-surface px-2 py-1" value={q.level ?? ''}
+        </Select>
+        <Select  value={q.level ?? ''}
           onChange={(e) => setQ({ ...q, level: (e.target.value || undefined) as Level | undefined })}>
           <option value="">All levels</option>
           {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
-        </select>
-        <select className="rounded-control border-2 border-border bg-surface px-2 py-1" value={q.sort}
+        </Select>
+        <Select  value={q.sort}
           onChange={(e) => setQ({ ...q, sort: e.target.value as CatalogOptions['sort'] })}>
           <option value="rating">Sort by rating</option>
           <option value="new">Newest first</option>
-        </select>
+        </Select>
       </div>
       {items.length === 0 && <p className="text-muted">No published projects match these filters.</p>}
       <div className="grid gap-4 md:grid-cols-2">

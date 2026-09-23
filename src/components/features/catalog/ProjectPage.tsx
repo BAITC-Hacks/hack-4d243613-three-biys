@@ -6,6 +6,7 @@ import { rateCard } from '@/lib/rating';
 import { useStore } from '@/lib/store';
 import { useHydrated } from '../useHydrated';
 import { LevelBadge, RatingPanel, TechSpecView } from '@/components/domain';
+import { Button, Input, Textarea } from '@/components/ui';
 
 const FIELD_LABELS: [CardField, string][] = [
   ['context', 'Context'], ['need', 'Need'], ['users', 'Users'], ['data', 'Data & materials'],
@@ -72,14 +73,14 @@ function ProposalForm({ taskId }: { taskId: string }) {
   return (
     <section className="space-y-2 rounded-control border-2 border-border p-4">
       <h2 className="text-xl font-extrabold">Submit a proposal as {team.name}</h2>
-      <textarea className="h-20 w-full rounded-control border-2 border-border bg-surface p-2 text-sm" placeholder="Idea"
+      <Textarea className="h-20" placeholder="Idea"
         value={form.idea} onChange={(e) => setForm({ ...form, idea: e.target.value })} />
-      <textarea className="h-24 w-full rounded-control border-2 border-border bg-surface p-2 text-sm" placeholder="Plan"
+      <Textarea className="h-24" placeholder="Plan"
         value={form.plan} onChange={(e) => setForm({ ...form, plan: e.target.value })} />
       <div className="flex flex-wrap gap-2 text-sm">
-        <input type="date" className="rounded-control border-2 border-border bg-surface px-2 py-1"
+        <Input type="date" 
           value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} />
-        <input className="flex-1 rounded-control border-2 border-border bg-surface px-2 py-1" placeholder="Prototype link"
+        <Input className="flex-1" placeholder="Prototype link"
           value={form.prototypeUrl} onChange={(e) => setForm({ ...form, prototypeUrl: e.target.value })} />
       </div>
       <ul className="text-xs">
@@ -87,10 +88,10 @@ function ProposalForm({ taskId }: { taskId: string }) {
           <li key={c.label} className={c.ok ? 'text-[#365314]' : 'text-muted'}>{c.ok ? '✓' : '○'} {c.label}</li>
         ))}
       </ul>
-      <button disabled={!valid} className="inline-flex items-center gap-2 rounded-control bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-50"
-        onClick={() => submitProposal({ taskId, teamId: team.id, ...form })}><span className="led" />
+      <Button disabled={!valid} 
+        onClick={() => submitProposal({ taskId, teamId: team.id, ...form })}>
         Submit proposal
-      </button>
+      </Button>
     </section>
   );
 }

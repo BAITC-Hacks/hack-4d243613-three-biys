@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useStore, type Role } from '@/lib/store';
 import { useHydrated } from './useHydrated';
 import { Logo } from '@/components/ui/logo';
+import { Select } from '@/components/ui';
 
 const NAV: Record<Role, { href: string; label: string }[]> = {
   business: [
@@ -61,13 +62,12 @@ export function AppHeader() {
                 ))}
               </div>
               {role === 'student' && (
-                <select
-                  className="rounded-control border-2 border-border bg-surface px-2 py-1"
+                <Select
                   value={currentTeamId}
                   onChange={(e) => setTeam(e.target.value)}
                 >
                   {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
+                </Select>
               )}
               <button
                 className="text-xs text-muted underline"

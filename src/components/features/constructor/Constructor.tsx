@@ -10,6 +10,7 @@ import { clarify, buildCard } from '@/lib/api-client';
 import type { ClarifyResponse } from '@/lib/schemas';
 import { rateCard } from '@/lib/rating';
 import { CardEditor } from './CardEditor';
+import { Button, Input, Textarea } from '@/components/ui';
 
 type ClarifyQuestion = ClarifyResponse['questions'][number];
 
@@ -99,8 +100,8 @@ function Wizard({ insight }: { insight?: Insight }) {
       {step === 'draft' && (
         <section className="space-y-3">
           <h1 className="text-2xl font-extrabold">Describe your need</h1>
-          <textarea
-            className="h-40 w-full rounded-control border-2 border-border p-3"
+          <Textarea
+            className="h-40 p-3"
             placeholder="In a few sentences: what hurts and what you want to change"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -110,19 +111,17 @@ function Wizard({ insight }: { insight?: Insight }) {
           ))}
           <div className="flex gap-3">
             <label className="text-sm">Industry
-              <input className="ml-2 rounded-control border-2 border-border bg-surface px-2 py-1" value={industry} onChange={(e) => setIndustry(e.target.value)} />
+              <Input className="ml-2" value={industry} onChange={(e) => setIndustry(e.target.value)} />
             </label>
             <label className="text-sm">Topic
-              <input className="ml-2 rounded-control border-2 border-border bg-surface px-2 py-1" value={topic} onChange={(e) => setTopic(e.target.value)} />
+              <Input className="ml-2" value={topic} onChange={(e) => setTopic(e.target.value)} />
             </label>
           </div>
-          <button
-            disabled={busy || !draft.trim()}
+          <Button loading={busy} disabled={!draft.trim()}
             onClick={runClarify}
-            className="inline-flex items-center gap-2 rounded-control bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-50"
-          ><span className="led" />
+          >
             {busy ? 'Analyzing…' : 'Clarify with AI'}
-          </button>
+          </Button>
         </section>
       )}
 
@@ -139,22 +138,20 @@ function Wizard({ insight }: { insight?: Insight }) {
             <div key={q.id} className="space-y-1">
               <div className="font-medium">{q.question}</div>
               <div className="text-xs text-muted">Why: {q.why} · <b>+{q.gain}</b> to {q.field as CardField}</div>
-              <textarea
-                className="h-20 w-full rounded-control border-2 border-border bg-surface p-2"
+              <Textarea
+                className="h-20"
                 value={answers[q.id] ?? ''}
                 onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
               />
             </div>
           ))}
           <div className="flex gap-2">
-            <button className="rounded-control border-2 border-border px-4 py-2" onClick={() => setStep('draft')}>Back</button>
-            <button
-              disabled={busy}
+            <Button variant="secondary" onClick={() => setStep('draft')}>Back</Button>
+            <Button loading={busy}
               onClick={runCard}
-              className="inline-flex items-center gap-2 rounded-control bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-50"
-            ><span className="led" />
+            >
               {busy ? 'Building card…' : 'Build card'}
-            </button>
+            </Button>
           </div>
         </section>
       )}

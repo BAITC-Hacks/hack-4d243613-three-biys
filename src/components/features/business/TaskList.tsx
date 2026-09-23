@@ -5,6 +5,7 @@ import { rateCard } from '@/lib/rating';
 import { useStore } from '@/lib/store';
 import { useHydrated } from '../useHydrated';
 import { LevelBadge } from '@/components/domain';
+import { buttonClasses } from '@/components/ui';
 
 export function TaskList() {
   const hydrated = useHydrated();
@@ -15,7 +16,7 @@ export function TaskList() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">My tasks</h1>
-        <Link href="/business/new" className="inline-flex items-center gap-2 rounded-control bg-primary px-4 py-2 font-semibold text-sm text-primary-foreground"><span className="led" />New task</Link>
+        <Link href="/business/new" className={buttonClasses()}>New task</Link>
       </div>
       {cards.length === 0 && <p className="text-muted">No tasks yet — start in the Constructor or Discover.</p>}
       <table className="w-full text-sm">

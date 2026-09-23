@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Logo } from '@/components/ui/logo';
+import { buttonClasses } from '@/components/ui';
 
 export default function Home() {
   return (
@@ -9,9 +10,9 @@ export default function Home() {
         Find the problem worth solving, turn it into a task card students can start on, and watch its readiness rating grow.
       </p>
       <div className="flex gap-3">
-        <Link href="/business/new" className="inline-flex items-center gap-2 rounded-control bg-primary px-4 py-2 font-semibold text-primary-foreground"><span className="led" />Describe a task</Link>
-        <Link href="/business/discover" className="rounded-control border-2 border-border px-4 py-2">Discover problems</Link>
-        <Link href="/catalog" className="rounded-control border-2 border-border px-4 py-2">Browse projects</Link>
+        <Link href="/business/new" className={buttonClasses()}>Describe a task</Link>
+        <Link href="/business/discover" className={buttonClasses({ variant: 'secondary' })}>Discover problems</Link>
+        <Link href="/catalog" className={buttonClasses({ variant: 'secondary' })}>Browse projects</Link>
       </div>
     </div>
   );
