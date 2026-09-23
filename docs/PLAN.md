@@ -1,7 +1,7 @@
 # PLAN — Three Biys · AI Sana gamification track
 
 > Source of truth for all three Claude sessions. Contracts (§5) change only by team agreement.
-> Roles: **A** = lead (Mac) — AI layer, server, rating, seed data · **B** (Windows) — Windows Collector app · **C** (Windows) — web UI, browser store, README, demo.
+> Roles: **A** = lead (Mac) — everything except design & frontend: AI layer, server/ingest, rating, seed data, Windows Collector logic, deploy · **B** (Windows) — **Design**: design system, UI component kit, presentational domain components, Collector window UI + testing the Collector on Windows, pitch/demo materials, README editing · **C** (Windows) — **Frontend**: all pages, browser store, catalog/matching logic, wiring to the API.
 
 ## 1. Task
 
@@ -44,7 +44,7 @@ Levels: 0–39 **draft** (visible, flagged) · 40–69 **working** (proposals + 
 
 **Problem.** Businesses don't only struggle to *describe* a task — they struggle to *know which problem is worth solving*. The evidence is scattered across meetings, chats and daily work on employees' computers, so tasks given to students are vague and students can't start.
 
-**Product: "TaskForge"** (working name) — three parts:
+**Product: "TaskForge"** (working name). **Split of responsibilities: the Windows app does collection only. Everything else — business side and student side (profiles, catalog, projects, proposals) — is the web app.**
 
 1. **TaskForge Collector (Windows app)** — tray app the business installs (opt-in). Three toggles:
    - **Activity tracker** (starts with Windows): foreground-app category + clipboard transfers between apps → anonymized events. Window titles/content never leave the machine.
@@ -78,7 +78,7 @@ Why: one language across web + desktop; file-based routes = few shared files; no
 ## 4. Architecture
 
 ```
-┌──────── Windows: TaskForge Collector (B, Electron) ────────┐
+┌──────── Windows: TaskForge Collector (Electron) ─────────────┐
 │ Tray + window: [Activity tracker] [Meeting notes] [Telegram]│
 │ settings: serverUrl, ingestToken, team, telegram bot/chat   │
 │ tracker: foreground app → category; clipboard X→Y transfer  │
@@ -262,12 +262,14 @@ export type ApiResult<T> =
 | `GET /api/sources` | — (no token) | `SourcesSnapshot` (seed + live, aggregated with k=5) |
 | `GET /api/health` | — | `{ ok: true; mode: 'live'\|'replay'; storage: 'redis'\|'file' }` (Collector "Test connection") |
 
-**Collector settings (B, stored in Electron `userData/settings.json`, never committed):** `{ serverUrl: string; ingestToken: string; team: string; trackerEnabled: boolean; meetingEnabled: boolean; telegramEnabled: boolean; telegramBotToken?: string; telegramChatId?: string; roleMap: Record<string, string> }` — `roleMap` maps Telegram user id → role label ("Sales manager"); unmapped → "Team member". Names are never sent.
+**Collector settings (A, stored in Electron `userData/settings.json`, never committed):** `{ serverUrl: string; ingestToken: string; team: string; trackerEnabled: boolean; meetingEnabled: boolean; telegramEnabled: boolean; telegramBotToken?: string; telegramChatId?: string; roleMap: Record<string, string> }` — `roleMap` maps Telegram user id → role label ("Sales manager"); unmapped → "Team member". Names are never sent.
 
 **Browser store (C) — `src/lib/store/index.ts`, zustand, persisted to localStorage key `taskforge:v1`:**
 state `{ role: 'business' | 'student'; currentTeamId: string; cards: TaskCard[]; teams: TeamProfile[]; proposals: Proposal[]; milestones: Milestone[]; teamPoints: Record<string, number>; insights: Insight[] }`
 actions `setRole, setTeam, updateTeam(id, patch), createCard(partial) → id, updateFields(id, patch), confirmField(id, field, bool), setTechSpec(id, spec, skills), confirmTechSpec(id), publish(id), submitProposal(p) → id, decideProposal(id, 'accepted'|'rejected'), addMilestone(m), confirmMilestone(id), setInsights(list), resetDemo()`.
 `src/lib/catalog.ts` (C): `getCatalog(cards, { topic?, level?, sort: 'rating' | 'new' })` — published only, rating desc, ready/priority boosted; `matchTasks(team, cards): Match[]` — overlap of team interests/skills/tech with task topic/`skillsNeeded`, only level ≥ working, reasons like "Your team knows Python · task needs Python".
+
+**Presentational components (B) — `src/components/ui/**` (generic kit) and `src/components/domain/**`:** props only, no store/API access, typed from `types.ts`: `RatingPanel({ rating })`, `LevelBadge({ level })`, `ScoreBar({ points, max })`, `ProjectCard({ card, rating })`, `TechSpecView({ spec })`, `InsightCard({ insight, onUse })`, `EvidenceChip({ evidence })`, `PrivacyPanel({ privacy, live })`, `AgentTrace({ steps })`, `ProposalCard({ proposal, team, onAccept?, onReject? })`, `TeamCard({ team, points })`. C imports these; until B ships one, C uses a minimal placeholder with the same props.
 
 **Pure functions (A):** `src/lib/rating/index.ts` → `rateCard(card): Rating`, `levelFor(total): Level`. `src/lib/discover/aggregate.ts` → `aggregateActivity(events: RawActivityEvent[], k = 5): { aggregates; privacy }`.
 
@@ -281,10 +283,12 @@ actions `setRole, setTeam, updateTeam(id, patch), createCard(partial) → id, up
 | `src/lib/llm/**`, `src/lib/ai/**`, `src/lib/server/**`, `src/lib/api-client.ts`, `src/prompts/**`, `fixtures/replay/**` | A |
 | `src/lib/rating/**`, `src/lib/discover/**`, `tests/**` | A |
 | `src/data/seed/**`, `scripts/**` | A |
-| `collector/**` (own `package.json` + lockfile) | **B** |
-| `src/app/**` except `api/` (pages, `layout.tsx`, `globals.css`) | C |
-| `src/components/**`, `src/lib/store/**`, `src/lib/catalog.ts` | C |
-| `README.md` (except Third-party table: anyone appends; Collector section: B), `docs/DEMO.md` | C |
+| `collector/**` except `collector/renderer/**` (own `package.json` + lockfile) | A |
+| `collector/renderer/**` (Collector window HTML/CSS/UI script) | **B** |
+| `src/app/globals.css` (theme tokens), `src/components/ui/**`, `src/components/domain/**` | **B** |
+| `docs/DEMO.md`, pitch deck, `README.md` editing (A supplies technical sections; Third-party table: anyone appends) | **B** |
+| `src/app/**` except `api/` and `globals.css` (pages, `layout.tsx`) | **C** |
+| `src/components/features/**` (page-level composites wired to store/API), `src/lib/store/**`, `src/lib/catalog.ts` | **C** |
 | `docs/DISCLOSURE.md` | anyone appends |
 | `docs/PLAN.md` | A writes; each role ticks only its own section |
 
@@ -293,16 +297,17 @@ actions `setRole, setTeam, updateTeam(id, patch), createCard(partial) → id, up
 - **Web runtime:** `next`, `react`, `react-dom`, `openai`, `zod`, `zustand`, `nanoid`, `clsx`, `lucide-react`, `@upstash/redis`.
 - **Web dev:** `typescript`, `@types/node`, `@types/react`, `@types/react-dom`, `tailwindcss`, `@tailwindcss/postcss`, `eslint`, `eslint-config-next`, `vitest`, `tsx`.
 - **Collector (`collector/package.json`):** `electron`, `get-windows`, `typescript`, `@types/node`. (Stretch: `electron-builder` for a `.exe`.)
+- Design tooling: none required (Tailwind + `lucide-react` icons); mockups/pitch in Figma/Canva outside the repo.
 - Deploy: `npx vercel` (not a dependency).
 
 ## 8. Tasks by role
 
 Hours are Astana time. Realistic start: scaffold lands ~14:35.
 
-### A — lead: AI, server, rating, seed (Mac)
+### A — lead: AI, server, rating, seed, Collector logic, deploy (Mac)
 **H1 → 14:40**
 - [x] PLAN.md → push
-- [ ] Scaffold: Next.js app, all web deps, `types.ts`, `schemas.ts`, stubs for every area, `collector/` skeleton with its deps, `.env.example`, README skeleton → push
+- [ ] Scaffold: Next.js app, all web deps, `types.ts`, `schemas.ts`, stubs for every area, `collector/` skeleton (Electron main + empty `renderer/` for B) with its deps, `.env.example`, README skeleton → push
 **H2 14:40–15:40**
 - [ ] `src/lib/llm/*`: provider switch + fallback, zod + 1 repair retry, `DEMO_MODE` record/replay (`fixtures/replay/<endpoint>-<hash>.json`, replay falls back to latest fixture per endpoint), trace
 - [ ] `/api/ai/clarify`, `/api/ai/card` + prompts; `src/lib/api-client.ts` real calls
@@ -310,48 +315,53 @@ Hours are Astana time. Realistic start: scaffold lands ~14:35.
 - [ ] `src/data/seed/*.json`: 5 drafts, 5 published cards (with techSpec, mixed levels), 5 teams, 5 proposals
 **H3 15:40–16:40**
 - [ ] `src/lib/server/storage.ts` (redis | file), `/api/ingest/*`, `/api/sources`, `/api/health`, transcription via OpenAI
-- [ ] `src/lib/discover/aggregate.ts` (k=5) + seed `meetings.json` (8 over 4 weeks, demo company), `activity-events.json` (~2,000, one team below k), `chats.json`
-- [ ] `/api/ai/techspec`; first Vercel deploy (env: `OPENAI_API_KEY`, `INGEST_TOKEN`, Upstash keys); give B the URL + token
+- [ ] `src/lib/discover/aggregate.ts` (k=5) + seed `meetings.json` (8 over 4 weeks), `activity-events.json` (~2,000, one team below k), `chats.json`
+- [ ] `/api/ai/techspec`; first Vercel deploy (env: `OPENAI_API_KEY`, `INGEST_TOKEN`, Upstash keys)
+- [ ] Collector tracker (`collector/src/tracker.ts`, `categories.ts`): foreground app every 2 s (`get-windows`; PowerShell fallback), category mapping, clipboard `copy` → `transfer` within 60 s, 30 s batches → `/api/ingest/events`, autostart, pause; IPC status to renderer → B tests on Windows
 **H4 16:40–17:00**
-- [ ] `/api/ai/discover` (single validated call + `src/lib/ai/evidence.ts` verification, drop unsupported); record golden-path fixtures
+- [ ] `/api/ai/discover` (single validated call + `src/lib/ai/evidence.ts`, drop unsupported); record golden-path fixtures
+- [ ] Collector meeting notes (`collector/src/meeting.ts`): loopback + mic, 30 s chunks → `/api/ingest/meeting-audio`, Stop → `meeting-end`; (cut-first) `telegram.ts`
 **H5 17:00–17:45**
-- [ ] Replay-only run of the golden path; final deploy; AI section text (prompts, I/O, invalid-response handling) + rating formula text for README → C
+- [ ] Replay-only run of the golden path; final deploy; technical README sections (install, run, env, architecture, rating formula, catalog rules, AI prompts/I-O/error handling, Collector) → B for editing
 
-### B — Windows Collector (`collector/`)
-**H1 → 14:50**
-- [ ] Pull scaffold; `npm i` in `collector/`; `npm start` shows tray icon + window with 3 toggles + settings form (serverUrl, ingestToken, team, Telegram token/chat id) + "Test connection" (`GET /api/health`) → push
-**H2 14:50–15:50**
-- [ ] Activity tracker (`collector/src/tracker.ts`): poll foreground window every 2 s (`get-windows`; fallback PowerShell), map process/URL → `AppCategory` (`collector/src/categories.ts`), clipboard change = `copy`, copy then focus change to another category within 60 s = `transfer`, `focus` events with duration; batch every 30 s → `POST /api/ingest/events` (until 15:40 log batches to a local file); `app.setLoginItemSettings({ openAtLogin: true })`; pause toggle; live counter in the window
-**H3 15:50–16:40**
-- [ ] Meeting notes (`collector/src/meeting.ts` + renderer): "Start/Stop meeting notes"; `setDisplayMediaRequestHandler` with `audio: 'loopback'` + mic via `getUserMedia`; `MediaRecorder` 30 s chunks → `POST /api/ingest/meeting-audio`; show live transcript text; Stop → `meeting-end`
-- [ ] **16:00 checkpoint:** if the tracker isn't sending real events to the server yet, stop new Collector work and help C
-**H4 16:40–17:00**
-- [ ] Telegram (`collector/src/telegram.ts`): `getUpdates` long-poll, role map, → `POST /api/ingest/messages`
-**H5 17:00–17:45**
-- [ ] README "Collector (Windows)" section (install, run, settings, what is collected / not collected); rehearse the live demo moment on Windows; (stretch) `electron-builder` `.exe`
-
-### C — web UI, browser store, README, demo (Windows)
+### B — Design (Windows)
 **H1 → 15:00**
-- [ ] `layout.tsx` header: role switcher (Business / Student + team picker) + nav; route stubs for all pages below → push
+- [ ] Quick look & feel: palette, type scale, spacing → Tailwind tokens in `src/app/globals.css`
+- [ ] `src/components/ui/*`: Button, Card, Badge, Input, Textarea, Select, Tabs, ProgressBar, Stat, EmptyState → push (C builds with these from 15:00)
+**H2 15:00–16:00**
+- [ ] `src/components/domain/*` (props-only, §5): `RatingPanel`, `LevelBadge`, `ScoreBar`, `ProjectCard`, `TechSpecView`, `ProposalCard`, `TeamCard`
+- [ ] Collector window UI `collector/renderer/*` (3 toggles, settings form, status/counters, live transcript area) against A's IPC stub
+**H3 16:00–16:40**
+- [ ] `InsightCard`, `EvidenceChip`, `PrivacyPanel`, `AgentTrace`; landing `/` visuals with C; loading/empty/error states
+- [ ] Test Collector on Windows whenever A pushes (tracker events reaching `/api/sources`)
+**H4 16:40–17:00**
+- [ ] Visual polish pass on all pages with C; `docs/DEMO.md` (exact demo inputs); pitch deck (problem → product → privacy → roadmap)
+**H5 17:00–17:45**
+- [ ] Edit README into final form (A's technical text + product description + screenshots); rehearse demo on Windows (Collector + browser)
+
+### C — Frontend (Windows)
+**H1 → 15:00**
+- [ ] `layout.tsx` header: role switcher (Business / Student + team picker) + nav; route stubs for all pages → push
 - [ ] `src/lib/store/index.ts` (zustand + persist + seed loader + `resetDemo`), `src/lib/catalog.ts` (`getCatalog`, `matchTasks`)
 **H2 15:00–16:00**
-- [ ] `/business/new` wizard: draft (+industry) → questions (≥3) → card editor (all fields editable, per-field ✓ confirm, source badges) + live `RatingPanel` (total, level badge, component bars, reasons, "+N if you add X") → **Tech docs tab** (generate → edit → confirm) → publish (uses mock `api-client` until A's endpoints land)
+- [ ] `/business/new` wizard: draft (+industry) → questions (≥3) → card editor (all fields editable, per-field ✓ confirm, source badges) + live `RatingPanel` → **Tech docs tab** (generate → edit → confirm) → publish (mock `api-client` until A's endpoints land)
 **H3 16:00–16:40**
 - [ ] `/catalog` (rating sort, topic + level filters, badges, draft flag) + `/catalog/[id]` project page (card + technical documentation + rating breakdown + proposal form)
-- [ ] `/student` ("Projects you can take" from `matchTasks` + team points) + `/student/profile` (edit team name, about, interests, skills, tech)
+- [ ] `/student` (team profile summary, points, "Projects you can take" from `matchTasks`) + `/student/profile` (edit name, about, interests, skills, tech)
 - [ ] `/business/tasks` + `/business/tasks/[id]`: proposals, accept/reject, add/confirm milestone, points
 **H4 16:40–17:00**
-- [ ] `/business/discover`: sources summary (seed + live counters from `/api/sources`), `PrivacyPanel`, meetings/chats list, "Analyze" → `AgentTrace` + insight cards with evidence → "Use as draft" (`/business/new?insight=<id>`)
+- [ ] `/business/discover`: sources (seed + live from `/api/sources`), `PrivacyPanel`, meetings/chats list, "Analyze" → `AgentTrace` + `InsightCard`s → "Use as draft" (`/business/new?insight=<id>`)
 **H5 17:00–17:45**
-- [ ] README complete (purpose, architecture, stack, install, run, env, dependencies, **rating formula, catalog rules, test scenarios**, AI section, Collector section from B, third-party table); `docs/DEMO.md`; polish
+- [ ] Run the golden path end-to-end in replay mode; fix bugs; screenshots for B
 
 ## 9. Integration points
 
 - **~14:35** scaffold pushed → B and C pull; everyone codes against `types.ts`.
+- **15:00** B's UI kit pushed → C switches from raw elements to the kit. Domain components land during H2; C uses same-props placeholders until then.
 - **Until A's endpoints land (~15:30):** `api-client.ts` returns mock data when `NEXT_PUBLIC_MOCK_AI=1`; `rateCard` stub returns 0 — real versions drop in with no UI change.
-- **Until ingest is live (~16:00):** Collector writes batches to a local log file and shows counts; then switches to `serverUrl`.
+- **Collector:** A writes main-process logic on the Mac and exposes IPC (`collector/src/preload.ts`: `window.collector.getStatus()`, `setToggle(name, on)`, `saveSettings(s)`, `onStatus(cb)`, `onTranscript(cb)`); B builds `renderer/` against it and tests every push on Windows.
 - **15:40 sync:** constructor → publish → catalog works in one browser.
-- **16:40 sync:** proposals + decision + milestone + student profile/matches done; Collector events visible in `/api/sources`; deploy.
+- **16:40 sync:** proposals + decision + milestone + student profile/matches done; Collector tracker events visible in `/api/sources`; deploy.
 - **17:00 freeze:** only fixes after this.
 - Every hour: `/checkpoint`.
 
@@ -384,7 +394,7 @@ Backup: if Windows/network fails, skip step 1 — seed data carries Discover; if
 
 ## 12. Risks
 
-- **Behind schedule + wider scope** → Collector is isolated in `collector/`; 16:00 checkpoint decides whether B keeps going or helps C; C is the bottleneck — A takes over any UI page C can't reach by 16:40.
+- **Behind schedule + wider scope** → Collector is isolated in `collector/`; A carries the most scope — cut list applies to A first (Telegram → meeting audio → Discover AI); 16:00 checkpoint: if the tracker isn't sending events, A stops Collector work and finishes the web core; B joins C on pages once the kit is done.
 - **Windows-native pieces** (`get-windows` build, loopback audio permissions) → PowerShell fallback for the foreground app; paste-transcript fallback for meetings.
 - **LLM JSON / hallucination** → zod + repair retry + null-for-missing + verbatim evidence check; replay for the demo.
 - **localStorage is per browser** → single-browser demo with role switcher + "Reset demo data"; Collector data lives server-side.
