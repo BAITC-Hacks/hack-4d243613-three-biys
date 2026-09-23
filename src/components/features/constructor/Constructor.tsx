@@ -10,6 +10,7 @@ import { clarify, buildCard } from '@/lib/api-client';
 import type { ClarifyResponse } from '@/lib/schemas';
 import { rateCard } from '@/lib/rating';
 import { CardEditor } from './CardEditor';
+import { VoiceAnswers } from './VoiceAnswers';
 import { Button, Input, Textarea } from '@/components/ui';
 import { VoiceInterviewPanel } from './VoiceInterviewPanel';
 
@@ -47,6 +48,18 @@ function Wizard({ insight }: { insight?: Insight }) {
   const [topic, setTopic] = useState('Automation');
   const [questions, setQuestions] = useState<ClarifyQuestion[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+
+  // Voice answers go into the same fields as typed ones; a field without a question gets its own row.
+  const voiceAnswer = (field: CardField, answer: string) => {
+    const q = questions.find((x) => x.field === field);
+    const id = q?.id ?? `voice-${field}`;
+    if (!q) {
+      setQuestions((qs) => qs.some((x) => x.id === id)
+        ? qs
+        : [...qs, { id, field, question: `${field} (from voice interview)`, why: 'Stated in the voice interview', gain: 0 }]);
+    }
+    setAnswers((a) => ({ ...a, [id]: answer }));
+  };
   const [cardId, setCardId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -144,6 +157,7 @@ function Wizard({ insight }: { insight?: Insight }) {
               <div className="mt-2"><AgentTrace steps={trace} /></div>
             </details>
           )}
+          <VoiceAnswers draftText={draft} questions={questions} onAnswer={voiceAnswer} />
           {questions.map((q) => (
             <div key={q.id} className="space-y-1">
               <div className="font-medium">{q.question}</div>
