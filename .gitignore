@@ -2,3 +2,6 @@
 .env.*
 !.env.example
 .claude/settings.local.json
+
+# Track spec (kept local)
+HackAlem AI_ кейс по геймификации практических заданий.md
