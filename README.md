@@ -36,6 +36,41 @@ The app opens with a consent screen, then starts collecting. It is **preconfigur
 
 > The demo token is public on purpose so the Collector works with zero setup; it only allows sending anonymized demo data. For a real deployment set your own `INGEST_TOKEN` on the server and in Collector Settings.
 
+## Why Көпір exists and how it meets the evaluation criteria
+
+**The core problem.** A business owner knows something is wrong, but can rarely write it down as a task a student team can start on. They are busy, they don't know which details matter, and the evidence is scattered across meetings, chats and daily computer work. Көпір does two things about it:
+
+1. **It helps the business describe the task.** AI asks the right questions (by text or by voice), turns the answers into a card, and a transparent score shows exactly what is still missing.
+2. **It understands the business without asking.** The Windows Collector gathers work signals — app activity and meeting notes — and the website turns them into evidence-backed problems and ready-made card content. The business doesn't have to explain its problems: the platform already sees them, cites the proof, and the business only confirms.
+
+### Criterion by criterion (technical score, 100 points)
+
+| Criterion | Where it is in Көпір | How to check |
+|---|---|---|
+| **End-to-end flow (20)** | Draft → AI questions → editable card → rating → publish → catalog → student proposal → business accepts/rejects → confirmed milestone → team points. | [How to verify the main scenario](#how-to-verify-the-main-scenario), steps 1–7. Every transition works in the app, not on slides. |
+| **Card quality (15)** | The AI asks **≥ 3 questions, one per missing field, in the draft's language, highest-value fields first** (data, success criteria, expected result…). Answers become an editable card where every field shows its source (draft / answer / insight) or **"not stated"** — the AI never invents facts. **Tech docs** tab generates technical documentation for students from the confirmed card. | Business → New task → Clarify. Try a Russian draft: questions come in Russian. |
+| **Business gamification (25)** | The **readiness score 0–100** is computed by code, not AI ([Rating formula](#rating-formula)). Points only for fields that are **filled with real content AND confirmed** — junk like "asdf", "-", "N/A" earns 0. The rating panel shows the breakdown, ✓/✗ checks with the rule text, **Next best actions** ("+15 if you add measurable success criteria"), the **catalog position preview** ("#7 of 10 → #3"), level-up toasts at 40/70/90 and the score history. | Confirm fields one by one and watch the score and catalog position change live. |
+| **Catalog & proposals (15)** | All published tasks are visible to everyone, sorted by rating with a boost for *ready* and *priority* tasks; low-rated tasks stay visible with a "draft" flag ([Catalog rules](#catalog-rules)). Any team can send unlimited proposals; the business compares them side by side and **decides manually** — accept one, several or none, reject with a reason. No automatic assignment. | Student → Catalog → project page → Submit proposal; Business → My tasks → compare → accept/reject. |
+| **AI feature (10)** | Clarify, card building, tech docs, Discover insights, voice interview. Every AI step has a **"How the AI works"** panel: prompt, input JSON, output JSON, validation result. Output is zod-validated, repaired once, otherwise a clear error; with no API key the app replays recorded responses ([AI feature](#ai-feature-prompts-inputoutput-format-invalid-response-handling)). | Open the trace under any AI result. |
+| **Technical quality (10)** | One-command run, validation on every input, typed contracts (`src/lib/types.ts`), tests (`npm test`), hosted demo. | [Install](#install), [Run](#run), [Test scenarios](#test-scenarios). |
+| **Demo (5)** | One prepared example (QazCargo), 5 minutes, all live. | `docs/DEMO.md`. |
+
+### Where the AI helps the business fill the card — and why
+- **AI interview (text or voice).** After the draft, the AI asks only about what is missing, starting with the fields worth the most points. The business can type or just talk: the voice interview asks each question aloud and fills the answers into the form.
+- **Suggestions from real evidence.** Discover insights come with suggested text for *context*, *need* and *data & materials* — the hardest fields for a business to write (40 points together). They are built only from cited evidence, shown as suggestions with their source, and earn points only after the business accepts and confirms them.
+- **Why this makes the card complete.** Each answered question or accepted suggestion closes a gap the score is pointing at, so the card grows from a one-line draft (≈ 20, *draft*) to a card a team can start on (≈ 85+, *ready*), and it rises in the catalog.
+
+### For students and for the business
+- **Students:** team profile (interests, skills, tech — no personal data), **"Projects you can take"** matched to the profile (only tasks at *working* level or higher), full catalog with topic and level filters, project page with technical documentation, proposal form with completeness checks, team progress and leaderboard — points come only from milestones the business confirmed.
+- **Business:** AI interview, live score with next actions, catalog position preview, tech docs generated for students, side-by-side proposal comparison, manual decisions, milestone confirmation, and Discover for finding problems worth solving.
+
+### The Windows Collector: understanding the business without asking
+The Collector is **not screen sharing and not a recording of the screen.** It is an opt-in tray app on employees' computers that sends only work signals:
+- **Activity events:** which *category* of app is in use (CRM, spreadsheet, email, messenger…), switches between apps, and copy→paste transfers between categories. No window titles, no content, no names; each device is pseudonymized, and a pattern is shown only if **at least 5 people** produce it.
+- **Meeting notes:** meeting audio (Zoom, Teams, Meet or any call) is transcribed on the server into meeting notes.
+
+On the website, **Business → Discover** analyzes these events and meeting notes together: it finds recurring problems (e.g. *"orders are retyped from spreadsheets into the CRM — 142 transfers a week by 6 people"*), cites the exact evidence, and suggests what kind of software would solve it. One click turns an insight into a draft; the suggested fields fill the card and the business confirms them; the tech docs then become the technical specification for a student team. **Result: the business gets a dense, high-quality task card without having to describe the problem itself.**
+
 ## Team
 
 - **Arman Nurlanbek** (armannurlanbek): lead; AI layer, server and ingest API, rating engine, seed data, Collector logic, deploy.
