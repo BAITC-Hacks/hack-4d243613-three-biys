@@ -25,7 +25,7 @@ export function ProjectPage({ id }: { id: string }) {
       <div className="space-y-6">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">{card.fields.title}</h1>
+            <h1 className="text-2xl font-extrabold">{card.fields.title}</h1>
             <LevelBadge level={rating.level} />
           </div>
           <p className="text-sm text-muted">{card.businessName} · {card.industry} · {card.topic}</p>
@@ -39,7 +39,7 @@ export function ProjectPage({ id }: { id: string }) {
           ))}
         </section>
         <section className="space-y-2">
-          <h2 className="text-xl font-semibold">Technical documentation</h2>
+          <h2 className="text-xl font-extrabold">Technical documentation</h2>
           {card.techSpec ? <TechSpecView spec={card.techSpec} /> : <p className="text-sm text-muted">Not provided yet.</p>}
         </section>
         <ProposalForm taskId={card.id} />
@@ -60,7 +60,7 @@ function ProposalForm({ taskId }: { taskId: string }) {
   }
   if (existing) {
     return (
-      <div className="rounded bg-accent-soft p-3 text-sm">
+      <div className="rounded-control bg-accent-soft p-3 text-sm">
         {team.name} already submitted a proposal — status: <b>{existing.status}</b>
         {existing.rejectReason && <div className="mt-1 text-muted">Feedback: {existing.rejectReason}</div>}
       </div>
@@ -70,16 +70,16 @@ function ProposalForm({ taskId }: { taskId: string }) {
   const checks = proposalChecks(form);
   const valid = checks.every((c) => c.ok);
   return (
-    <section className="space-y-2 rounded border border-border p-4">
-      <h2 className="text-xl font-semibold">Submit a proposal as {team.name}</h2>
-      <textarea className="h-20 w-full rounded border border-border p-2 text-sm" placeholder="Idea"
+    <section className="space-y-2 rounded-control border-2 border-border p-4">
+      <h2 className="text-xl font-extrabold">Submit a proposal as {team.name}</h2>
+      <textarea className="h-20 w-full rounded-control border-2 border-border bg-surface p-2 text-sm" placeholder="Idea"
         value={form.idea} onChange={(e) => setForm({ ...form, idea: e.target.value })} />
-      <textarea className="h-24 w-full rounded border border-border p-2 text-sm" placeholder="Plan"
+      <textarea className="h-24 w-full rounded-control border-2 border-border bg-surface p-2 text-sm" placeholder="Plan"
         value={form.plan} onChange={(e) => setForm({ ...form, plan: e.target.value })} />
       <div className="flex flex-wrap gap-2 text-sm">
-        <input type="date" className="rounded border border-border px-2 py-1"
+        <input type="date" className="rounded-control border-2 border-border bg-surface px-2 py-1"
           value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} />
-        <input className="flex-1 rounded border border-border px-2 py-1" placeholder="Prototype link"
+        <input className="flex-1 rounded-control border-2 border-border bg-surface px-2 py-1" placeholder="Prototype link"
           value={form.prototypeUrl} onChange={(e) => setForm({ ...form, prototypeUrl: e.target.value })} />
       </div>
       <ul className="text-xs">
@@ -87,8 +87,8 @@ function ProposalForm({ taskId }: { taskId: string }) {
           <li key={c.label} className={c.ok ? 'text-[#365314]' : 'text-muted'}>{c.ok ? '✓' : '○'} {c.label}</li>
         ))}
       </ul>
-      <button disabled={!valid} className="rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"
-        onClick={() => submitProposal({ taskId, teamId: team.id, ...form })}>
+      <button disabled={!valid} className="inline-flex items-center gap-2 rounded-control bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-50"
+        onClick={() => submitProposal({ taskId, teamId: team.id, ...form })}><span className="led" />
         Submit proposal
       </button>
     </section>

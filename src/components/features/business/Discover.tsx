@@ -37,10 +37,10 @@ export function Discover() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Discover problems worth solving</h1>
+      <h1 className="text-2xl font-extrabold">Discover problems worth solving</h1>
 
       <section className="space-y-2">
-        <h2 className="text-xl font-semibold">Sources</h2>
+        <h2 className="text-xl font-extrabold">Sources</h2>
         {sourcesError && <p className="text-sm text-amber-700">{sourcesError}</p>}
         {sources && (
           <>
@@ -65,10 +65,10 @@ export function Discover() {
 
       <section className="space-y-3">
         <button disabled={busy} onClick={analyze}
-          className="rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50">
+          className="inline-flex items-center gap-2 rounded-control bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-50"><span className="led" />
           {busy ? 'Analyzing…' : 'Analyze last 4 weeks'}
         </button>
-        {error && <div className="rounded bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+        {error && <div className="rounded-control bg-red-50 p-3 text-sm text-red-700">{error}</div>}
         {trace.length > 0 && <AgentTrace steps={trace} />}
         <div className="grid gap-4 md:grid-cols-2">
           {insights.map((i) => (

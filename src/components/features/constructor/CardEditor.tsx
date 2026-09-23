@@ -73,26 +73,26 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
   return (
     <div className="grid gap-6 md:grid-cols-[1fr_320px]">
       <div className="space-y-4">
-        <div className="flex gap-2 border-b border-border">
+        <div className="flex gap-2">
           {(['card', 'tech'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-3 py-2 ${tab === t ? 'border-b-2 border-accent font-semibold' : 'text-muted'}`}
+              className={`border-2 border-border px-3 py-2 font-semibold ${tab === t ? 'bg-accent shadow-card' : 'bg-surface text-muted'}`}
             >
               {t === 'card' ? 'Task card' : 'Tech docs'}
             </button>
           ))}
         </div>
 
-        {error && <div className="rounded bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+        {error && <div className="rounded-control bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
         {tab === 'card' && FIELDS.map(({ key, label }) => (
           <div key={key} id={`field-${key}`} className="space-y-1">
             <div className="flex items-center gap-2 text-sm">
               <span className="font-medium">{label}</span>
               {card.fieldSource[key] && (
-                <span className="rounded bg-surface-2 px-1.5 text-xs text-muted">from {card.fieldSource[key]}</span>
+                <span className="rounded-control bg-surface-2 px-1.5 text-xs text-muted">from {card.fieldSource[key]}</span>
               )}
               {!card.fields[key] && <span className="text-xs text-amber-700">not stated</span>}
               <label className="ml-auto flex items-center gap-1 text-xs">
@@ -113,7 +113,7 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
               />
             )}
             <textarea
-              className="h-20 w-full rounded border border-border p-2 text-sm"
+              className="h-20 w-full rounded-control border-2 border-border bg-surface p-2 text-sm"
               value={card.fields[key] ?? ''}
               onChange={(e) => updateFields(card.id, { [key]: e.target.value || null })}
             />
@@ -130,15 +130,15 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
             <button
               disabled={busy}
               onClick={generate}
-              className="rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"
-            >
+              className="inline-flex items-center gap-2 rounded-control bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-50"
+            ><span className="led" />
               {busy ? 'Generating…' : card.techSpec ? 'Regenerate tech docs' : 'Generate tech docs'}
             </button>
             {card.techSpec && (
               <>
                 <label className="block text-sm font-medium">Summary
                   <textarea
-                    className="mt-1 h-20 w-full rounded border border-border p-2 font-normal"
+                    className="mt-1 h-20 w-full rounded-control border-2 border-border bg-surface p-2 font-normal"
                     value={card.techSpec.summary}
                     onChange={(e) => editSpec({ summary: e.target.value })}
                   />
@@ -146,7 +146,7 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
                 {LIST_KEYS.map(({ key, label }) => (
                   <label key={key} className="block text-sm font-medium">{label} <span className="text-xs text-muted">(one per line)</span>
                     <textarea
-                      className="mt-1 h-24 w-full rounded border border-border p-2 font-normal"
+                      className="mt-1 h-24 w-full rounded-control border-2 border-border bg-surface p-2 font-normal"
                       value={card.techSpec![key].join('\n')}
                       onChange={(e) => editSpec({ [key]: e.target.value.split('\n') })}
                     />
@@ -180,16 +180,24 @@ export function CardEditor({ cardId, onPublished }: { cardId: string; onPublishe
         />
         {card.history.length > 1 && <ScoreHistory history={card.history} />}
         {card.status === 'published' ? (
-          <div className="rounded bg-accent-soft p-3 text-sm text-[#365314]">Published to the catalog</div>
+          <div className="rounded-control bg-accent-soft p-3 text-sm text-[#365314]">Published to the catalog</div>
         ) : (
           <>
             <button
               disabled={!card.fields.title}
               onClick={() => { publish(card.id); onPublished?.(); }}
-              className="w-full rounded bg-accent px-4 py-2 font-semibold text-accent-foreground disabled:opacity-50"
+              className="w-full rounded-control border-2 border-border bg-accent px-4 py-2 font-semibold text-accent-foreground shadow-card disabled:opacity-50"
             >
               Publish to catalog
             </button>
+            {!card.fields.title && (
+              <p className="text-xs text-amber-800">
+                Add a title to publish.{' '}
+                <button className="underline" onClick={() => { setTab('card'); setTimeout(() => document.getElementById('field-title')?.scrollIntoView({ behavior: 'smooth', block: 'center' })); }}>
+                  Go to title
+                </button>
+              </p>
+            )}
             {!card.techSpecConfirmed && (
               <p className="text-xs text-muted">Tip: confirm tech docs so students can start faster.</p>
             )}

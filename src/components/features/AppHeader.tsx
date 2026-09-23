@@ -32,7 +32,7 @@ export function AppHeader() {
   };
 
   return (
-    <header className="border-b border-border">
+    <header className="border-b-2 border-border">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3">
         <Link href="/" aria-label="Көпір — home"><Logo /></Link>
         {hydrated && (
@@ -49,7 +49,7 @@ export function AppHeader() {
               ))}
             </nav>
             <div className="ml-auto flex items-center gap-2 text-sm">
-              <div className="flex rounded border border-border">
+              <div className="flex rounded-control border-2 border-border">
                 {(['business', 'student'] as Role[]).map((r) => (
                   <button
                     key={r}
@@ -62,7 +62,7 @@ export function AppHeader() {
               </div>
               {role === 'student' && (
                 <select
-                  className="rounded border border-border px-2 py-1"
+                  className="rounded-control border-2 border-border bg-surface px-2 py-1"
                   value={currentTeamId}
                   onChange={(e) => setTeam(e.target.value)}
                 >

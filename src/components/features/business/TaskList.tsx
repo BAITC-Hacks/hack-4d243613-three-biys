@@ -14,8 +14,8 @@ export function TaskList() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">My tasks</h1>
-        <Link href="/business/new" className="rounded bg-primary px-4 py-2 text-sm text-primary-foreground">New task</Link>
+        <h1 className="text-2xl font-extrabold">My tasks</h1>
+        <Link href="/business/new" className="inline-flex items-center gap-2 rounded-control bg-primary px-4 py-2 font-semibold text-sm text-primary-foreground"><span className="led" />New task</Link>
       </div>
       {cards.length === 0 && <p className="text-muted">No tasks yet — start in the Constructor or Discover.</p>}
       <table className="w-full text-sm">

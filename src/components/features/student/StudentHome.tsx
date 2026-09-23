@@ -16,7 +16,7 @@ function Matches({ team, matches, cards }: { team: TeamProfile; matches: Match[]
       {matches.map((m) => {
         const card = cards.find((c) => c.id === m.taskId)!;
         return (
-          <Link key={m.taskId} href={`/catalog/${m.taskId}`} className="space-y-2">
+          <Link key={m.taskId} href={`/catalog/${m.taskId}`} className="block space-y-2 transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5">
             <ProjectCard card={card} rating={rateCard(card)} />
             <ul className="text-xs text-[#365314]">{m.reasons.map((r) => <li key={r}>✓ {r}</li>)}</ul>
             {ai[m.taskId] && <p className="text-xs text-muted">AI: {ai[m.taskId]}</p>}
@@ -41,11 +41,11 @@ export function StudentHome() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1"><TeamCard team={team} points={teamPoints[team.id] ?? 0} /></div>
-        <Link href="/student/profile" className="rounded border border-border px-3 py-1 text-sm">Edit profile</Link>
+        <Link href="/student/profile" className="rounded-control border-2 border-border px-3 py-1 text-sm">Edit profile</Link>
       </div>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold">Projects you can take</h2>
+        <h2 className="text-xl font-extrabold">Projects you can take</h2>
         <p className="text-sm text-muted">
           Suggestions only — the full <Link href="/catalog" className="underline">catalog</Link> is always open to you.
         </p>
@@ -54,13 +54,13 @@ export function StudentHome() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-xl font-semibold">Leaderboard</h2>
+        <h2 className="text-xl font-extrabold">Leaderboard</h2>
         <p className="text-xs text-muted">Points come only from milestones confirmed by the business — never for applying.</p>
         <Leaderboard teams={teams} points={teamPoints} />
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-xl font-semibold">Our proposals</h2>
+        <h2 className="text-xl font-extrabold">Our proposals</h2>
         {mine.length === 0 && <p className="text-sm text-muted">None yet.</p>}
         <ul className="space-y-1 text-sm">
           {mine.map((p) => (
