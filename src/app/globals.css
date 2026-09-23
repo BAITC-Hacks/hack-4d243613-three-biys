@@ -94,3 +94,17 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .led { animation: none; }
 }
+
+/* Primary button LED (approved "LED" button): a pulsing lime square before the label. */
+.btn-led::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  flex: none;
+  background: var(--accent);
+  box-shadow: var(--glow-accent);
+  animation: led-pulse 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-led::before { animation: none; }
+}
