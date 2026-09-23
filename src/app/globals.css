@@ -1,18 +1,36 @@
 @import "tailwindcss";
 
-/* Theme tokens — owner: B. Placeholder values; B replaces them with the real design system. */
+/* Theme tokens (owner: B, design). Palette "Graphite and lime", chosen 23.09 14:30.
+   Graphite carries text and primary actions, lime marks progress, readiness and the rating.
+   Lime is never used for body text on light backgrounds: contrast is too low. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --muted: #6b7280;
-  --surface: #f9fafb;
-  --border: #e5e7eb;
-  --primary: #2563eb;
+  --background: #f7f7f5;
+  --foreground: #18181b;
+  --muted: #71717a;
+  --surface: #ffffff;
+  --surface-2: #efefec;
+  --border: #e4e4e0;
+
+  --primary: #18181b;
   --primary-foreground: #ffffff;
-  --level-draft: #9ca3af;
-  --level-working: #f59e0b;
-  --level-ready: #10b981;
-  --level-priority: #7c3aed;
+  --accent: #84cc16;
+  --accent-strong: #65a30d;
+  --accent-soft: #ecfccb;
+  --accent-foreground: #18181b;
+
+  --level-draft: #a1a1aa;
+  --level-working: #eab308;
+  --level-ready: #84cc16;
+  --level-priority: #18181b;
+
+  --danger: #dc2626;
+  --success: #16a34a;
+
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-pill: 999px;
+  --shadow-card: 0 1px 2px rgb(24 24 27 / 0.06), 0 8px 24px rgb(24 24 27 / 0.06);
+  --shadow-pop: 0 2px 4px rgb(24 24 27 / 0.08), 0 16px 40px rgb(24 24 27 / 0.12);
 }
 
 @theme inline {
@@ -20,13 +38,24 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-border: var(--border);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-foreground: var(--accent-foreground);
   --color-level-draft: var(--level-draft);
   --color-level-working: var(--level-working);
   --color-level-ready: var(--level-ready);
   --color-level-priority: var(--level-priority);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --radius-card: var(--radius);
+  --radius-control: var(--radius-sm);
+  --shadow-card: var(--shadow-card);
+  --shadow-pop: var(--shadow-pop);
 }
 
 body {
