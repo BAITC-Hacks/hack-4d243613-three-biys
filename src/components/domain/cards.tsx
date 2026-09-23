@@ -21,8 +21,9 @@ import type { Level, Proposal, Rating, TaskCard, TeamProfile, TechSpec } from '@
 // Direction "Brutal tech": square corners, graphite frame, hard shadow; `hairline` for dividers inside a surface.
 const LIME_INK = 'text-[#365314]'; // lime is never text on a light background; this is its readable partner
 const FOCUS_RING = 'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2';
-const SURFACE = 'rounded-card border border-border bg-surface';
-const LIFT = 'transition-[box-shadow,translate] duration-200 ease-out motion-safe:hover:-translate-y-0.5 motion-reduce:transition-none';
+const SURFACE = 'rounded-card border-2 border-border bg-surface';
+// Hard lift (DESIGN.md): the tile moves 2px up-left while its hard shadow grows from 4px to 6px.
+const LIFT = 'transition-[box-shadow,translate] duration-200 ease-out motion-safe:hover:-translate-x-0.5 motion-safe:hover:-translate-y-0.5 motion-safe:in-focus-visible:-translate-x-0.5 motion-safe:in-focus-visible:-translate-y-0.5 motion-reduce:transition-none';
 // Each variant sets its own border color and the padding is separate: two utilities for the same property
 // resolve by stylesheet order, not class order, so a base `border-transparent` would hide the secondary border.
 const BTN = 'inline-flex h-8 shrink-0 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-control border text-sm font-semibold transition-colors duration-150 motion-reduce:transition-none [&_svg]:size-4 [&_svg]:shrink-0';
@@ -164,6 +165,43 @@ function ScoreRing({ total, level, size = 44 }: { total: number; level: Level; s
       <span aria-hidden="true" className="absolute font-display text-sm font-bold tabular-nums text-foreground">{value}</span>
     </span>
   );
+}
+
+/** Thin score bar under the tile's score block; fills from 0 on mount (CSS @starting-style), static under reduced motion. */
+function ScoreFill({ total, level }: { total: number; level: Level }) {
+  const value = Math.min(100, Math.max(0, Math.round(total)));
+  const fill = level === 'draft' ? 'bg-level-draft' : level === 'working' ? 'bg-level-working' : 'bg-accent';
+  return (
+    <span aria-hidden="true" className="block h-1.5 w-full bg-surface-2">
+      <span
+        className={clsx('block h-full w-(--fill) transition-[width] duration-700 ease-out starting:w-0 motion-reduce:transition-none', fill)}
+        style={{ '--fill': `${value}%` } as CSSProperties}
+      />
+    </span>
+  );
+}
+
+/** True once the element has scrolled into view (IntersectionObserver); stays true. `active` re-arms after a remount. */
+function useSeen<T extends Element>(active: boolean) {
+  const ref = useRef<T>(null);
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!active || seen || !el) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      const frame = requestAnimationFrame(() => setSeen(true));
+      return () => cancelAnimationFrame(frame);
+    }
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        setSeen(true);
+        io.disconnect();
+      }
+    }, { threshold: 0.15 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [active, seen]);
+  return { ref, seen };
 }
 
 function ChipList({ items, label, max, matches }: {
@@ -349,6 +387,7 @@ export function ProjectCard({ card, rating, proposalsCount, onOpen, openLabel = 
         <div className="flex shrink-0 flex-col items-end gap-1.5">
           <ScoreRing total={rating.total} level={rating.level} />
           <LevelPill level={rating.level} />
+          <ScoreFill total={rating.total} level={rating.level} />
         </div>
       </header>
 
@@ -928,12 +967,15 @@ function RankBadge({ rank }: { rank: number | null }) {
       </span>
     );
   }
+  // Square medals for the podium: 1 lime, 2 graphite with a lime number, 3 white with a graphite frame.
+  const medal = 'border-2 border-border';
   return (
     <span
       className={clsx(
         'relative grid size-7 place-items-center font-display text-sm font-bold tabular-nums',
-        rank === 1 && 'bg-primary text-accent',
-        rank > 1 && rank <= 3 && 'border border-border bg-surface text-foreground',
+        rank === 1 && [medal, 'bg-accent text-accent-foreground shadow-[2px_2px_0_var(--border)]'],
+        rank === 2 && [medal, 'bg-primary text-accent shadow-[2px_2px_0_var(--accent)]'],
+        rank === 3 && [medal, 'bg-surface text-foreground shadow-[2px_2px_0_var(--border)]'],
         rank > 3 && 'text-muted',
       )}
     >
@@ -951,6 +993,8 @@ export function Leaderboard({ teams, points, currentTeamId, className }: {
   currentTeamId?: string;
   className?: string;
 }) {
+  // Bars grow from 0 the first time the board scrolls into view (motion-safe only; reduced motion shows final widths).
+  const { ref: listRef, seen } = useSeen<HTMLOListElement>(teams.length > 0);
   if (teams.length === 0) {
     return (
       <p className={clsx('border border-dashed border-border px-4 py-6 text-center text-sm text-muted', className)}>
@@ -963,10 +1007,11 @@ export function Leaderboard({ teams, points, currentTeamId, className }: {
 
   return (
     <ol
+      ref={listRef}
       aria-label="Team leaderboard"
       className={clsx(SURFACE, 'divide-y divide-hairline overflow-hidden shadow-card', className)}
     >
-      {rows.map(({ team, points: pts, rank }) => {
+      {rows.map(({ team, points: pts, rank }, i) => {
         const leader = rank === 1;
         const podium = rank !== null && rank <= 3;
         const mine = team.id === currentTeamId;
@@ -978,7 +1023,7 @@ export function Leaderboard({ teams, points, currentTeamId, className }: {
             className={clsx(
               'grid grid-cols-[1.75rem_minmax(0,1fr)_auto] items-center gap-x-3 px-4',
               podium ? 'py-3.5' : 'py-3',
-              mine && 'bg-surface-2/70',
+              mine && 'bg-surface-2/70 shadow-[inset_4px_0_0_var(--accent)]',
             )}
           >
             <RankBadge rank={rank} />
@@ -996,8 +1041,15 @@ export function Leaderboard({ teams, points, currentTeamId, className }: {
                   </span>
                 )}
               </div>
-              <div aria-hidden="true" className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-2">
-                <div className={clsx('h-full rounded-full', leader ? 'bg-accent' : 'bg-foreground/25')} style={{ width: `${pct}%` }} />
+              <div aria-hidden="true" className="mt-1.5 h-1.5 overflow-hidden bg-surface-2">
+                <div
+                  className={clsx(
+                    'h-full w-(--w) transition-[width] duration-700 ease-out motion-reduce:transition-none',
+                    !seen && 'motion-safe:w-0',
+                    leader ? 'bg-accent' : mine ? 'bg-foreground/60' : 'bg-foreground/25',
+                  )}
+                  style={{ '--w': `${pct}%`, transitionDelay: `${Math.min(i, 8) * 70}ms` } as CSSProperties}
+                />
               </div>
             </div>
             <p className="whitespace-nowrap text-right">

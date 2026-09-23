@@ -1,8 +1,11 @@
+'use client';
+
 // Rating UI: the business sees a transparent readiness score 0-100, why it is what it is, and how to raise it.
 // Owner: B. Presentational only: props in, callbacks out, no store or API access. Types: src/lib/types.ts.
-// Motion is CSS only (transitions plus @starting-style through Tailwind `starting:`) and switches off under
-// prefers-reduced-motion. No hooks, so every component renders in server and client trees alike.
-import { Fragment, type CSSProperties, type ReactNode } from 'react';
+// Motion: CSS transitions plus @starting-style (Tailwind `starting:`), and in RatingPanel a small game layer
+// (score count-up, "+N" chip, level-up burst, badge stamp) driven by local state. Everything switches off under
+// prefers-reduced-motion and shows the final state. Client module like the rest of src/components/domain.
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import clsx from 'clsx';
 import { ArrowDown, ArrowRight, ArrowUp, Check, ChevronRight, Sparkles, Trophy, X } from 'lucide-react';
 import type {
@@ -74,6 +77,8 @@ interface Dict {
   nextStep: string;
   levelUp: (level: string) => string;
   levelDown: (level: string) => string;
+  /** Short line flashed inside RatingPanel when the level rises. */
+  levelUpLine: (level: string) => string;
   close: string;
   history: string;
   historyEmpty: string;
@@ -118,6 +123,7 @@ const RU: Dict = {
   nextStep: 'Следующий шаг:',
   levelUp: (level) => `Новый уровень: ${level}`,
   levelDown: (level) => `Уровень снижен: ${level}`,
+  levelUpLine: (level) => `Новый уровень: ${level}`,
   close: 'Закрыть',
   history: 'История рейтинга',
   historyEmpty: 'Истории пока нет',
@@ -162,6 +168,7 @@ const EN: Dict = {
   nextStep: 'Next step:',
   levelUp: (level) => `New level: ${level}`,
   levelDown: (level) => `Level down: ${level}`,
+  levelUpLine: (level) => `Level up: ${level}`,
   close: 'Close',
   history: 'Score history',
   historyEmpty: 'No history yet',
@@ -334,9 +341,11 @@ function clamp(value: number, min: number, max: number) {
 // ---------------------------------------------------------------------------------------------------------------
 // LevelBadge
 
-export function LevelBadge({ level, locale = DEFAULT_LOCALE, className }: {
+export function LevelBadge({ level, locale = DEFAULT_LOCALE, pulse = true, className }: {
   level: Level;
   locale?: RatingLocale;
+  /** Subtle lime LED pulse on the dot of the top level ('priority' only). Off under reduced motion. */
+  pulse?: boolean;
   className?: string;
 }) {
   const t = DICT[locale];
@@ -350,7 +359,15 @@ export function LevelBadge({ level, locale = DEFAULT_LOCALE, className }: {
         className,
       )}
     >
-      <span aria-hidden="true" className={clsx('size-1.5 shrink-0 rounded-full', BADGE_DOT[level])} />
+      <span
+        aria-hidden="true"
+        className={clsx(
+          'size-1.5 shrink-0 rounded-full',
+          BADGE_DOT[level],
+          // `led-pulse` is the global LED keyframes from globals.css (logo and LED button).
+          pulse && level === 'priority' && 'shadow-glow animate-[led-pulse_1.6s_ease-in-out_infinite] motion-reduce:animate-none',
+        )}
+      />
       {t.levels[level]}
     </span>
   );
@@ -396,7 +413,132 @@ export function ScoreBar({ points, max, level, label, className }: {
 const RING_R = 52; // circumference 2 * PI * 52 = 326.73, the literal in the gauge's starting:[stroke-dashoffset]
 const RING_C = 2 * Math.PI * RING_R;
 
-function Gauge({ total, label, caption }: { total: number; label: string; caption: string }) {
+// Game layer keyframes (kp- prefix). React hoists and dedupes the <style> by `href`, so it is emitted once per page
+// however many panels render. Burst squares and the "+N" chip carry their own centering in `transform`.
+const FX_CSS = `
+@keyframes kp-burst {
+  0% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--a)) translateY(-44px) rotate(0deg) scale(1); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--a)) translateY(calc(var(--d) * -1)) rotate(135deg) scale(.5); }
+}
+.kp-burst { animation: kp-burst 700ms cubic-bezier(.2, .7, .3, 1) both; }
+@keyframes kp-gain {
+  0% { opacity: 0; transform: translate(-50%, 8px) scale(.7); }
+  15% { opacity: 1; transform: translate(-50%, 0) scale(1.1); }
+  30% { transform: translate(-50%, -4px) scale(1); }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -34px) scale(1); }
+}
+.kp-gain { animation: kp-gain 1.2s ease-out both; }
+@keyframes kp-stamp {
+  0% { transform: scale(1.15); box-shadow: 0 0 0 5px var(--accent); }
+  55% { transform: scale(.97); box-shadow: 0 0 0 2px var(--accent); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
+}
+.kp-stamp { animation: kp-stamp 480ms cubic-bezier(.3, 1.4, .5, 1); }
+@keyframes kp-notice {
+  0% { opacity: 0; transform: translateY(-6px) scale(.94); }
+  8%, 88% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+.kp-notice { animation: kp-notice 2.5s ease-out both; }
+@keyframes kp-ring {
+  0% { opacity: .9; stroke-width: 20; }
+  100% { opacity: 0; stroke-width: 10; }
+}
+.kp-ring { animation: kp-ring 700ms ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .kp-burst, .kp-gain, .kp-ring { display: none; }
+  .kp-stamp, .kp-notice { animation: none; }
+}
+`;
+
+/** Level-up burst: 10 squares around the ring, fixed angles and distances (no randomness, render stays pure). */
+const BURST = Array.from({ length: 10 }, (_, i) => ({
+  angle: i * 36 + (i % 2 ? 14 : 0),
+  dist: i % 2 ? 76 : 90,
+  size: i % 2 ? 6 : 9,
+}));
+
+const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
+
+/** The displayed number follows `target` with a ~600 ms ease-out count (requestAnimationFrame); instant under reduced motion. */
+function useCountUp(target: number, duration = 600): number {
+  const [value, setValue] = useState(target);
+  const current = useRef(target);
+  useEffect(() => {
+    const from = current.current;
+    if (from === target) return;
+    const ms = window.matchMedia(REDUCED_MOTION).matches ? 0 : duration;
+    let start = -1;
+    let frame = requestAnimationFrame(function tick(now) {
+      if (start < 0) start = now;
+      const p = ms > 0 ? Math.min(1, (now - start) / ms) : 1;
+      const next = Math.round(from + (target - from) * (1 - (1 - p) ** 3));
+      current.current = next;
+      setValue(next);
+      if (p < 1) frame = requestAnimationFrame(tick);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [target, duration]);
+  return value;
+}
+
+interface RatingFx {
+  /** Points of the last rise, and a counter that replays the "+N" chip. */
+  gain: number;
+  gainKey: number;
+  /** Level reached by the last level-up, and a counter that replays the burst and the stamp. */
+  upTo: Level | null;
+  upKey: number;
+}
+
+/**
+ * Celebrations for score changes. The previous total and level live in a ref, so nothing fires on mount (or on the
+ * StrictMode re-run); only a rise after the first render counts. State is set from a frame callback, not the effect body.
+ */
+function useRatingFx(total: number, level: Level) {
+  const [fx, setFx] = useState<RatingFx>({ gain: 0, gainKey: 0, upTo: null, upKey: 0 });
+  const [noticeDone, setNoticeDone] = useState(0);
+  const previous = useRef<{ total: number; level: Level } | null>(null);
+
+  useEffect(() => {
+    const before = previous.current;
+    previous.current = { total, level };
+    if (!before) return;
+    const gain = total - before.total;
+    const up = LEVELS.indexOf(level) > LEVELS.indexOf(before.level);
+    if (gain <= 0 && !up) return;
+    const frame = requestAnimationFrame(() => setFx((f) => ({
+      gain: gain > 0 ? gain : f.gain,
+      gainKey: gain > 0 ? f.gainKey + 1 : f.gainKey,
+      upTo: up ? level : f.upTo,
+      upKey: up ? f.upKey + 1 : f.upKey,
+    })));
+    return () => cancelAnimationFrame(frame);
+  }, [total, level]);
+
+  // The "Level up" line stays for 2.5 s.
+  useEffect(() => {
+    if (fx.upKey === 0) return;
+    const id = setTimeout(() => setNoticeDone(fx.upKey), 2500);
+    return () => clearTimeout(id);
+  }, [fx.upKey]);
+
+  const notice = fx.upKey > 0 && noticeDone !== fx.upKey ? fx.upTo : null;
+  return { ...fx, notice };
+}
+
+function Gauge({ total, shown, label, caption, gain, gainKey, burstKey }: {
+  total: number;
+  /** Number drawn in the middle (counts toward `total`). */
+  shown: number;
+  label: string;
+  caption: string;
+  gain: number;
+  gainKey: number;
+  burstKey: number;
+}) {
   return (
     <div role="img" aria-label={label} className="relative size-32 shrink-0">
       <svg viewBox="0 0 120 120" aria-hidden="true" className="size-full -rotate-90">
@@ -414,13 +556,35 @@ function Gauge({ total, label, caption }: { total: number; label: string; captio
             className="stroke-accent transition-[stroke-dashoffset] duration-[600ms] ease-[ease] starting:[stroke-dashoffset:326.73px] motion-reduce:transition-none"
           />
         )}
+        {burstKey > 0 && (
+          // Level-up flash: a full lime ring that swells out and fades over the gauge.
+          <circle key={burstKey} cx="60" cy="60" r={RING_R} fill="none" className="kp-ring stroke-accent" />
+        )}
       </svg>
-      <span className="absolute inset-0 flex flex-col items-center justify-center">
-        <span key={total} className={clsx('font-display text-4xl font-bold leading-none tabular-nums text-foreground', POP)}>
-          {total}
+      {burstKey > 0 && (
+        <span key={burstKey} aria-hidden="true" className="pointer-events-none absolute inset-0">
+          {BURST.map((p, i) => (
+            <span
+              key={i}
+              className={clsx('kp-burst absolute left-1/2 top-1/2', i % 2 ? 'bg-accent' : 'border-2 border-border bg-accent')}
+              style={{ '--a': `${p.angle}deg`, '--d': `${p.dist}px`, width: p.size, height: p.size } as CSSProperties}
+            />
+          ))}
         </span>
+      )}
+      <span className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-display text-4xl font-bold leading-none tabular-nums text-foreground">{shown}</span>
         <span className="mt-1 text-xs text-muted">{caption}</span>
       </span>
+      {gainKey > 0 && (
+        <span
+          key={gainKey}
+          aria-hidden="true"
+          className="kp-gain pointer-events-none absolute left-1/2 top-2 z-10 whitespace-nowrap border-2 border-border bg-accent px-1.5 py-px font-display text-xs font-bold tabular-nums text-accent-foreground shadow-[2px_2px_0_var(--border)]"
+        >
+          +{gain}
+        </span>
+      )}
     </div>
   );
 }
@@ -531,15 +695,22 @@ function ComponentRow({ component, locale, open }: { component: RatingComponent;
   );
 }
 
-/** A list row that becomes a real button when there is something to do on click. */
+/** A list row that becomes a real button (with the "hard lift" hover) when there is something to do on click. */
 function ActionItem({ onClick, hover, children }: { onClick?: () => void; hover: string; children: ReactNode }) {
-  const base = 'flex w-full items-start gap-2 rounded-control px-2.5 py-2 text-left text-sm text-foreground';
+  // The transparent 2px border reserves room for the hover frame; padding is 2px smaller so rows keep their size.
+  const base = 'flex w-full items-start gap-2 rounded-control border-2 border-transparent px-2 py-1.5 text-left text-sm text-foreground';
   if (!onClick) return <div className={base}>{children}</div>;
   return (
     <button
       type="button"
       onClick={onClick}
-      className={clsx(base, 'group/item cursor-pointer transition-colors motion-reduce:transition-none', hover, FOCUS)}
+      className={clsx(
+        base,
+        'group/item cursor-pointer transition-[background-color,border-color,box-shadow,translate] duration-150 ease-out motion-reduce:transition-none',
+        'hover:border-border hover:shadow-[3px_3px_0_var(--border)] motion-safe:hover:-translate-x-0.5 motion-safe:hover:-translate-y-0.5',
+        hover,
+        FOCUS,
+      )}
     >
       {children}
       <ChevronRight
@@ -578,31 +749,58 @@ export function RatingPanel({
   const gaugeLabel = t.gauge(total, levelName);
   const shown = rating.nextActions.slice(0, Math.max(0, maxActions));
   const rest = rating.nextActions.slice(Math.max(0, maxActions));
+  const displayed = useCountUp(total);
+  const fx = useRatingFx(total, rating.level);
+  // The badge "stamps" once per level-up; otherwise it fades in on mount and on a level change as before.
+  const stamped = fx.upKey > 0 && fx.upTo === rating.level;
 
   const actionRow = (action: Rating['nextActions'][number], i: number) => (
     <li key={`${action.field}-${i}`}>
       <ActionItem hover="hover:bg-accent-soft" onClick={onAction && (() => onAction(action.field))}>
-        <span className="min-w-0 flex-1">
-          <span className="font-bold tabular-nums text-[#365314]">{t.gain(action.gain)}</span>
-          <span aria-hidden="true" className="text-muted"> · </span>
-          <span>{localize(action.text, locale)}</span>
+        <span className="mt-px shrink-0 border-2 border-border bg-accent-soft px-1.5 text-xs font-bold leading-4 tabular-nums text-[#365314]">
+          {t.gain(action.gain)}
         </span>
+        <span className="min-w-0 flex-1">{localize(action.text, locale)}</span>
       </ActionItem>
     </li>
   );
 
   return (
     <section className={clsx(SURFACE, 'p-5 shadow-card', className)}>
-      <h2 className="text-sm font-extrabold text-foreground">{t.panelTitle}</h2>
+      <style href="kp-rating-fx" precedence="medium">{FX_CSS}</style>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-extrabold text-foreground">{t.panelTitle}</h2>
+        <div aria-live="polite" aria-atomic="true" className="min-w-0">
+          {fx.notice && (
+            <p
+              key={fx.upKey}
+              className="kp-notice -my-1 inline-flex items-center gap-1.5 border-2 border-border bg-accent px-2 py-0.5 text-xs font-extrabold text-accent-foreground shadow-[2px_2px_0_var(--border)]"
+            >
+              <Sparkles aria-hidden="true" className="size-3.5 shrink-0" strokeWidth={2.5} />
+              {t.levelUpLine(t.levels[fx.notice])}
+            </p>
+          )}
+        </div>
+      </div>
 
       <div className="mt-4 flex items-center gap-4">
-        <Gauge total={total} label={gaugeLabel} caption={t.of100} />
+        <Gauge
+          total={total}
+          shown={displayed}
+          label={gaugeLabel}
+          caption={t.of100}
+          gain={fx.gain}
+          gainKey={fx.gainKey}
+          burstKey={fx.upKey}
+        />
         <div className="min-w-0 space-y-2">
           <LevelBadge
-            key={rating.level}
+            key={stamped ? `${rating.level}-up-${fx.upKey}` : rating.level}
             level={rating.level}
             locale={locale}
-            className="transition-[opacity,scale] duration-300 ease-out starting:scale-90 starting:opacity-0 motion-reduce:transition-none"
+            className={stamped
+              ? 'kp-stamp'
+              : 'transition-[opacity,scale] duration-300 ease-out starting:scale-90 starting:opacity-0 motion-reduce:transition-none'}
           />
           <p className="text-xs text-foreground">{next ? t.toNext(toNext, t.levels[next]) : t.topLevel}</p>
           <p className="text-xs text-muted">{t.perks[rating.level]}</p>
