@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Tektur:wght@700;800&display=swap");
 @import "tailwindcss";
 
 /* Theme tokens (owner: B, design). Palette "Graphite and lime", chosen 23.09 14:30.
@@ -56,6 +57,8 @@
   --radius-control: var(--radius-sm);
   --shadow-card: var(--shadow-card);
   --shadow-pop: var(--shadow-pop);
+  /* Display font of the logo: Tektur (checked: full Kazakh alphabet). Use for the logo, scores, big numbers. */
+  --font-display: "Tektur", ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
